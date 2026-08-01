@@ -87,9 +87,9 @@ export default function About() {
                 <div className="w-10 h-10 rounded-2xl bg-[#E8F0EC] flex items-center justify-center text-[#3E8E6E]">
                   <Building2 className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold">Our Hospital Story</h3>
+                <h3 className="text-lg sm:text-xl font-bold">Our Hospital Story</h3>
               </div>
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium">
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">
                 {aboutData.story}
               </p>
             </div>
@@ -104,7 +104,7 @@ export default function About() {
                   {valueList.map((val, idx) => (
                     <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-[#E8F0EC]/60 border border-[#D5E5DD]/60">
                       <CheckCircle2 className="w-4 h-4 text-[#3E8E6E] flex-shrink-0" />
-                      <span className="text-xs font-bold text-[#0B3D5C]">{val}</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#0B3D5C]">{val}</span>
                     </div>
                   ))}
                 </div>
@@ -125,9 +125,9 @@ export default function About() {
                 <div className="w-10 h-10 rounded-2xl bg-[#3E8E6E] flex items-center justify-center text-white shadow-md">
                   <Target className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold text-white">Our Clinical Mission</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white">Our Mission</h3>
               </div>
-              <p className="text-sm text-slate-200 leading-relaxed font-medium">
+              <p className="text-base sm:text-lg text-slate-200 leading-relaxed font-medium">
                 {aboutData.mission}
               </p>
             </div>

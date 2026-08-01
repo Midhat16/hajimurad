@@ -95,8 +95,8 @@ export default function AdminSidebar() {
         {/* Brand logo */}
         <div className="flex items-center justify-between px-2">
           <Link href="/admin/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#3E8E6E] flex items-center justify-center shadow-md">
-              <Eye className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 p-1 flex items-center justify-center shadow-md">
+              <img src="/images/logo.png" alt="Haji Murad Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-extrabold tracking-tight text-white leading-tight">
@@ -127,11 +127,10 @@ export default function AdminSidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                  isActive
-                    ? "bg-[#3E8E6E] text-white shadow-md"
-                    : "text-slate-300 hover:bg-[#082D44] hover:text-white"
-                }`}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
+                  ? "bg-[#3E8E6E] text-white shadow-md"
+                  : "text-slate-300 hover:bg-[#082D44] hover:text-white"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className="w-5 h-5 flex-shrink-0" />
@@ -173,10 +172,10 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile Bar Trigger */}
-      <div className="md:hidden fixed top-3 left-4 z-50">
+      <div className="md:hidden fixed top-2.5 left-2.5 z-50">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2.5 rounded-xl bg-[#0B3D5C] text-white shadow-lg border border-[#3E8E6E]/40 cursor-pointer"
+          className="p-2 rounded-xl bg-[#0B3D5C] text-white shadow-lg border border-[#3E8E6E]/40 cursor-pointer hover:bg-[#082D44]"
           aria-label="Toggle Sidebar"
         >
           <Menu className="w-5 h-5" />
@@ -199,7 +198,7 @@ export default function AdminSidebar() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-64 bg-[#0B3D5C] text-white h-full shadow-2xl z-10"
+              className="relative w-[85vw] max-w-[260px] bg-[#0B3D5C] text-white h-full shadow-2xl z-10 overflow-y-auto"
             >
               {sidebarContent}
             </motion.aside>

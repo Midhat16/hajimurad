@@ -1,8 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
   reactCompiler: true,
+
+  // Static export
+  output: 'export',
+
+  // Optional: Agar image optimization use nahi karni
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -22,6 +27,9 @@ const nextConfig = {
       },
     ],
   },
+
+  // Agar URL ke end me slash chahiye (shared hosting ke liye helpful)
+  trailingSlash: true,
 };
 
 export default nextConfig;

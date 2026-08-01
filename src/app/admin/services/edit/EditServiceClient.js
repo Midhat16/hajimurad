@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import TechnologyForm from "@/components/admin/TechnologyForm";
+import ServiceForm from "@/components/admin/ServiceForm";
 
-export default function EditTechnologyPage({ params }) {
-  const resolvedParams = use(params);
-  const techId = resolvedParams.id;
+export default function EditServiceClient() {
+  const searchParams = useSearchParams();
+  const serviceId = searchParams?.get("id");
   const router = useRouter();
 
   const [initialData, setInitialData] = useState(null);
@@ -16,32 +16,33 @@ export default function EditTechnologyPage({ params }) {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    async function fetchTech() {
+    async function fetchService() {
+      if (!serviceId) return;
       try {
-        const docSnap = await getDoc(doc(db, "technologies", techId));
+        const docSnap = await getDoc(doc(db, "services", serviceId));
         if (docSnap.exists()) {
           setInitialData({ id: docSnap.id, ...docSnap.data() });
         } else {
-          alert("Technology item not found.");
-          router.push("/admin/technologies");
+          alert("Service item not found.");
+          router.push("/admin/services");
         }
       } catch (err) {
-        console.error("Error fetching technology:", err);
+        console.error("Error fetching service:", err);
       } finally {
         setLoading(false);
       }
     }
-    if (techId) fetchTech();
-  }, [techId, router]);
+    fetchService();
+  }, [serviceId, router]);
 
   const handleSave = async (formData) => {
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, "technologies", techId), formData);
-      router.push("/admin/technologies");
+      await updateDoc(doc(db, "services", serviceId), formData);
+      router.push("/admin/services");
     } catch (err) {
-      console.error("Failed to update technology:", err);
-      alert("Error updating equipment specs. Please try again.");
+      console.error("Failed to update service:", err);
+      alert("Error updating service details. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -51,14 +52,14 @@ export default function EditTechnologyPage({ params }) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[#0B3D5C]">Loading Equipment Details...</p>
+        <p className="text-xs font-bold text-[#0B3D5C]">Loading Service Details...</p>
       </div>
     );
   }
 
   return (
-    <TechnologyForm
-      title={`Edit Technology — ${initialData?.name || ""}`}
+    <ServiceForm
+      title={`Edit Service — ${initialData?.title || ""}`}
       initialData={initialData}
       onSave={handleSave}
       isSaving={isSaving}

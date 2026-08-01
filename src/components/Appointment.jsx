@@ -85,24 +85,18 @@ export default function Appointment() {
   const validateForm = () => {
     let tempErrors = {};
     if (!formData.name.trim()) tempErrors.name = "Full Name is required";
-    
-    if (!formData.email.trim()) {
-      tempErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      tempErrors.email = "Email address is invalid";
+
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      tempErrors.email = "Please enter a valid email address";
     }
 
+    const phoneClean = formData.phone.replace(/[\s\-\(\)]/g, "");
     if (!formData.phone.trim()) {
       tempErrors.phone = "Phone number is required";
-    } else {
-      const digitsOnly = formData.phone.replace(/\D/g, "");
-      if (digitsOnly.length !== 11) {
-        tempErrors.phone = "Phone number must be exactly 11 digits";
-      }
+    } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(phoneClean)) {
+      tempErrors.phone = "Please enter a valid phone number (e.g. 03001234567)";
     }
 
-    if (!formData.service) tempErrors.service = "Please select a service";
-    if (!formData.doctor) tempErrors.doctor = "Please select a doctor";
     if (!formData.date) tempErrors.date = "Please choose a date";
     if (!formData.time) tempErrors.time = "Please select a time slot";
 
@@ -322,7 +316,7 @@ export default function Appointment() {
                             errors.doctor ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
                           } rounded-xl pl-12 pr-4 py-3.5 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                         >
-                          <option value="">Select Surgeon</option>
+                          <option value="">Select Doctor</option>
                           {filteredDoctors.map((d) => (
                             <option key={d.id || d.name} value={d.name}>
                               {d.name} {d.specialty ? `(${d.specialty})` : ""}

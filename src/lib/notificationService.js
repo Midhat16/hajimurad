@@ -42,11 +42,11 @@ export const createNotification = async ({
 export const notifyOnAppointmentBooked = async (apptData, appointmentId = "") => {
   try {
     const patientName = apptData.name || "Patient";
-    const doctorName = apptData.doctor || "Specialist";
+    const doctorName = apptData.doctor || "";
     const doctorId = apptData.doctorId || "";
     const dateTimeStr = `${apptData.date || "N/A"} (${apptData.time || "N/A"})`;
 
-    // 1. Doctor Notification
+    // 1. Doctor Notification (ONLY if doctorId is assigned)
     if (doctorId) {
       await createNotification({
         recipient_type: "doctor",
@@ -56,22 +56,23 @@ export const notifyOnAppointmentBooked = async (apptData, appointmentId = "") =>
         message: `New appointment request from ${patientName} for ${dateTimeStr}`,
         appointmentId,
         doctorId,
-        doctorName,
+        doctorName: doctorName ? (doctorName.startsWith("Dr") ? doctorName : `Dr. ${doctorName}`) : "Doctor",
         patientName,
         href: "/doctor/notifications",
       });
     }
 
-    // 2. Admin Notification
+    // 2. Admin Notification (ALWAYS for all appointments)
+    const docLabel = doctorName ? (doctorName.startsWith("Dr") ? doctorName : `Dr. ${doctorName}`) : "General Hospital";
     await createNotification({
       recipient_type: "admin",
       recipient_id: "admin",
       type: "appointment_booked",
       title: "New Appointment Booked",
-      message: `New appointment booked with Dr. ${doctorName} by ${patientName}`,
+      message: `New appointment booked (${docLabel}) by ${patientName}`,
       appointmentId,
       doctorId,
-      doctorName,
+      doctorName: docLabel,
       patientName,
       href: "/admin/notifications",
     });
@@ -146,6 +147,7 @@ export const notifyOnAdminAction = async (action, apptData, newDate = "", newTim
     await createNotification({
       recipient_type: "doctor",
       recipient_id: doctorId,
+      sender_type: "admin",
       type: "admin_action",
       title,
       message,
@@ -155,6 +157,22 @@ export const notifyOnAdminAction = async (action, apptData, newDate = "", newTim
       patientName: apptData.name || "",
       href: "/doctor/notifications",
     });
+
+    try {
+      await addDoc(collection(db, "activityLog"), {
+        action: action,
+        appointmentId: apptData.id || "",
+        doctorId,
+        doctorName: apptData.doctor || "Admin",
+        patientName: apptData.name || "Patient",
+        details: title,
+        message: message,
+        read: false,
+        timestamp: serverTimestamp(),
+      });
+    } catch (logErr) {
+      console.warn("activityLog notice in notifyOnAdminAction:", logErr);
+    }
   } catch (err) {
     console.warn("Notice: notifyOnAdminAction error handled:", err);
   }
@@ -196,7 +214,7 @@ export const notifyOnDirectMessage = async (arg1, arg2, arg3, arg4) => {
         message: textSnippet,
         doctorId,
         doctorName: cleanDocName,
-        href: `/admin/messages?doctorId=${doctorId}`,
+        href: `/admin/messages?tab=doctor_chats&doctorId=${doctorId}`,
       });
     } else if (sender_type === "admin") {
       // Notify Doctor
@@ -231,7 +249,7 @@ export const notifyOnPatientMessage = async (patientName = "Patient", messageTex
       title: `New Patient Inquiry: ${patientName || "Patient"}`,
       message: textSnippet,
       patientName: patientName || "",
-      href: "/admin/messages",
+      href: "/admin/messages?tab=patient_inquiries",
     });
   } catch (err) {
     console.warn("Notice: notifyOnPatientMessage error handled:", err);

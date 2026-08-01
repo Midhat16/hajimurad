@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { collection, onSnapshot, query, where, orderBy, limit } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Calendar, MessageSquare, Users, Briefcase, ArrowUpRight, Clock, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Calendar, MessageSquare, Users, Briefcase, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminDashboardPage() {
+  const [mounted, setMounted] = useState(false);
+
   const [counts, setCounts] = useState({
     pendingAppointments: 0,
     unreadMessages: 0,
@@ -19,6 +21,12 @@ export default function AdminDashboardPage() {
   const [recentMessages, setRecentMessages] = useState([]);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     // 1. Pending Appointments count
     const qApptsCount = query(collection(db, "appointments"), where("status", "==", "pending"));
     const unsubApptsCount = onSnapshot(
@@ -87,7 +95,7 @@ export default function AdminDashboardPage() {
       unsubDocs();
       unsubServices();
     };
-  }, []);
+  }, [mounted]);
 
   const SUMMARY_CARDS = [
     {
@@ -127,6 +135,15 @@ export default function AdminDashboardPage() {
       iconColor: "text-purple-600",
     },
   ];
+
+  if (!mounted) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-xs font-bold text-[#0B3D5C]">Loading Administrative Dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

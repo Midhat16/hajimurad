@@ -310,7 +310,8 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                 name="loginEmail"
                 value={formData.loginEmail}
                 onChange={handleChange}
-                placeholder=""
+                autoComplete="off"
+                placeholder="doctor@example.com"
                 className="w-full bg-white border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
@@ -323,7 +324,8 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                 name="loginPassword"
                 value={formData.loginPassword}
                 onChange={handleChange}
-                placeholder=""
+                autoComplete="new-password"
+                placeholder="Password"
                 className="w-full bg-white border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>

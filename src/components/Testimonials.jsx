@@ -23,17 +23,17 @@ const INITIAL_TESTIMONIALS_DATA = [
     age: 62,
     procedure: "Micro-Incision Cataract (Multifocal IOL)",
     rating: 5,
-    quote: "My cataract had made driving at night impossible. Dr. Vance recommended a premium multifocal lens. The procedure was completely stitchless and painless. Now, I don't even need glasses to read the newspaper! Incredible team.",
+    quote: "My cataract had made driving at night impossible. The senior doctor recommended a premium multifocal lens. The procedure was completely stitchless and painless. Now, I don't even need glasses to read the newspaper! Incredible team.",
     date: "1 month ago",
     initials: "KS"
   },
   {
     id: "test-3",
-    name: "Sarah Thompson",
+    name: "Saima Tariq",
     age: 34,
     procedure: "Retinal Tear Laser Therapy",
     rating: 5,
-    quote: "I noticed sudden flashes of light in my left eye and panicked. Haji Murad's emergency team scanned my eye immediately and detected a retinal tear. Dr. Sterling repaired it with a laser on the spot. They saved my sight.",
+    quote: "I noticed sudden flashes of light in my left eye and panicked. Haji Murad's emergency team scanned my eye immediately and detected a retinal tear. The specialist surgeon repaired it with a laser on the spot. They saved my sight.",
     date: "3 months ago",
     initials: "ST"
   },

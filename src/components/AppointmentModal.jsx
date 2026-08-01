@@ -90,23 +90,17 @@ export default function AppointmentModal() {
     let tempErrors = {};
     if (!formData.name.trim()) tempErrors.name = "Full Name is required";
 
-    if (!formData.email.trim()) {
-      tempErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      tempErrors.email = "Email address is invalid";
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      tempErrors.email = "Please enter a valid email address";
     }
 
+    const phoneClean = formData.phone.replace(/[\s\-\(\)]/g, "");
     if (!formData.phone.trim()) {
       tempErrors.phone = "Phone number is required";
-    } else {
-      const digitsOnly = formData.phone.replace(/\D/g, "");
-      if (digitsOnly.length !== 11) {
-        tempErrors.phone = "Phone number must be exactly 11 digits";
-      }
+    } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(phoneClean)) {
+      tempErrors.phone = "Please enter a valid phone number (e.g. 03001234567)";
     }
 
-    if (!formData.service) tempErrors.service = "Please select a service";
-    if (!formData.doctor) tempErrors.doctor = "Please select a doctor";
     if (!formData.date) tempErrors.date = "Please choose a date";
     if (!formData.time) tempErrors.time = "Please select a time slot";
 
@@ -299,7 +293,7 @@ export default function AppointmentModal() {
                   {/* Phone Number */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
-                      Phone Number (11 digits)
+                      Phone Number
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
@@ -368,7 +362,7 @@ export default function AppointmentModal() {
                             : "border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20"
                         } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                       >
-                        <option value="">Select Surgeon</option>
+                        <option value="">Select Doctor</option>
                         {filteredDoctors.map((d) => (
                           <option key={d.id || d.name} value={d.name}>
                             {d.name} {d.specialty ? `(${d.specialty})` : ""}

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { doc, getDoc, collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
@@ -11,21 +12,15 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
-  Calendar,
-  User,
-  Inbox,
-  Check,
-  X,
-  AlertCircle
+  Inbox
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function DoctorActivityLogPage({ params }) {
-  const resolvedParams = use(params);
-  const doctorId = resolvedParams.id;
+export default function DoctorActivityClient() {
+  const searchParams = useSearchParams();
+  const doctorId = searchParams?.get("id");
 
   const [doctor, setDoctor] = useState(null);
-  const [activities, setActivities] = useState([]);
   const [appointmentsList, setAppointmentsList] = useState([]);
   const [rawLogs, setRawLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +28,7 @@ export default function DoctorActivityLogPage({ params }) {
   // Fetch Doctor Profile
   useEffect(() => {
     async function fetchDoctor() {
+      if (!doctorId) return;
       try {
         const snap = await getDoc(doc(db, "doctors", doctorId));
         if (snap.exists()) {
@@ -42,14 +38,12 @@ export default function DoctorActivityLogPage({ params }) {
         console.warn("Failed to fetch doctor details:", err);
       }
     }
-    if (doctorId) fetchDoctor();
+    fetchDoctor();
   }, [doctorId]);
 
   // Subscribe to appointments & activityLog
   useEffect(() => {
     if (!doctorId) return;
-
-    let doctorNameClean = (doctor?.name || "").toLowerCase().trim();
 
     // 1. Subscribe to appointments
     const unsubAppts = onSnapshot(
@@ -79,9 +73,8 @@ export default function DoctorActivityLogPage({ params }) {
       unsubAppts();
       unsubLogs();
     };
-  }, [doctorId, doctor?.name]);
+  }, [doctorId]);
 
-  // Merge and process activities
   const doctorNameClean = (doctor?.name || "").toLowerCase().trim();
 
   // Filter appointments for this doctor

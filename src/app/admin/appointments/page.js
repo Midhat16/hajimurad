@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { notifyOnAdminAction } from "@/lib/notificationService";
-import { Calendar, Clock, User, Mail, Phone, Stethoscope, CheckCircle2, XCircle, AlertCircle, Filter, X } from "lucide-react";
+import { Calendar, Clock, User, Mail, Phone, Stethoscope, CheckCircle2, XCircle, AlertCircle, Filter, X, MessageSquare } from "lucide-react";
+import { getWhatsAppAppointmentUrl } from "@/lib/whatsappHelper";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminAppointmentsPage() {
@@ -74,6 +75,12 @@ export default function AdminAppointmentsPage() {
       const actionType = isRescheduled ? "rescheduled" : "accepted";
       await notifyOnAdminAction(actionType, confirmingAppt, confirmDate, confirmTime);
 
+      // Trigger automatic WhatsApp open for patient notification
+      const waUrl = getWhatsAppAppointmentUrl(isRescheduled ? "rescheduled" : "confirmed", confirmingAppt, confirmDate, confirmTime);
+      if (waUrl && typeof window !== "undefined") {
+        window.open(waUrl, "_blank");
+      }
+
       setConfirmingAppt(null);
     } catch (err) {
       console.error("Failed to confirm appointment:", err);
@@ -95,6 +102,10 @@ export default function AdminAppointmentsPage() {
       // Trigger notification for Doctor
       if (appt) {
         await notifyOnAdminAction("rejected", appt);
+        const waUrl = getWhatsAppAppointmentUrl("cancelled", appt);
+        if (waUrl && typeof window !== "undefined") {
+          window.open(waUrl, "_blank");
+        }
       }
     } catch (err) {
       console.error("Failed to cancel appointment:", err);
@@ -221,28 +232,45 @@ export default function AdminAppointmentsPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-5 border-t border-slate-100 pt-4 flex items-center justify-end gap-2">
-                {appt.status !== "confirmed" && (
-                  <button
-                    type="button"
-                    onClick={() => openConfirmModal(appt)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+              <div className="mt-5 border-t border-slate-100 pt-4 flex flex-wrap items-center justify-between gap-2">
+                {appt.phone ? (
+                  <a
+                    href={getWhatsAppAppointmentUrl(appt.status || "pending", appt)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors"
+                    title="Notify patient via WhatsApp"
                   >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Confirm Slot
-                  </button>
+                    <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>WhatsApp</span>
+                  </a>
+                ) : (
+                  <div />
                 )}
 
-                {appt.status !== "cancelled" && (
-                  <button
-                    type="button"
-                    onClick={() => handleCancelStatus(appt.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold text-xs transition-colors cursor-pointer"
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    Cancel
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {appt.status !== "confirmed" && (
+                    <button
+                      type="button"
+                      onClick={() => openConfirmModal(appt)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Confirm Slot
+                    </button>
+                  )}
+
+                  {appt.status !== "cancelled" && (
+                    <button
+                      type="button"
+                      onClick={() => handleCancelStatus(appt.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold text-xs transition-colors cursor-pointer"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}

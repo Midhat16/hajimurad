@@ -83,10 +83,13 @@ const YoutubeIcon = (props) => (
 );
 
 const DEFAULT_CONTACT_INFO = {
-  mainDeskNumber: "+1 (800) 555-EYES",
-  emergencyNumber: "+1 (800) 555-9111",
-  email: "info@hajimurad.com",
-  address: "120 Vision Boulevard, Suite 500, Medical District, NY 10016",
+  uanNumber: "111 333 456",
+  callNumber: "0332-4290724",
+  helplineNumber: "0324-1111691",
+  mainDeskNumber: "111 333 456",
+  emergencyNumber: "0332-4290724",
+  email: "info@hajimuradhospital.org",
+  address: "Upper Chanab Canal Bank G.T Road Gujranwala",
 };
 
 export default function Footer() {
@@ -162,7 +165,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-sm text-[#3F4B4A] leading-relaxed font-semibold max-w-sm">
-              We coordinate premier surgical expertise with advanced diagnostics to restore visual clarity. Safeguarding your vision is our lifelong clinical focus.
+              We coordinate premier surgical expertise with advanced diagnostics to restore visual clarity. Safeguarding your vision is our lifelong hospital focus.
             </p>
 
             {/* Social Icons list */}
@@ -230,7 +233,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-xs font-bold text-[#3F4B4A] hover:text-[#0B3D5C] transition-colors"
+                    className="text-xs sm:text-sm font-bold text-[#3F4B4A] hover:text-[#0B3D5C] transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -242,14 +245,16 @@ export default function Footer() {
           {/* Services Column - Dynamic Firestore List */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="text-xs font-bold text-[#0B3D5C] uppercase tracking-widest">
-              Ophthalmic Services
+              <Link href="/services" className="hover:text-[#3E8E6E] transition-colors">
+                Ophthalmic Services
+              </Link>
             </h4>
             <ul className="space-y-2.5">
               {services.map((serv) => (
                 <li key={serv.id || serv.title}>
                   <Link
                     href="/services"
-                    className="text-xs font-bold text-[#3F4B4A] hover:text-[#0B3D5C] transition-colors block truncate"
+                    className="text-xs sm:text-sm font-bold text-[#3F4B4A] hover:text-[#0B3D5C] transition-colors block truncate"
                   >
                     {serv.title || serv.name}
                   </Link>
@@ -263,21 +268,24 @@ export default function Footer() {
             <h4 className="text-xs font-bold text-[#0B3D5C] uppercase tracking-widest">
               Immediate Help
             </h4>
-            <ul className="space-y-2.5 text-xs text-[#3F4B4A] font-semibold">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-[#3F4B4A] font-semibold">
               <li>
-                Main Desk:{" "}
+                UAN:{" "}
                 <a
-                  href={`tel:${contactInfo.mainDeskNumber?.replace(/\s+/g, "")}`}
+                  href={`tel:${(contactInfo.uanNumber || contactInfo.mainDeskNumber)?.replace(/\s+/g, "")}`}
                   className="text-[#0B3D5C] font-extrabold hover:text-[#3E8E6E]"
                 >
-                  {contactInfo.mainDeskNumber}
+                  {contactInfo.uanNumber || contactInfo.mainDeskNumber}
                 </a>
               </li>
               <li>
-                Emergency Call:{" "}
-                <span className="text-rose-600 font-extrabold">
-                  {contactInfo.emergencyNumber}
-                </span>
+                Call #:{" "}
+                <a
+                  href={`tel:${(contactInfo.callNumber || contactInfo.emergencyNumber)?.replace(/\s+/g, "")}`}
+                  className="text-rose-600 font-extrabold hover:underline"
+                >
+                  {contactInfo.callNumber || contactInfo.emergencyNumber}
+                </a>
               </li>
               <li>
                 Email:{" "}
@@ -285,7 +293,7 @@ export default function Footer() {
                   href={`mailto:${contactInfo.email}`}
                   className="text-[#0B3D5C] font-extrabold hover:text-[#3E8E6E]"
                 >
-                  {contactInfo.email}
+                  info@HMEHT.com
                 </a>
               </li>
               <li className="leading-relaxed">
@@ -296,9 +304,17 @@ export default function Footer() {
         </div>
 
         {/* Bottom copyright */}
-        <div className="pt-8 flex items-center justify-center">
-          <p className="text-xs text-[#3F4B4A] font-semibold text-center">
-            Copyright © {new Date().getFullYear()} Haji Murad Eye Hospital | Powered by Haji Murad Eye Hospital
+        <div className="pt-6 flex items-center justify-center text-center text-xs sm:text-sm text-[#3F4B4A] font-semibold">
+          <p className="text-center">
+            Copyright © {new Date().getFullYear()} Haji Murad Eye Hospital Trust | Developed By:{" "}
+            <a
+              href="https://bizdevit.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#0B3D5C] hover:text-[#3E8E6E] font-bold hover:underline transition-colors"
+            >
+              Biz Dev IT
+            </a>
           </p>
         </div>
       </div>

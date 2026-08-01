@@ -35,29 +35,44 @@ export function AdminAuthProvider({ children }) {
   };
 
   useEffect(() => {
-    // Listen to adminConfig real-time updates
-    const unsubConfig = onSnapshot(
-      doc(db, "adminConfig", "settings"),
-      (docSnap) => {
-        if (docSnap.exists() && docSnap.data().email) {
-          setAuthorizedEmail(docSnap.data().email);
-        }
-      },
-      (error) => {
-        console.warn("adminConfig subscription notice:", error.message);
-      }
-    );
+    let unsubConfig = () => {};
+
+    // 2-second safety timeout to prevent infinite loading state if Firebase auth hangs or takes too long
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
 
     const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      if (!authorizedEmail) {
-        await getAuthorizedEmail();
+
+      if (currentUser) {
+        try {
+          unsubConfig = onSnapshot(
+            doc(db, "adminConfig", "settings"),
+            (docSnap) => {
+              if (docSnap.exists() && docSnap.data().email) {
+                setAuthorizedEmail(docSnap.data().email);
+              }
+            },
+            (error) => {
+              console.warn("adminConfig subscription notice:", error.message);
+            }
+          );
+          await getAuthorizedEmail();
+        } catch (err) {
+          console.warn("Error fetching admin config:", err);
+        }
+      } else {
+        setAuthorizedEmail(null);
       }
+
+      clearTimeout(timer);
       setLoading(false);
     });
 
     return () => {
-      unsubConfig();
+      clearTimeout(timer);
+      if (typeof unsubConfig === "function") unsubConfig();
       unsubAuth();
     };
   }, []);

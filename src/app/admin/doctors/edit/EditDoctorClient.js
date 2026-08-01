@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import DoctorForm from "@/components/admin/DoctorForm";
 
-export default function EditDoctorPage({ params }) {
-  const resolvedParams = use(params);
-  const doctorId = resolvedParams.id;
+export default function EditDoctorClient() {
+  const searchParams = useSearchParams();
+  const doctorId = searchParams?.get("id");
   const router = useRouter();
 
   const [initialData, setInitialData] = useState(null);
@@ -17,20 +17,27 @@ export default function EditDoctorPage({ params }) {
 
   useEffect(() => {
     async function fetchDoctor() {
+      if (!doctorId) return;
       try {
         const docSnap = await getDoc(doc(db, "doctors", doctorId));
         if (docSnap.exists()) {
           const docData = { id: docSnap.id, ...docSnap.data() };
           
-          // Fetch credentials from doctorCredentials collection
+          // Fetch credentials from doctorCredentials collection with fallback
           try {
             const credSnap = await getDoc(doc(db, "doctorCredentials", doctorId));
             if (credSnap.exists()) {
-              docData.loginEmail = credSnap.data().email || "";
-              docData.loginPassword = credSnap.data().password || "";
+              const cData = credSnap.data();
+              docData.loginEmail = cData.email || cData.loginEmail || docData.loginEmail || docData.email || "";
+              docData.loginPassword = cData.password || cData.loginPassword || docData.loginPassword || docData.password || "";
+            } else {
+              docData.loginEmail = docData.loginEmail || docData.email || "";
+              docData.loginPassword = docData.loginPassword || docData.password || "";
             }
           } catch (credErr) {
             console.warn("Could not fetch doctorCredentials:", credErr);
+            docData.loginEmail = docData.loginEmail || docData.email || "";
+            docData.loginPassword = docData.loginPassword || docData.password || "";
           }
 
           setInitialData(docData);
@@ -44,7 +51,7 @@ export default function EditDoctorPage({ params }) {
         setLoading(false);
       }
     }
-    if (doctorId) fetchDoctor();
+    fetchDoctor();
   }, [doctorId, router]);
 
   const handleSave = async (formData) => {

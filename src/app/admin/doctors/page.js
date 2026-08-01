@@ -9,18 +9,36 @@ import { motion, AnimatePresence } from "framer-motion";
 
 function AdminDoctorAvatar({ docItem }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [objectPosition, setObjectPosition] = useState("center 20%");
   const photo = docItem.photoUrl || docItem.photo || docItem.imageUrl;
 
   useEffect(() => {
     setImgFailed(false);
+    setObjectPosition("center 20%");
   }, [photo]);
+
+  const handleImageLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.target;
+    if (naturalHeight > 0 && naturalWidth > 0) {
+      const ratio = naturalHeight / naturalWidth;
+      if (ratio > 1.2) {
+        setObjectPosition("center 12%");
+      } else if (ratio < 0.85) {
+        setObjectPosition("center center");
+      } else {
+        setObjectPosition("center 18%");
+      }
+    }
+  };
 
   if (photo && !imgFailed) {
     return (
       <img
         src={photo}
         alt={docItem.name}
-        className="w-full h-full rounded-full object-cover"
+        className="w-full h-full rounded-full object-cover transition-all duration-300"
+        style={{ objectPosition }}
+        onLoad={handleImageLoad}
         onError={() => setImgFailed(true)}
       />
     );
@@ -35,6 +53,15 @@ function AdminDoctorAvatar({ docItem }) {
       {docItem.initials || docItem.name?.charAt(0) || "D"}
     </div>
   );
+}
+
+function toTitleCase(str) {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 export default function AdminDoctorsListPage() {
@@ -141,8 +168,8 @@ export default function AdminDoctorsListPage() {
                     <h3 className="text-base font-bold text-[#0B3D5C] truncate">
                       {doc.name}
                     </h3>
-                    <p className="text-[11px] font-bold text-[#3E8E6E] uppercase tracking-wider truncate">
-                      {doc.role}
+                    <p className="text-[11px] font-bold text-[#3E8E6E] tracking-wider truncate">
+                      {toTitleCase(doc.role)}
                     </p>
                     <p className="text-xs text-slate-500 truncate mt-0.5 font-medium">
                       {doc.specialty}
@@ -173,14 +200,14 @@ export default function AdminDoctorsListPage() {
               {/* Action Buttons */}
               <div className="mt-5 border-t border-slate-100 pt-4 flex items-center justify-end gap-2">
                 <Link
-                  href={`/admin/doctors/${doc.id}/activity`}
+                  href={`/admin/doctors/activity?id=${doc.id}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs transition-colors"
                 >
                   <Stethoscope className="w-3.5 h-3.5" />
                   View Activity
                 </Link>
                 <Link
-                  href={`/admin/doctors/${doc.id}/edit`}
+                  href={`/admin/doctors/edit?id=${doc.id}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold text-xs transition-colors"
                 >
                   <Edit3 className="w-3.5 h-3.5" />

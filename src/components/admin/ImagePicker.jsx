@@ -19,19 +19,64 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
     });
   };
 
+  // Helper to auto-crop image into a clean 1:1 square focused on doctor's upper body / face
+  const processAndCropSquare = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            const targetSize = 600;
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+            const ctx = canvas.getContext("2d");
+
+            let sx = 0;
+            let sy = 0;
+            let sWidth = img.naturalWidth;
+            let sHeight = img.naturalHeight;
+
+            if (img.naturalWidth > img.naturalHeight) {
+              // Wide image: crop center square
+              sWidth = img.naturalHeight;
+              sx = (img.naturalWidth - sWidth) / 2;
+            } else {
+              // Tall portrait: crop square focusing 15% from top (head/face area)
+              sHeight = img.naturalWidth;
+              sy = Math.max(0, (img.naturalHeight - sHeight) * 0.15);
+            }
+
+            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, targetSize, targetSize);
+            const croppedDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+            resolve(croppedDataUrl);
+          } catch (err) {
+            resolve(e.target.result);
+          }
+        };
+        img.onerror = () => resolve(e.target.result);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileSelect = async (file) => {
     if (!file) return;
     setUploading(true);
     setError("");
 
     try {
-      // 1. Generate local Data URL as immediate reliable fallback
-      const localDataUrl = await fileToDataURL(file);
+      // 1. Process and auto-crop into a 1:1 square centered on head/face
+      const croppedDataUrl = await processAndCropSquare(file);
+      const dataUrlToUse = croppedDataUrl || (await fileToDataURL(file));
 
       // 2. Attempt ImgBB upload
       const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "6d700a708235b3658f287854659b43e8";
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", dataUrlToUse.replace(/^data:image\/\w+;base64,/, ""));
 
       try {
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
@@ -44,13 +89,13 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
           const remoteUrl = data.data.url || data.data.display_url;
           onChange(remoteUrl);
         } else {
-          // If ImgBB returns error, fallback to localDataUrl so image is saved anyway!
-          console.warn("ImgBB API warning, using Data URL fallback:", data.error);
-          onChange(localDataUrl);
+          // Fallback to auto-cropped Data URL
+          console.warn("ImgBB API warning, using Cropped Data URL fallback:", data.error);
+          onChange(dataUrlToUse);
         }
       } catch (fetchErr) {
-        console.warn("ImgBB fetch network issue, using Data URL fallback:", fetchErr);
-        onChange(localDataUrl);
+        console.warn("ImgBB fetch network issue, using Cropped Data URL fallback:", fetchErr);
+        onChange(dataUrlToUse);
       }
     } catch (err) {
       console.error("File processing error:", err);

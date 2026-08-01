@@ -7,10 +7,13 @@ import { Save, Phone, Mail, MapPin, AlertCircle, CheckCircle2, Shield } from "lu
 import { motion, AnimatePresence } from "framer-motion";
 
 const DEFAULT_SETTINGS = {
-  mainDeskNumber: "+1 (800) 555-EYES",
-  emergencyNumber: "+1 (800) 555-9111",
-  email: "info@hajimurad.com",
-  address: "120 Vision Boulevard, Suite 500, Medical District, NY 10016",
+  uanNumber: "111 333 456",
+  callNumber: "0332-4290724",
+  helplineNumber: "0324-1111691",
+  mainDeskNumber: "111 333 456",
+  emergencyNumber: "0332-4290724",
+  email: "info@hajimuradhospital.org",
+  address: "Upper Chanab Canal Bank G.T Road Gujranwala",
 };
 
 export default function AdminSettingsPage() {
@@ -25,9 +28,18 @@ export default function AdminSettingsPage() {
       try {
         const snap = await getDoc(doc(db, "siteContent", "contactInfo"));
         if (snap.exists()) {
+          const data = snap.data();
+          const uanVal = data.uanNumber || data.mainDeskNumber || DEFAULT_SETTINGS.uanNumber;
+          const callVal = data.callNumber || data.emergencyNumber || DEFAULT_SETTINGS.callNumber;
+          const helpVal = data.helplineNumber || data.secondaryNumber || DEFAULT_SETTINGS.helplineNumber;
           setFormData({
             ...DEFAULT_SETTINGS,
-            ...snap.data(),
+            ...data,
+            uanNumber: uanVal,
+            callNumber: callVal,
+            helplineNumber: helpVal,
+            mainDeskNumber: uanVal,
+            emergencyNumber: callVal,
           });
         }
       } catch (err) {
@@ -49,16 +61,24 @@ export default function AdminSettingsPage() {
     setError("");
     setSavedSuccess(false);
 
-    if (!formData.mainDeskNumber.trim() || !formData.emergencyNumber.trim() || !formData.email.trim() || !formData.address.trim()) {
-      setError("All contact info fields are required.");
+    const uanVal = (formData.uanNumber || formData.mainDeskNumber || "").trim();
+    const callVal = (formData.callNumber || formData.emergencyNumber || "").trim();
+    const helpVal = (formData.helplineNumber || formData.secondaryNumber || "").trim();
+
+    if (!uanVal || !callVal || !formData.email.trim() || !formData.address.trim()) {
+      setError("All primary contact info fields are required.");
       return;
     }
 
     setIsSaving(true);
     try {
       await setDoc(doc(db, "siteContent", "contactInfo"), {
-        mainDeskNumber: formData.mainDeskNumber.trim(),
-        emergencyNumber: formData.emergencyNumber.trim(),
+        uanNumber: uanVal,
+        mainDeskNumber: uanVal,
+        callNumber: callVal,
+        emergencyNumber: callVal,
+        helplineNumber: helpVal,
+        secondaryNumber: helpVal,
         email: formData.email.trim(),
         address: formData.address.trim(),
         updatedAt: new Date().toISOString(),
@@ -93,7 +113,7 @@ export default function AdminSettingsPage() {
             Site Contact Settings
           </h1>
           <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
-            Manage hospital contact numbers, emergency line, email, and clinic location displayed across website Footer and Contact page.
+            Manage UAN, Call # line, Helpline/Mobile #, email, and clinic location displayed across website Footer and Contact page.
           </p>
         </div>
       </div>
@@ -109,35 +129,35 @@ export default function AdminSettingsPage() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Main Desk Number */}
+          {/* UAN Number */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-[#3E8E6E]" />
-              Main Desk Phone Number *
+              UAN Number *
             </label>
             <input
               type="text"
-              name="mainDeskNumber"
-              value={formData.mainDeskNumber}
+              name="uanNumber"
+              value={formData.uanNumber || ""}
               onChange={handleChange}
-              placeholder=""
+              placeholder="e.g. 111 333 456"
               required
               className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
-          {/* Emergency Number */}
+          {/* Call # Number */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-rose-500" />
-              Emergency Unit Phone Number *
+              Call # *
             </label>
             <input
               type="text"
-              name="emergencyNumber"
-              value={formData.emergencyNumber}
+              name="callNumber"
+              value={formData.callNumber || ""}
               onChange={handleChange}
-              placeholder=""
+              placeholder="e.g. 0332-4290724"
               required
               className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
             />

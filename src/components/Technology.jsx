@@ -53,7 +53,7 @@ export default function Technology() {
             <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
               Pioneering Ophthalmic Technology
             </h2>
-            <p className="mt-3 text-base text-[#3F4B4A]">
+            <p className="mt-3 text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
               We invest in state-of-the-art medical hardware to deliver surgeries with maximum safety margins, microscopic precision, and rapid visual recovery.
             </p>
           </motion.div>

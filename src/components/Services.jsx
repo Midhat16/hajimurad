@@ -83,7 +83,7 @@ export default function Services() {
             <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
               World-Class Eye Care Services
             </h2>
-            <p className="mt-3 text-base text-[#3F4B4A]">
+            <p className="mt-3 text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
               Haji Murad Eye Hospital features dedicated sub-specialties to deliver highly personalized vision solutions, from standard screenings to the most complex microsurgical restorations.
             </p>
           </motion.div>
@@ -118,10 +118,10 @@ export default function Services() {
                     </div>
 
                     {/* Title & Description */}
-                    <h3 className="text-lg font-bold text-[#0B3D5C] group-hover:text-[#3E8E6E] transition-colors duration-300">
+                    <h3 className="text-lg sm:text-xl font-bold text-[#0B3D5C] group-hover:text-[#3E8E6E] transition-colors duration-300">
                       {service.title}
                     </h3>
-                    <p className="mt-2 text-[#3F4B4A] text-xs sm:text-sm leading-relaxed">
+                    <p className="mt-2 text-[#3F4B4A] text-sm sm:text-base leading-relaxed">
                       {service.description}
                     </p>
 
@@ -129,7 +129,7 @@ export default function Services() {
                     {service.features && (
                       <ul className="mt-4 space-y-1.5 border-t border-[#D5E5DD]/60 pt-4">
                         {service.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-xs font-semibold text-[#3F4B4A]">
+                          <li key={idx} className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#3F4B4A]">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#3E8E6E]" />
                             {feat}
                           </li>

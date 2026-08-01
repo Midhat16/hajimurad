@@ -77,7 +77,7 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`relative px-4 py-2 text-sm font-semibold transition-colors duration-200 ${
+                  className={`relative px-4 py-2 text-sm sm:text-base font-bold transition-colors duration-200 ${
                     isActive
                       ? "text-[#0B3D5C]"
                       : "text-[#3F4B4A] hover:text-[#0B3D5C]"

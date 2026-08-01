@@ -112,6 +112,17 @@ export default function AdminNotificationsPage() {
       formattedTitle = formattedTitle.replace("New Patient Inquiry:", "New Doctor Inquiry:");
     }
 
+    let href = n.href || "/admin/notifications";
+    if (href === "/admin/messages" || href.startsWith("/admin/messages")) {
+      if (isDoctorMsg) {
+        href = n.doctorId
+          ? `/admin/messages?tab=doctor_chats&doctorId=${n.doctorId}`
+          : "/admin/messages?tab=doctor_chats";
+      } else {
+        href = "/admin/messages?tab=patient_inquiries";
+      }
+    }
+
     allNotificationsMap.set(`notif-${n.id}`, {
       id: n.id,
       collectionName: "notifications",
@@ -119,7 +130,7 @@ export default function AdminNotificationsPage() {
       isDoctorMsg,
       title: formattedTitle,
       message: n.message || "",
-      href: n.href || "/admin/notifications",
+      href,
       is_read: n.is_read === true,
       timestamp: n.createdAt,
       rawTime,
@@ -162,7 +173,9 @@ export default function AdminNotificationsPage() {
         ? `New Doctor Inquiry: ${nameStr}`
         : `New Patient Inquiry: ${nameStr}`;
 
-      const href = isDoctorMsg && msg.doctorId ? `/admin/messages?doctorId=${msg.doctorId}` : "/admin/messages";
+      const href = isDoctorMsg
+        ? (msg.doctorId ? `/admin/messages?tab=doctor_chats&doctorId=${msg.doctorId}` : "/admin/messages?tab=doctor_chats")
+        : "/admin/messages?tab=patient_inquiries";
 
       allNotificationsMap.set(mapKey, {
         id: msg.id,
@@ -309,11 +322,10 @@ export default function AdminNotificationsPage() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
-              activeTab === tab.id
-                ? "bg-[#0B3D5C] text-white shadow-xs"
-                : "bg-[#F4F7F5] text-[#3F4B4A] hover:bg-[#E8F0EC]"
-            }`}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${activeTab === tab.id
+              ? "bg-[#0B3D5C] text-white shadow-xs"
+              : "bg-[#F4F7F5] text-[#3F4B4A] hover:bg-[#E8F0EC]"
+              }`}
           >
             {tab.label}
           </button>
@@ -357,22 +369,20 @@ export default function AdminNotificationsPage() {
                   layout
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative group ${
-                    isUnread
-                      ? "bg-rose-50/50 border-rose-200 shadow-xs"
-                      : "bg-[#F4F7F5] border-[#D5E5DD] opacity-90"
-                  }`}
+                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative group ${isUnread
+                    ? "bg-rose-50/50 border-rose-200 shadow-xs"
+                    : "bg-[#F4F7F5] border-[#D5E5DD] opacity-90"
+                    }`}
                 >
                   <div className="flex items-start gap-4 min-w-0 flex-1">
                     {/* Icon Pill */}
                     <div
-                      className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold flex-shrink-0 mt-0.5 shadow-xs ${
-                        isAppt
-                          ? "bg-sky-600"
-                          : isDoctorMsg
+                      className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold flex-shrink-0 mt-0.5 shadow-xs ${isAppt
+                        ? "bg-sky-600"
+                        : isDoctorMsg
                           ? "bg-emerald-600"
                           : "bg-amber-600"
-                      }`}
+                        }`}
                     >
                       {isAppt ? (
                         <Calendar className="w-5 h-5" />
@@ -386,19 +396,18 @@ export default function AdminNotificationsPage() {
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <span
-                          className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                            isAppt
-                              ? "bg-sky-100 text-sky-800"
-                              : isDoctorMsg
+                          className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${isAppt
+                            ? "bg-sky-100 text-sky-800"
+                            : isDoctorMsg
                               ? "bg-emerald-100 text-emerald-800"
                               : "bg-amber-100 text-amber-800"
-                          }`}
+                            }`}
                         >
                           {isAppt
                             ? "Appointment / Action"
                             : isDoctorMsg
-                            ? "Doctor Inquiry"
-                            : "Patient Message Inquiry"}
+                              ? "Doctor Inquiry"
+                              : "Patient Message Inquiry"}
                         </span>
 
                         <h4 className="text-sm font-extrabold text-[#0B3D5C] truncate">

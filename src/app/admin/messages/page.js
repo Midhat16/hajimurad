@@ -22,15 +22,26 @@ import {
   Stethoscope,
   ChevronRight,
   Sparkles,
-  Users
+  Users,
+  CheckCircle2,
+  CornerDownRight,
+  X,
+  ExternalLink,
+  FileText,
+  Check,
+  AlertCircle,
+  Phone,
+  Search
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { getWhatsAppContactReplyUrl } from "@/lib/whatsappHelper";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminMessagesPage() {
   const searchParams = useSearchParams();
   const initialDoctorId = searchParams.get("doctorId") || "";
+  const initialTab = searchParams.get("tab") === "patient_inquiries" ? "patient_inquiries" : "doctor_chats";
 
-  const [activeMainTab, setActiveMainTab] = useState("doctor_chats"); // "doctor_chats" | "patient_inquiries"
+  const [activeMainTab, setActiveMainTab] = useState(initialTab); // "doctor_chats" | "patient_inquiries"
 
   // Doctor chats state
   const [doctorsList, setDoctorsList] = useState([]);
@@ -44,11 +55,32 @@ export default function AdminMessagesPage() {
   const [patientInquiries, setPatientInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Patient Email Reply Modal State
+  const [replyingInquiry, setReplyingInquiry] = useState(null);
+  const [patientReplySubject, setPatientReplySubject] = useState("");
+  const [patientReplyText, setPatientReplyText] = useState("");
+  const [sendingPatientEmail, setSendingPatientEmail] = useState(false);
+  const [emailStatusAlert, setEmailStatusAlert] = useState(null);
+
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    const doctorIdParam = searchParams.get("doctorId");
+
+    if (tabParam === "patient_inquiries") {
+      setActiveMainTab("patient_inquiries");
+    } else if (tabParam === "doctor_chats" || doctorIdParam) {
+      setActiveMainTab("doctor_chats");
+      if (doctorIdParam) {
+        setSelectedDoctorId(doctorIdParam);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // 1. Subscribe to doctors
@@ -204,12 +236,143 @@ export default function AdminMessagesPage() {
   };
 
   // Mark patient inquiry read
-  const handleMarkInquiryRead = async (id) => {
+  const handleMarkInquiryRead = async (id, currentStatus = false) => {
     try {
-      await updateDoc(doc(db, "messages", id), { read: true, is_read: true });
+      await updateDoc(doc(db, "messages", id), { read: !currentStatus, is_read: !currentStatus });
     } catch (err) {
       console.warn("Error marking inquiry read:", err);
     }
+  };
+
+  // Open Reply Modal for Patient Inquiry
+  const openReplyModal = (msg) => {
+    setReplyingInquiry(msg);
+    setPatientReplySubject(`Re: Inquiry - Haji Murad Eye Hospital`);
+    setPatientReplyText(
+      `Dear ${msg.name || "Patient"},\n\nThank you for reaching out to Haji Murad Eye Hospital.\n\n`
+    );
+    setEmailStatusAlert(null);
+
+    // Automatically mark read when opening reply modal
+    if (!msg.read && !msg.is_read) {
+      handleMarkInquiryRead(msg.id, false);
+    }
+  };
+
+  // Apply predefined reply templates
+  const applyTemplate = (type) => {
+    if (!replyingInquiry) return;
+    const name = replyingInquiry.name || "Patient";
+
+    if (type === "cataract") {
+      setPatientReplySubject("Cataract Surgery Information & Charges - Haji Murad Eye Hospital");
+      setPatientReplyText(
+        `Dear ${name},\n\nThank you for inquiring about Cataract Surgery at Haji Murad Eye Hospital.\n\n` +
+          `Cataract surgery charges depend on the type of intraocular lens (IOL) selected (e.g. Monofocal, Bifocal, or Premium Trifocal/Multifocal lenses).\n\n` +
+          `Our consultation fee is nominal and surgical packages include pre-operative diagnostics & post-op checkups.\n\n` +
+          `We welcome you to visit our clinic on GT Road Gujranwala for a detailed eye checkup. For appointment booking, call us at 0332-4290724.\n\n` +
+          `Best regards,\nHaji Murad Eye Hospital Team`
+      );
+    } else if (type === "appointment") {
+      setPatientReplySubject("Appointment Assistance - Haji Murad Eye Hospital");
+      setPatientReplyText(
+        `Dear ${name},\n\nThank you for contacting Haji Murad Eye Hospital.\n\n` +
+          `To schedule an appointment with our specialist Ophthalmic surgeons, please call our helpline at 0324-1111691 or reply with your preferred day and time.\n\n` +
+          `Our OPD timing is Monday to Saturday: 9:00 AM to 8:00 PM.\n\n` +
+          `Best regards,\nHaji Murad Eye Hospital Team`
+      );
+    } else if (type === "general") {
+      setPatientReplySubject(`Re: Inquiry Response - Haji Murad Eye Hospital`);
+      setPatientReplyText(
+        `Dear ${name},\n\nThank you for reaching out to Haji Murad Eye Hospital.\n\n` +
+          `We have received your message and our administration team is happy to assist you. If you have specific questions or need immediate consultation, please feel free to call us at 0332-4290724.\n\n` +
+          `Best regards,\nHaji Murad Eye Hospital Team`
+      );
+    }
+  };
+
+  // Send Email to Patient via API & update Firestore
+  const handleSendPatientEmail = async (e) => {
+    if (e) e.preventDefault();
+    if (!replyingInquiry || !patientReplyText.trim()) return;
+
+    if (!replyingInquiry.email) {
+      setEmailStatusAlert({
+        type: "error",
+        message: "This patient inquiry does not have a valid email address.",
+      });
+      return;
+    }
+
+    setSendingPatientEmail(true);
+    setEmailStatusAlert(null);
+
+    try {
+      // 1. Call email API
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: replyingInquiry.email,
+          subject: patientReplySubject,
+          message: patientReplyText,
+          patientName: replyingInquiry.name,
+          inquiryId: replyingInquiry.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send email reply.");
+      }
+
+      // 2. Update Firestore record with reply details
+      await updateDoc(doc(db, "messages", replyingInquiry.id), {
+        replied: true,
+        replyText: patientReplyText,
+        repliedAt: serverTimestamp(),
+        repliedBy: "Hospital Admin",
+        read: true,
+        is_read: true,
+      });
+
+      setEmailStatusAlert({
+        type: "success",
+        message: data.message || `Reply email successfully sent to ${replyingInquiry.email}!`,
+      });
+
+      setTimeout(() => {
+        setReplyingInquiry(null);
+      }, 2000);
+    } catch (err) {
+      console.error("Email send error:", err);
+      setEmailStatusAlert({
+        type: "error",
+        message: err.message || "Could not dispatch email. Please check your connection or SMTP setup.",
+      });
+    } finally {
+      setSendingPatientEmail(false);
+    }
+  };
+
+  // Quick Mailto link generation
+  const handleMailtoFallback = () => {
+    if (!replyingInquiry || !replyingInquiry.email) return;
+    const mailtoUrl = `mailto:${encodeURIComponent(replyingInquiry.email)}?subject=${encodeURIComponent(
+      patientReplySubject
+    )}&body=${encodeURIComponent(patientReplyText)}`;
+    window.open(mailtoUrl, "_blank");
+
+    // Also mark as replied in Firestore
+    updateDoc(doc(db, "messages", replyingInquiry.id), {
+      replied: true,
+      replyText: patientReplyText,
+      repliedAt: serverTimestamp(),
+      repliedBy: "Hospital Admin (Mailto)",
+      read: true,
+      is_read: true,
+    }).catch(console.warn);
   };
 
   const formatTime = (ts) => {
@@ -459,7 +622,7 @@ export default function AdminMessagesPage() {
       {/* VIEW 2: PATIENT WEBSITE INQUIRIES */}
       {activeMainTab === "patient_inquiries" && (
         <div className="bg-white rounded-3xl border border-[#D5E5DD] shadow-lg p-6 sm:p-8 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-base font-extrabold text-[#0B3D5C]">
                 Website Patient Inquiries ({patientInquiries.length})
@@ -467,6 +630,17 @@ export default function AdminMessagesPage() {
               <p className="text-xs text-slate-500 font-medium mt-0.5">
                 Contact form messages submitted by patients on public pages.
               </p>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full border border-amber-200 font-bold text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                Unread ({patientInquiries.filter((m) => !m.read && !m.is_read).length})
+              </span>
+              <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-200 font-bold text-[11px]">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                Replied ({patientInquiries.filter((m) => m.replied).length})
+              </span>
             </div>
           </div>
 
@@ -481,46 +655,333 @@ export default function AdminMessagesPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {patientInquiries.map((msg) => (
-                <div
-                  key={msg.id}
-                  onClick={() => handleMarkInquiryRead(msg.id)}
-                  className={`p-5 rounded-2xl border transition-all space-y-3 cursor-pointer ${
-                    !msg.read && !msg.is_read
-                      ? "bg-amber-50/40 border-amber-200"
-                      : "bg-[#FAFDFB] border-[#D5E5DD]"
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-[#0B3D5C] text-white flex items-center justify-center font-bold text-xs">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-extrabold text-[#0B3D5C]">
-                          {msg.name || "Patient"}
-                        </h4>
-                        <div className="flex items-center gap-3 text-[11px] text-slate-500 font-semibold mt-0.5">
-                          {msg.email && <span>{msg.email}</span>}
-                          {msg.phone && <span>{msg.phone}</span>}
+              {patientInquiries.map((msg) => {
+                const isUnread = !msg.read && !msg.is_read;
+                const isReplied = msg.replied;
+
+                return (
+                  <div
+                    key={msg.id}
+                    className={`p-5 sm:p-6 rounded-3xl border transition-all space-y-4 ${
+                      isUnread
+                        ? "bg-amber-50/30 border-amber-200 shadow-xs"
+                        : isReplied
+                        ? "bg-emerald-50/20 border-emerald-200"
+                        : "bg-[#FAFDFB] border-[#D5E5DD]"
+                    }`}
+                  >
+                    {/* Header bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xs ${
+                            isReplied
+                              ? "bg-emerald-600 text-white"
+                              : isUnread
+                              ? "bg-amber-500 text-white"
+                              : "bg-[#0B3D5C] text-white"
+                          }`}
+                        >
+                          <User className="w-5 h-5" />
                         </div>
+
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-extrabold text-[#0B3D5C]">
+                              {msg.name || "Patient"}
+                            </h4>
+
+                            {/* Status badges */}
+                            {isReplied ? (
+                              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                Replied via Email
+                              </span>
+                            ) : isUnread ? (
+                              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-200 animate-pulse">
+                                New Inquiry
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-extrabold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                Read
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 font-semibold mt-0.5">
+                            {msg.email && (
+                              <a
+                                href={`mailto:${msg.email}`}
+                                className="hover:text-[#3E8E6E] underline decoration-slate-300 flex items-center gap-1"
+                              >
+                                <Mail className="w-3 h-3 text-slate-400" />
+                                {msg.email}
+                              </a>
+                            )}
+                            {msg.phone && <span>📞 {msg.phone}</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <span className="text-[11px] text-slate-400 font-medium">
+                          {formatTime(msg.createdAt)}
+                        </span>
                       </div>
                     </div>
 
-                    <span className="text-[11px] text-slate-400 font-medium">
-                      {formatTime(msg.createdAt)}
-                    </span>
-                  </div>
+                    {/* Patient inquiry message text */}
+                    <div className="bg-white/80 p-4 rounded-2xl border border-slate-100 shadow-xs">
+                      <p className="text-xs font-semibold text-slate-800 leading-relaxed uppercase tracking-tight font-mono text-[11px] text-[#0B3D5C] mb-1">
+                        INQUIRY MESSAGE:
+                      </p>
+                      <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap">
+                        {msg.message}
+                      </p>
+                    </div>
 
-                  <p className="text-xs font-semibold text-slate-700 leading-relaxed pl-1">
-                    {msg.message}
-                  </p>
-                </div>
-              ))}
+                    {/* If Admin already replied, display the reply block */}
+                    {isReplied && msg.replyText && (
+                      <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 text-xs space-y-2">
+                        <div className="flex items-center justify-between text-[11px] font-extrabold text-emerald-800 border-b border-emerald-200/60 pb-1.5">
+                          <span className="flex items-center gap-1.5">
+                            <CornerDownRight className="w-4 h-4 text-emerald-600" />
+                            Previous Admin Email Reply:
+                          </span>
+                          <span className="font-semibold text-emerald-700">
+                            {formatTime(msg.repliedAt)}
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-700 whitespace-pre-wrap pl-5">
+                          {msg.replyText}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Actions Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Call Quick Action */}
+                        {msg.phone && (
+                          <a
+                            href={`tel:${msg.phone}`}
+                            className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-blue-200"
+                            title="Call Patient Phone"
+                          >
+                            <Phone className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Call</span>
+                          </a>
+                        )}
+
+                        {/* WhatsApp Quick Action */}
+                        {msg.phone && (
+                          <a
+                            href={getWhatsAppContactReplyUrl(msg)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition-all flex items-center gap-1.5 border border-emerald-200"
+                            title="Reply via WhatsApp"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>WhatsApp</span>
+                          </a>
+                        )}
+
+                        {/* Email Quick Action - ONLY visible when msg.email exists & is non-empty */}
+                        {msg.email && msg.email.trim() !== "" && (
+                          <button
+                            onClick={() => openReplyModal(msg)}
+                            className="px-3 py-1.5 rounded-xl bg-[#0B3D5C] hover:bg-[#082a40] text-white text-xs font-extrabold transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+                            title="Reply via Email"
+                          >
+                            <Mail className="w-3.5 h-3.5 text-[#5EEAD4]" />
+                            <span>{isReplied ? "Send Email" : "Email"}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleMarkInquiryRead(msg.id, msg.read || msg.is_read)}
+                        className="text-[11px] font-bold text-slate-500 hover:text-slate-800 transition-all cursor-pointer px-2.5 py-1 rounded-lg hover:bg-slate-100"
+                      >
+                        {isUnread ? "Mark as Read" : "Mark as Unread"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       )}
+
+      {/* PATIENT EMAIL REPLY MODAL */}
+      <AnimatePresence>
+        {replyingInquiry && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-[#D5E5DD] overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              {/* Modal Header */}
+              <div className="bg-[#0B3D5C] text-white p-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#3E8E6E] text-white flex items-center justify-center font-bold">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold">Send Email Reply to Patient</h3>
+                    <p className="text-[11px] text-[#5EEAD4] font-medium">
+                      Recipient: {replyingInquiry.email || "No email address"}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setReplyingInquiry(null)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                {/* Original inquiry recap box */}
+                <div className="bg-[#FAFDFB] p-4 rounded-2xl border border-[#D5E5DD] space-y-1">
+                  <div className="flex items-center justify-between text-[11px] font-extrabold text-[#0B3D5C]">
+                    <span>PATIENT: {replyingInquiry.name || "Unknown"}</span>
+                    <span className="text-slate-400 font-normal">{formatTime(replyingInquiry.createdAt)}</span>
+                  </div>
+                  <p className="text-xs text-slate-700 font-medium italic">
+                    "{replyingInquiry.message}"
+                  </p>
+                </div>
+
+                {/* Quick Templates Bar */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-extrabold text-[#0B3D5C] uppercase tracking-wider block">
+                    Quick Reply Templates:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => applyTemplate("cataract")}
+                      className="px-3 py-1.5 rounded-xl bg-[#E8F0EC] hover:bg-[#3E8E6E] hover:text-white text-[#0B3D5C] text-xs font-bold border border-[#D5E5DD] transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      Cataract & Surgery Charges
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyTemplate("appointment")}
+                      className="px-3 py-1.5 rounded-xl bg-[#E8F0EC] hover:bg-[#3E8E6E] hover:text-white text-[#0B3D5C] text-xs font-bold border border-[#D5E5DD] transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-sky-500" />
+                      Appointment Booking
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyTemplate("general")}
+                      className="px-3 py-1.5 rounded-xl bg-[#E8F0EC] hover:bg-[#3E8E6E] hover:text-white text-[#0B3D5C] text-xs font-bold border border-[#D5E5DD] transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      General Reply
+                    </button>
+                  </div>
+                </div>
+
+                {/* Subject Line */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-extrabold text-[#0B3D5C] uppercase tracking-wider block">
+                    Email Subject:
+                  </label>
+                  <input
+                    type="text"
+                    value={patientReplySubject}
+                    onChange={(e) => setPatientReplySubject(e.target.value)}
+                    placeholder="Enter email subject..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#3E8E6E] bg-slate-50/50"
+                  />
+                </div>
+
+                {/* Reply Message Body */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-extrabold text-[#0B3D5C] uppercase tracking-wider block">
+                    Email Message Content:
+                  </label>
+                  <textarea
+                    rows={8}
+                    value={patientReplyText}
+                    onChange={(e) => setPatientReplyText(e.target.value)}
+                    placeholder="Type your official email reply to the patient here..."
+                    className="w-full p-4 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#3E8E6E] bg-slate-50/50 leading-relaxed"
+                  />
+                </div>
+
+                {/* Status Alert Banner */}
+                {emailStatusAlert && (
+                  <div
+                    className={`p-3.5 rounded-2xl border text-xs font-bold flex items-center gap-2.5 ${
+                      emailStatusAlert.type === "success"
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                        : "bg-rose-50 border-rose-200 text-rose-800"
+                    }`}
+                  >
+                    {emailStatusAlert.type === "success" ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                    )}
+                    <span>{emailStatusAlert.message}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={handleMailtoFallback}
+                  className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 transition-all cursor-pointer flex items-center gap-1.5"
+                  title="Open Mail Client application"
+                >
+                  <ExternalLink className="w-4 h-4 text-slate-500" />
+                  <span>Open in Mail App</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReplyingInquiry(null)}
+                    className="px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-200 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSendPatientEmail}
+                    disabled={sendingPatientEmail || !patientReplyText.trim()}
+                    className="px-6 py-2.5 rounded-xl bg-[#3E8E6E] hover:bg-[#32755a] disabled:opacity-50 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md flex items-center gap-2"
+                  >
+                    {sendingPatientEmail ? (
+                      <span>Sending Email...</span>
+                    ) : (
+                      <>
+                        <span>Send Email Reply</span>
+                        <Send className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

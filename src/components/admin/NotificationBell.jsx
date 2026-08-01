@@ -37,12 +37,14 @@ export default function NotificationBell() {
     let unreadNotifsMap = new Map();
     let unreadApptsMap = new Map();
     let unreadMsgsMap = new Map();
+    let unreadLogsMap = new Map();
 
     const updateTotalUnread = () => {
       const allUnreadKeys = new Set([
         ...Array.from(unreadNotifsMap.keys()),
         ...Array.from(unreadApptsMap.keys()),
         ...Array.from(unreadMsgsMap.keys()),
+        ...Array.from(unreadLogsMap.keys()),
       ]);
       setUnreadCount(allUnreadKeys.size);
     };
@@ -105,7 +107,7 @@ export default function NotificationBell() {
         unreadMsgsMap.clear();
         snap.docs.forEach((docSnap) => {
           const msg = docSnap.data();
-          if (msg.is_read !== true && msg.read !== true) {
+          if (msg.sender_type !== "admin" && msg.is_read !== true && msg.read !== true) {
             unreadMsgsMap.set(`msg-${docSnap.id}`, true);
           }
         });
@@ -114,10 +116,43 @@ export default function NotificationBell() {
       (err) => console.warn("Admin msgs subscription notice:", err)
     );
 
+    // 4. Subscribe to activityLog collection for Admin (triggers toast & badge on every doctor/admin action)
+    const unsubLogs = onSnapshot(
+      collection(db, "activityLog"),
+      (snap) => {
+        unreadLogsMap.clear();
+        snap.docs.forEach((docSnap) => {
+          const log = docSnap.data();
+          if (log.read !== true && log.is_read !== true) {
+            unreadLogsMap.set(`log-${docSnap.id}`, true);
+          }
+        });
+
+        if (!isInitialRef.current) {
+          snap.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const log = change.doc.data();
+              const act = (log.action || "").toUpperCase();
+              addToast(
+                "doctor_action",
+                `Doctor Action: ${act}`,
+                log.message || `Appointment was ${log.action} by Dr. ${log.doctorName || "Doctor"}`,
+                log.doctorId ? `/admin/doctors/activity?id=${log.doctorId}` : "/admin/doctors"
+              );
+            }
+          });
+        }
+
+        updateTotalUnread();
+      },
+      (err) => console.warn("Admin activityLog subscription notice:", err)
+    );
+
     return () => {
       unsubNotifs();
       unsubAppts();
       unsubMsgs();
+      unsubLogs();
     };
   }, []);
 
@@ -148,22 +183,20 @@ export default function NotificationBell() {
               initial={{ opacity: 0, x: 50, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 50, scale: 0.9 }}
-              className={`pointer-events-auto bg-white rounded-2xl border shadow-2xl p-4 flex items-start gap-3 border-l-4 ${
-                t.type === "doctor"
-                  ? "border-l-emerald-600 border-slate-200"
-                  : t.type === "appointment"
+              className={`pointer-events-auto bg-white rounded-2xl border shadow-2xl p-4 flex items-start gap-3 border-l-4 ${t.type === "doctor"
+                ? "border-l-emerald-600 border-slate-200"
+                : t.type === "appointment"
                   ? "border-l-sky-600 border-slate-200"
                   : "border-l-amber-500 border-slate-200"
-              }`}
+                }`}
             >
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-xs ${
-                  t.type === "doctor"
-                    ? "bg-emerald-600"
-                    : t.type === "appointment"
+                className={`w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-xs ${t.type === "doctor"
+                  ? "bg-emerald-600"
+                  : t.type === "appointment"
                     ? "bg-sky-600"
                     : "bg-amber-600"
-                }`}
+                  }`}
               >
                 {t.type === "doctor" ? (
                   <Stethoscope className="w-5 h-5" />

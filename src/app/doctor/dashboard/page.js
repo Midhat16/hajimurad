@@ -14,6 +14,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import DoctorNotificationBell from "@/components/doctor/DoctorNotificationBell";
+import { getWhatsAppAppointmentUrl } from "@/lib/whatsappHelper";
+import { notifyOnDoctorAction } from "@/lib/notificationService";
 import {
   Stethoscope,
   Calendar,
@@ -189,6 +191,12 @@ export default function DoctorDashboard() {
       });
       await logActivity("accepted", appt, "Accepted appointment booking");
       await notifyOnDoctorAction("accepted", appt, doctorProfile?.name || "Doctor");
+
+      // Trigger automatic WhatsApp open for patient notification
+      const waUrl = getWhatsAppAppointmentUrl("confirmed", appt);
+      if (waUrl && typeof window !== "undefined") {
+        window.open(waUrl, "_blank");
+      }
     } catch (err) {
       console.error("Error accepting appointment:", err);
       alert("Failed to confirm appointment. Please try again.");
@@ -209,6 +217,12 @@ export default function DoctorDashboard() {
       });
       await logActivity("rejected", appt, "Rejected appointment booking");
       await notifyOnDoctorAction("rejected", appt, doctorProfile?.name || "Doctor");
+
+      // Trigger automatic WhatsApp open for patient notification
+      const waUrl = getWhatsAppAppointmentUrl("cancelled", appt);
+      if (waUrl && typeof window !== "undefined") {
+        window.open(waUrl, "_blank");
+      }
     } catch (err) {
       console.error("Error rejecting appointment:", err);
       alert("Failed to reject appointment. Please try again.");
@@ -246,6 +260,13 @@ export default function DoctorDashboard() {
         newDate,
         newTime
       );
+
+      // Trigger automatic WhatsApp open for patient notification
+      const waUrl = getWhatsAppAppointmentUrl("rescheduled", appt, newDate, newTime);
+      if (waUrl && typeof window !== "undefined") {
+        window.open(waUrl, "_blank");
+      }
+
       setRescheduleModal({ open: false, appt: null, newDate: "", newTime: "" });
     } catch (err) {
       console.error("Error rescheduling appointment:", err);
@@ -317,40 +338,40 @@ export default function DoctorDashboard() {
   return (
     <div className="min-h-screen bg-[#F4F7F5] flex flex-col font-sans">
       {/* Top Doctor Navigation Bar */}
-      <header className="bg-[#0B3D5C] text-white sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+      <header className="bg-[#0B3D5C] text-white sticky top-0 z-30 shadow-md min-w-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 flex items-center justify-between min-w-0 gap-2">
           {/* Left: Doctor Info */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center font-bold text-[#5EEAD4] text-sm shadow-inner">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center font-bold text-[#5EEAD4] text-xs sm:text-sm shadow-inner flex-shrink-0">
               {doctorProfile?.initials || doctorProfile?.name?.charAt(0) || "D"}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-extrabold tracking-tight text-white">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="text-xs sm:text-base font-extrabold tracking-tight text-white truncate">
                   {doctorProfile?.name || "Dr. Specialist"}
                 </h1>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-[#5EEAD4] px-2 py-0.5 rounded-md border border-emerald-500/30">
+                <span className="hidden xs:inline-block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-[#5EEAD4] px-1.5 py-0.5 rounded-md border border-emerald-500/30 flex-shrink-0">
                   Doctor Portal
                 </span>
               </div>
-              <p className="text-xs text-slate-300 font-medium">
+              <p className="text-[10px] sm:text-xs text-slate-300 font-medium truncate">
                 {doctorProfile?.specialty || doctorProfile?.role || "Ophthalmic Surgeon"}
               </p>
             </div>
           </div>
 
           {/* Right: Direct Chat, Notifications & Logout */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             {/* Direct Chat with Admin Link */}
             <Link
               href="/doctor/messages"
-              className="p-2 rounded-xl bg-[#3E8E6E] hover:bg-[#32755a] text-white transition-colors flex items-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer relative"
+              className="p-2 rounded-xl bg-[#3E8E6E] hover:bg-[#32755a] text-white transition-colors flex items-center gap-1 text-xs font-bold shadow-xs cursor-pointer relative"
               title={unreadAdminMsgCount > 0 ? `${unreadAdminMsgCount} new messages from Admin` : "Direct Chat with Admin"}
             >
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Admin Chat</span>
+              <MessageSquare className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden md:inline">Admin Chat</span>
               {unreadAdminMsgCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0B3D5C] animate-pulse shadow-md">
+                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-[#0B3D5C] animate-pulse shadow-md">
                   {unreadAdminMsgCount}
                 </span>
               )}
@@ -538,7 +559,20 @@ export default function DoctorDashboard() {
                   </div>
 
                   {/* Doctor Action Buttons */}
-                  <div className="pt-2 flex items-center gap-2 border-t border-[#E8F0EC]">
+                  <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-[#E8F0EC]">
+                    {/* WhatsApp Action */}
+                    {appt.phone && (
+                      <a
+                        href={getWhatsAppAppointmentUrl(status, appt)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors flex items-center justify-center"
+                        title="Notify Patient via WhatsApp"
+                      >
+                        <MessageSquare className="w-4 h-4 text-emerald-600" />
+                      </a>
+                    )}
+
                     {/* Accept Action */}
                     <button
                       onClick={() => handleAccept(appt)}

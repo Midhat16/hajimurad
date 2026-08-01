@@ -48,6 +48,7 @@ export default function DoctorNotificationBell() {
           const data = d.data();
           const isForDoctor =
             (data.recipient_type || "doctor") === "doctor" &&
+            data.sender_type !== "doctor" &&
             ((data.recipient_id && doctorId && data.recipient_id === doctorId) ||
               (data.doctorName && doctorNameClean && data.doctorName.toLowerCase().includes(doctorNameClean)));
 
@@ -62,6 +63,7 @@ export default function DoctorNotificationBell() {
               const data = change.doc.data();
               const isForDoctor =
                 (data.recipient_type || "doctor") === "doctor" &&
+                data.sender_type !== "doctor" &&
                 ((data.recipient_id && doctorId && data.recipient_id === doctorId) ||
                   (data.doctorName && doctorNameClean && data.doctorName.toLowerCase().includes(doctorNameClean)));
 
@@ -84,7 +86,7 @@ export default function DoctorNotificationBell() {
       (err) => console.warn("Doctor notifs subscription notice:", err)
     );
 
-    // 2. Subscribe to appointments assigned to this doctor
+    // 2. Subscribe to new pending appointments assigned to this doctor
     const unsubAppts = onSnapshot(
       collection(db, "appointments"),
       (snap) => {
@@ -95,12 +97,10 @@ export default function DoctorNotificationBell() {
             (appt.doctorId && doctorId && appt.doctorId === doctorId) ||
             (appt.doctor && doctorNameClean && appt.doctor.toLowerCase().includes(doctorNameClean));
 
-          const isUnread =
-            isAssigned &&
-            (appt.status === "pending" ||
-              (appt.readByDoctor !== true && appt.is_read !== true && appt.read !== true));
+          // SIRF NAYE PENDING APPOINTMENTS (jo status === "pending" hain)
+          const isNewPending = isAssigned && appt.status === "pending";
 
-          if (isUnread) {
+          if (isNewPending) {
             unreadApptsMap.set(`appt-${d.id}`, true);
           }
         });

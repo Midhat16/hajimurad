@@ -8,18 +8,23 @@ import { db } from "@/lib/firebase";
 import { notifyOnPatientMessage } from "@/lib/notificationService";
 
 const DEFAULT_CONTACT = {
-  mainDeskNumber: "+1 (800) 555-EYES",
-  emergencyNumber: "+1 (800) 555-9111",
-  email: "info@hajimurad.com",
-  address: "120 Vision Boulevard, Suite 500, Medical District, NY 10016",
+  uanNumber: "111 333 456",
+  callNumber: "0332-4290724",
+  helplineNumber: "0324-1111691",
+  mainDeskNumber: "111 333 456",
+  emergencyNumber: "0332-4290724",
+  email: "info@hajimuradhospital.org",
+  address: "Upper Chanab Canal Bank G.T Road Gujranwala",
 };
 
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     message: ""
   });
+  const [errors, setErrors] = useState({});
   const [isSent, setIsSent] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [contactData, setContactData] = useState(DEFAULT_CONTACT);
@@ -43,13 +48,38 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) return;
+    const newErrors = {};
+    if (!formData.name.trim()) {
+      newErrors.name = "Please enter your name";
+    }
 
+    const phoneClean = formData.phone.replace(/[\s\-\(\)]/g, "");
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Please enter your phone number";
+    } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(phoneClean)) {
+      newErrors.phone = "Please enter a valid phone number (e.g. 0300-1234567)";
+    }
+
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "Please enter your message";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     setIsSending(true);
     try {
       await addDoc(collection(db, "messages"), {
         name: formData.name.trim(),
         email: formData.email.trim(),
+        phone: formData.phone.trim(),
         message: formData.message.trim(),
         read: false,
         is_read: false,
@@ -62,13 +92,13 @@ export default function Contact() {
 
       setIsSending(false);
       setIsSent(true);
-      setFormData({ name: "", email: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", message: "" });
       setTimeout(() => setIsSent(false), 5000);
     } catch (error) {
       console.warn("Firestore Contact message addDoc warning:", error);
       setIsSending(false);
       setIsSent(true);
-      setFormData({ name: "", email: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", message: "" });
       setTimeout(() => setIsSent(false), 5000);
     }
   };
@@ -76,6 +106,9 @@ export default function Contact() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const CONTACT_INFO = [
@@ -87,20 +120,24 @@ export default function Contact() {
     },
     {
       icon: Phone,
-      title: "Phone & Emergency",
-      details: [`Main Desk: ${contactData.mainDeskNumber}`, `Emergency Unit: ${contactData.emergencyNumber}`],
+      title: "Phone & Contact Lines",
+      details: [
+        `UAN: ${contactData.uanNumber || contactData.mainDeskNumber}`,
+        `Call #: ${contactData.callNumber || contactData.emergencyNumber}`,
+      ],
       color: "text-teal-500 bg-teal-50"
     },
     {
       icon: Mail,
       title: "Email Helpdesk",
-      details: [contactData.email],
+      details: ["info@HMEHT.com"],
+      isEmail: true,
       color: "text-indigo-500 bg-indigo-50"
     },
     {
       icon: Clock,
       title: "Operating Hours",
-      details: ["Monday - Saturday: 8 AM - 7 PM", "Sunday: Closed (Emergency Only)"],
+      details: ["Monday - Saturday: 9 AM - 3 PM", "Emergency: 24/7"],
       color: "text-amber-500 bg-amber-50"
     }
   ];
@@ -125,10 +162,10 @@ export default function Contact() {
               Reach Our Desk
             </span>
             <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
-              Contact Us & Visit Our Clinic
+              Contact Us
             </h2>
-            <p className="mt-3 text-base text-[#3F4B4A]">
-              Have questions about LASIK pricing, insurance coverage, or recovery slots? Speak directly with our clinical manager.
+            <p className="mt-3 text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
+              Have questions about our eye care services, appointments, or treatment options? Speak directly with our hospital team.
             </p>
           </motion.div>
         </div>
@@ -155,10 +192,19 @@ export default function Contact() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="text-left">
-                      <h4 className="font-bold text-[#0B3D5C] text-xs sm:text-sm">{info.title}</h4>
+                      <h4 className="font-bold text-[#0B3D5C] text-sm sm:text-base">{info.title}</h4>
                       {info.details.map((line, lIdx) => (
-                        <p key={lIdx} className="text-[11px] sm:text-xs text-[#3F4B4A] mt-0.5 leading-snug font-medium">
-                          {line}
+                        <p key={lIdx} className="text-xs sm:text-sm text-[#3F4B4A] mt-0.5 leading-relaxed font-medium">
+                          {info.isEmail ? (
+                            <a
+                              href={`mailto:${contactData.email || 'info@hajimuradhospital.org'}`}
+                              className="text-[#0B3D5C] hover:text-[#3E8E6E] font-bold hover:underline"
+                            >
+                              {line}
+                            </a>
+                          ) : (
+                            line
+                          )}
                         </p>
                       ))}
                     </div>
@@ -176,7 +222,7 @@ export default function Contact() {
               className="w-full rounded-[28px] overflow-hidden border border-[#D5E5DD] shadow-sm relative bg-white"
             >
               <iframe
-                src="https://www.google.com/maps?q=32.1052491,74.1984211&z=16&output=embed"
+                src="https://maps.google.com/maps?q=Haji+Murad+Trust+Eye+Hospital+Gujranwala&t=&z=16&ie=UTF8&iwloc=B&output=embed"
                 width="100%"
                 height="380"
                 style={{ border: 0, borderRadius: "28px" }}
@@ -197,7 +243,7 @@ export default function Contact() {
               transition={{ type: "spring", stiffness: 85 }}
               className="glass-card bg-white rounded-[32px] p-8 sm:p-10 border border-slate-200/60 shadow-lg h-full flex flex-col justify-between"
             >
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">Send an Inquiry</h3>
                   <p className="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wider">Direct Clinical Inbox</p>
@@ -211,13 +257,19 @@ export default function Contact() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    required
                     placeholder="Enter name"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-medical-blue focus:ring-sky-100 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all"
+                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all ${
+                      errors.name
+                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
+                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                    }`}
                   />
+                  {errors.name && (
+                    <p className="text-xs font-semibold text-red-500 mt-1">{errors.name}</p>
+                  )}
                 </div>
 
-                {/* Email */}
+                {/* Email Address (Optional) */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Email Address</label>
                   <input
@@ -225,10 +277,36 @@ export default function Contact() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
                     placeholder="name@email.com"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-medical-blue focus:ring-sky-100 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all"
+                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all ${
+                      errors.email
+                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
+                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                    }`}
                   />
+                  {errors.email && (
+                    <p className="text-xs font-semibold text-red-500 mt-1">{errors.email}</p>
+                  )}
+                </div>
+
+                {/* Phone Number */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="03XX-XXXXXXX"
+                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all ${
+                      errors.phone
+                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
+                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                    }`}
+                  />
+                  {errors.phone && (
+                    <p className="text-xs font-semibold text-red-500 mt-1">{errors.phone}</p>
+                  )}
                 </div>
 
                 {/* Message */}
@@ -238,11 +316,17 @@ export default function Contact() {
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
-                    required
                     rows="4"
                     placeholder="Type your clinical inquiry..."
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-medical-blue focus:ring-sky-100 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all resize-none ${
+                      errors.message
+                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
+                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                    }`}
                   />
+                  {errors.message && (
+                    <p className="text-xs font-semibold text-red-500 mt-1">{errors.message}</p>
+                  )}
                 </div>
 
                 {/* Submit button */}

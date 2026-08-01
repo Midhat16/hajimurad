@@ -21,13 +21,18 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // If already logged in & authorized, redirect to dashboard immediately
   useEffect(() => {
-    if (user && isAuthorized) {
+    if (mounted && user && isAuthorized) {
       router.push("/admin/dashboard");
     }
-  }, [user, isAuthorized, router]);
+  }, [mounted, user, isAuthorized, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,6 +112,14 @@ export default function AdminLoginPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#F4F7F5] flex flex-col justify-center items-center">
+        <div className="w-12 h-12 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-4" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F4F7F5] flex flex-col justify-center items-center p-4 relative overflow-hidden">

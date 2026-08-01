@@ -116,7 +116,7 @@ export default function WhyChooseUs() {
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
                 {content.heading}
               </h2>
-              <p className="text-base text-[#3F4B4A] leading-relaxed">
+              <p className="text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
                 {content.description}
               </p>
             </motion.div>
@@ -138,8 +138,12 @@ export default function WhyChooseUs() {
                       <Icon className="w-5 h-5 text-[#3E8E6E] group-hover:text-white transition-colors duration-300" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-[#0B3D5C] text-sm sm:text-base">{point.title}</h3>
-                      <p className="text-[#3F4B4A] text-xs mt-0.5 leading-relaxed">{point.description}</p>
+                      <h3 className="text-base sm:text-lg font-bold text-[#0B3D5C]">
+                        {point.title}
+                      </h3>
+                      <p className="mt-1 text-xs sm:text-sm text-[#3F4B4A] leading-relaxed">
+                        {point.description}
+                      </p>
                     </div>
                   </motion.div>
                 );

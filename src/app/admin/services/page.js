@@ -142,7 +142,7 @@ export default function AdminServicesListPage() {
                 {/* Actions */}
                 <div className="mt-5 border-t border-slate-100 pt-4 flex items-center justify-end gap-2">
                   <Link
-                    href={`/admin/services/${svc.id}/edit`}
+                    href={`/admin/services/edit?id=${svc.id}`}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold text-xs transition-colors"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
