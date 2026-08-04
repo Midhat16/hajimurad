@@ -23,9 +23,9 @@ function DoctorGuard({ children }) {
 
   if (loading && !isLoginPage) {
     return (
-      <div className="min-h-screen bg-[#F4F7F5] flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[#0B3D5C]">Authenticating Doctor Portal...</p>
+      <div className="min-h-screen bg-[var(--fog)] flex flex-col items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-xs font-bold text-[var(--ink)]">Authenticating Doctor Portal...</p>
       </div>
     );
   }

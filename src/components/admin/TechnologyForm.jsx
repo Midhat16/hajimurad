@@ -49,19 +49,19 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Top Header Navigation */}
-      <div className="flex items-center justify-between border-b border-[#D5E5DD] pb-4">
+      <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/technologies"
-            className="p-2 rounded-xl bg-white border border-[#D5E5DD] text-[#0B3D5C] hover:bg-[#E8F0EC] transition-all"
+            className="p-2 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight">
+            <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
               {title}
             </h1>
-            <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
+            <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
               Add or modify hardware diagnostic equipment and laser technology platforms.
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
       </div>
 
       {/* Form Container */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D5E5DD] shadow-sm space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
         
         {/* Image Picker */}
         <ImagePicker
@@ -81,7 +81,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Equipment Name *
             </label>
             <input
@@ -91,13 +91,13 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
               onChange={handleChange}
               placeholder=""
               required
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Category */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Medical Category
             </label>
             <input
@@ -106,13 +106,13 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
               value={formData.category}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Status badge text */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Calibration / Telemetry Status
             </label>
             <input
@@ -121,13 +121,13 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
               value={formData.status}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Display Order */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Display Sequence Order (1, 2, 3...)
             </label>
             <input
@@ -136,14 +136,14 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
               value={formData.order}
               onChange={handleChange}
               min={1}
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
         </div>
 
         {/* Description */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
             Equipment Overview & Specifications
           </label>
           <textarea
@@ -152,7 +152,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
             onChange={handleChange}
             rows={4}
             placeholder=""
-            className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
           />
         </div>
 
@@ -169,7 +169,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSaving}
-            className="flex items-center gap-2 bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {isSaving ? "Saving Technology..." : "Save Technology Equipment"}

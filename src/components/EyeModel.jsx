@@ -83,7 +83,7 @@ export default function EyeModel({ mouse }) {
         <mesh position={[0, 0, 0.15]}>
           <ringGeometry args={[0.25, 0.95, 32]} />
           <meshStandardMaterial
-            color="#0B3D5C"
+            color="#2B1F1A"
             roughness={0.15}
             metalness={0.2}
             side={THREE.DoubleSide}
@@ -94,8 +94,8 @@ export default function EyeModel({ mouse }) {
         <mesh position={[0, 0, 0.17]}>
           <torusGeometry args={[0.6, 0.08, 8, 32]} />
           <meshStandardMaterial
-            color="#3E8E6E"
-            emissive="#3E8E6E"
+            color="#C4232C"
+            emissive="#C4232C"
             emissiveIntensity={0.45}
             roughness={0.2}
           />
@@ -116,7 +116,7 @@ export default function EyeModel({ mouse }) {
         <mesh ref={pupilRef} position={[0, 0, 0.2]}>
           <sphereGeometry args={[0.3, 16, 16]} />
           <meshStandardMaterial
-            color="#051c2b"
+            color="#1a1310"
             roughness={0.02}
             metalness={0.95}
           />

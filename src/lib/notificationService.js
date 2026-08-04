@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 export const createNotification = async ({
   recipient_type, // "admin" | "doctor"
   recipient_id,   // "admin" or doctorId
+  sender_type,    // "admin" | "doctor" | "patient"
   type,           // "appointment_booked" | "doctor_action" | "admin_action" | "direct_message"
   title,
   message,
@@ -20,6 +21,7 @@ export const createNotification = async ({
     await addDoc(collection(db, "notifications"), {
       recipient_type: recipient_type || "admin",
       recipient_id: recipient_id || "admin",
+      sender_type: sender_type || (recipient_type === "doctor" ? "admin" : "doctor"),
       type: type || "general",
       title: title || "Notification",
       message: message || "",
@@ -84,7 +86,7 @@ export const notifyOnAppointmentBooked = async (apptData, appointmentId = "") =>
 /**
  * Triggered when Doctor performs an action (Accept / Reject / Reschedule) on an appointment.
  */
-export const notifyOnDoctorAction = async (action, apptData, doctorName = "Doctor", newDate = "", newTime = "") => {
+export const notifyOnDoctorAction = async (action, apptData, doctorName = "Doctor", newDate = "", newTime = "", activityLogId = "") => {
   try {
     const patientName = apptData.name || "Patient";
     const apptShortId = apptData.id ? `#${apptData.id.slice(0, 6)}` : "request";
@@ -103,6 +105,10 @@ export const notifyOnDoctorAction = async (action, apptData, doctorName = "Docto
       message = `Appointment ${apptShortId} with ${patientName} has been RESCHEDULED by Dr. ${doctorName} to ${newDate} at ${newTime}`;
     }
 
+    const targetHref = activityLogId
+      ? `/admin/notifications/action-detail?id=${activityLogId}`
+      : "/admin/appointments";
+
     await createNotification({
       recipient_type: "admin",
       recipient_id: "admin",
@@ -113,7 +119,7 @@ export const notifyOnDoctorAction = async (action, apptData, doctorName = "Docto
       doctorId: apptData.doctorId || "",
       doctorName,
       patientName,
-      href: "/admin/notifications",
+      href: targetHref,
     });
   } catch (err) {
     console.warn("Notice: notifyOnDoctorAction error handled:", err);
@@ -209,6 +215,7 @@ export const notifyOnDirectMessage = async (arg1, arg2, arg3, arg4) => {
       await createNotification({
         recipient_type: "admin",
         recipient_id: "admin",
+        sender_type: "doctor",
         type: "direct_message",
         title: `New Doctor Inquiry: ${cleanDocName}`,
         message: textSnippet,
@@ -222,6 +229,7 @@ export const notifyOnDirectMessage = async (arg1, arg2, arg3, arg4) => {
         await createNotification({
           recipient_type: "doctor",
           recipient_id: doctorId,
+          sender_type: "admin",
           type: "direct_message",
           title: "Admin replied to your message",
           message: textSnippet,

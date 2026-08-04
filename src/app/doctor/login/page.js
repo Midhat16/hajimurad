@@ -11,24 +11,31 @@ import {
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useDoctorAuth } from "@/context/DoctorAuthContext";
+import { useHospitalProfile } from "@/lib/useHospitalProfile";
 import { Eye, EyeOff, Lock, Mail, AlertCircle, Stethoscope } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DoctorLoginPage() {
   const router = useRouter();
   const { isDoctorAuthorized, setDoctorSession } = useDoctorAuth();
+  const { profile } = useHospitalProfile();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (isDoctorAuthorized) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && isDoctorAuthorized) {
       router.push("/doctor/dashboard");
     }
-  }, [isDoctorAuthorized, router]);
+  }, [mounted, isDoctorAuthorized, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,6 +53,7 @@ export default function DoctorLoginPage() {
       const inputPasswordClean = password.trim();
 
       let matchedDoctorId = null;
+      let doctorData = null;
 
       // 1. Query doctorCredentials collection
       try {
@@ -58,6 +66,7 @@ export default function DoctorLoginPage() {
         if (!querySnap.empty) {
           const matchedDoc = querySnap.docs[0];
           matchedDoctorId = matchedDoc.data().doctorId || matchedDoc.id;
+          doctorData = matchedDoc.data();
         }
       } catch (credErr) {
         console.warn("doctorCredentials query notice:", credErr);
@@ -74,6 +83,7 @@ export default function DoctorLoginPage() {
           const docSnap = await getDocs(qDoc);
           if (!docSnap.empty) {
             matchedDoctorId = docSnap.docs[0].id;
+            doctorData = docSnap.docs[0].data();
           }
         } catch (docErr) {
           console.warn("doctors collection fallback query notice:", docErr);
@@ -81,52 +91,78 @@ export default function DoctorLoginPage() {
       }
 
       if (!matchedDoctorId) {
-        // Match not found -> Return unauthorized error immediately, DO NOT call Firebase Auth!
         setError("Unauthorized — this login is for registered doctors only");
         setIsSubmitting(false);
         return;
       }
 
-      // 2. Set Auth Persistence to browserLocalPersistence
+      // Ensure persistent login
       await setPersistence(auth, browserLocalPersistence);
 
-      // 3. Try Firebase Auth sign in
+      // 2. Attempt login with Firebase Auth
+      let userCred;
       try {
-        await signInWithEmailAndPassword(auth, inputEmailClean, inputPasswordClean);
-        setDoctorSession(matchedDoctorId);
-        router.push("/doctor/dashboard");
+        userCred = await signInWithEmailAndPassword(auth, inputEmailClean, inputPasswordClean);
       } catch (authErr) {
+        // Self-heal: If doctor account does not exist in Firebase Auth yet, auto-create it
         if (
           authErr.code === "auth/user-not-found" ||
           authErr.code === "auth/invalid-credential"
         ) {
-          // First time login auto-bootstrap
           try {
-            await createUserWithEmailAndPassword(auth, inputEmailClean, inputPasswordClean);
-            setDoctorSession(matchedDoctorId);
-            router.push("/doctor/dashboard");
+            userCred = await createUserWithEmailAndPassword(
+              auth,
+              inputEmailClean,
+              inputPasswordClean
+            );
           } catch (createErr) {
             if (createErr.code === "auth/email-already-in-use") {
               setError("Incorrect login credentials.");
             } else {
               setError(createErr.message || "Authentication failed.");
             }
+            setIsSubmitting(false);
+            return;
           }
         } else {
           setError("Incorrect login credentials.");
+          setIsSubmitting(false);
+          return;
         }
       }
+
+      // 3. Save Doctor Session in Context
+      setDoctorSession(matchedDoctorId, {
+        id: matchedDoctorId,
+        ...doctorData,
+        uid: userCred?.user?.uid || "",
+      });
+
+      router.push("/doctor/dashboard");
     } catch (err) {
-      console.error("Doctor Login error:", err);
-      setError(err.message || "An unexpected error occurred.");
+      console.error("Doctor Login Error:", err);
+      setError(err.message || "Failed to authenticate doctor. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (!mounted) return null;
+
+  if (isDoctorAuthorized) {
+    return (
+      <div className="min-h-screen bg-[var(--fog)] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-[var(--ink)]">Redirecting to Doctor Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B3D5C] via-[#124B6F] to-[#3E8E6E] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Soft background accents */}
+    <div className="min-h-screen bg-[var(--ink)] flex flex-col justify-center items-center p-4 relative overflow-hidden">
+      {/* Background Ambient Glows */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl pointer-events-none translate-x-1/2 translate-y-1/2" />
 
@@ -138,17 +174,17 @@ export default function DoctorLoginPage() {
       >
         {/* Header Icon */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-[#E8F0EC] text-[#3E8E6E] mx-auto flex items-center justify-center mb-4 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--fog)] text-[var(--iris)] mx-auto flex items-center justify-center mb-4 shadow-sm">
             <Stethoscope className="w-8 h-8" />
           </div>
-          <span className="text-[11px] font-bold tracking-widest text-[#3E8E6E] uppercase bg-[#E8F0EC] px-3 py-1 rounded-full border border-[#D5E5DD]">
+          <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
             Ophthalmic Specialist Portal
           </span>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] mt-3 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] mt-3 tracking-tight">
             Doctor Sign In
           </h1>
-          <p className="text-xs font-semibold text-[#3F4B4A] mt-1">
-            Haji Murad Trust Eye Hospital — Clinical Dashboard
+          <p className="text-xs font-semibold text-[var(--slate)] mt-1">
+            {profile.hospitalName} — Doctor Dashboard
           </p>
         </div>
 
@@ -168,7 +204,7 @@ export default function DoctorLoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email Field */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Doctor Email
             </label>
             <div className="relative">
@@ -179,14 +215,14 @@ export default function DoctorLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
 
           {/* Password Field */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Password
             </label>
             <div className="relative">
@@ -197,7 +233,7 @@ export default function DoctorLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
               <button
                 type="button"
@@ -219,12 +255,12 @@ export default function DoctorLoginPage() {
             whileTap={{ scale: 0.99 }}
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 mt-2"
+            className="w-full bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 mt-2"
           >
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Verifying Credentials...
+                Verifying Doctor Credentials...
               </>
             ) : (
               "Sign In to Doctor Dashboard"

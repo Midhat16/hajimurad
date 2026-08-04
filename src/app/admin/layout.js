@@ -30,9 +30,9 @@ function AdminContentGuard({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F4F7F5] flex flex-col justify-center items-center">
-        <div className="w-12 h-12 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-xs font-bold text-[#0B3D5C] uppercase tracking-widest">
+      <div className="min-h-screen bg-[var(--fog)] flex flex-col justify-center items-center">
+        <div className="w-12 h-12 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-xs font-bold text-[var(--ink)] uppercase tracking-widest">
           Authenticating Admin Portal...
         </p>
       </div>
@@ -44,17 +44,17 @@ function AdminContentGuard({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7F5] flex font-sans">
+    <div className="min-h-screen bg-[var(--fog)] flex">
       {/* Sidebar Navigation */}
       <AdminSidebar />
 
       {/* Main Admin Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
-        <header className="bg-white border-b border-[#D5E5DD] px-3 sm:px-8 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-40 min-w-0">
+        <header className="bg-white border-b border-[var(--line)] px-3 sm:px-8 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-40 min-w-0">
           <div className="flex items-center gap-2 pl-11 md:pl-0 min-w-0">
-            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#3E8E6E] flex-shrink-0" />
-            <h2 className="text-xs sm:text-sm font-extrabold text-[#0B3D5C] tracking-tight uppercase truncate">
+            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--iris)] flex-shrink-0" />
+            <h2 className="text-xs sm:text-sm font-extrabold text-[var(--ink)] tracking-tight uppercase truncate">
               Management Portal
             </h2>
           </div>
@@ -62,14 +62,14 @@ function AdminContentGuard({ children }) {
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <NotificationBell />
             <div className="flex items-center gap-2 sm:gap-3 border-l border-slate-200 pl-2 sm:pl-4">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#0B3D5C] text-white flex items-center justify-center font-bold text-xs shadow-xs flex-shrink-0">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--ink)] text-white flex items-center justify-center font-bold text-xs shadow-xs flex-shrink-0">
                 A
               </div>
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-[#0B3D5C]">
+                <span className="text-xs font-bold text-[var(--ink)]">
                   {user?.email || "Admin"}
                 </span>
-                <span className="text-[10px] text-[#3E8E6E] font-semibold">
+                <span className="text-[10px] text-[var(--iris)] font-semibold">
                   Authorized Administrator
                 </span>
               </div>

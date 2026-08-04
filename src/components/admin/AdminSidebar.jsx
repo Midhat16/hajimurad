@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useHospitalProfile, formatBrandName } from "@/lib/useHospitalProfile";
 import {
   LayoutDashboard,
   Calendar,
@@ -22,6 +23,11 @@ import {
   X,
   ExternalLink,
   Bell,
+  GraduationCap,
+  FileText,
+  Newspaper,
+  Image as ImageIcon,
+  HeartHandshake,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -32,15 +38,22 @@ const NAV_ITEMS = [
   { label: "Doctors", href: "/admin/doctors", icon: Users },
   { label: "Services", href: "/admin/services", icon: Briefcase },
   { label: "Technologies", href: "/admin/technologies", icon: Cpu },
+  { label: "Internships", href: "/admin/internships", icon: GraduationCap },
+  { label: "Gallery Manager", href: "/admin/media/gallery", icon: ImageIcon },
+  { label: "Annual Reports", href: "/admin/media/annual-reports", icon: FileText },
+  { label: "Newsletters", href: "/admin/media/newsletters", icon: Newspaper },
+  { label: "Success Stories", href: "/admin/media/success-stories", icon: HeartHandshake },
   { label: "Why Choose Us", href: "/admin/why-choose-us", icon: Sparkles },
-  { label: "About", href: "/admin/about", icon: Info },
+  { label: "About Content", href: "/admin/about", icon: Info },
   { label: "Messages", href: "/admin/messages", icon: MessageSquare },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+  { label: "Site Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { logout } = useAdminAuth();
+  const { profile } = useHospitalProfile();
+  const brand = formatBrandName(profile.hospitalName);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadMsgsCount, setUnreadMsgsCount] = useState(0);
 
@@ -74,7 +87,7 @@ export default function AdminSidebar() {
         unreadGenMsgsMap.clear();
         snap.docs.forEach((d) => {
           const data = d.data();
-          if (data.is_read !== true && data.read !== true) {
+          if (data.sender_type !== "admin" && data.is_read !== true && data.read !== true) {
             unreadGenMsgsMap.set(`gen-${d.id}`, true);
           }
         });
@@ -95,14 +108,17 @@ export default function AdminSidebar() {
         {/* Brand logo */}
         <div className="flex items-center justify-between px-2">
           <Link href="/admin/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 p-1 flex items-center justify-center shadow-md">
-              <img src="/images/logo.png" alt="Haji Murad Logo" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 p-1 flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+              <img src={profile.logoUrl} alt={profile.hospitalName} className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-extrabold tracking-tight text-white leading-tight">
-                Haji Murad
+              <span className="text-sm font-extrabold tracking-tight text-white leading-tight">
+                {brand.mainFirst}{" "}
+                {brand.mainHighlight && (
+                  <span className="text-[var(--iris)]">{brand.mainHighlight}</span>
+                )}
               </span>
-              <span className="text-[10px] font-bold text-[#3E8E6E] tracking-widest uppercase">
+              <span className="text-[10px] font-bold text-[var(--iris)] tracking-widest uppercase">
                 Admin Portal
               </span>
             </div>
@@ -127,13 +143,14 @@ export default function AdminSidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
-                  ? "bg-[#3E8E6E] text-white shadow-md"
-                  : "text-slate-300 hover:bg-[#082D44] hover:text-white"
-                  }`}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  isActive
+                    ? "bg-[var(--iris)] text-white shadow-md"
+                    : "text-white hover:bg-[var(--iris-dark)]"
+                }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <Icon className="w-5 h-5 flex-shrink-0 text-white" />
                   <span>{item.label}</span>
                 </div>
                 {isMessages && unreadMsgsCount > 0 && (
@@ -152,17 +169,17 @@ export default function AdminSidebar() {
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-[#082D44] hover:text-white transition-all"
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-emerald-400 hover:bg-emerald-950/30 hover:text-emerald-300 transition-all"
         >
-          <ExternalLink className="w-4 h-4 text-[#3E8E6E]" />
+          <ExternalLink className="w-4 h-4 text-emerald-400" />
           <span>View Live Website</span>
         </Link>
 
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-rose-300 hover:bg-rose-950/40 hover:text-rose-200 transition-all cursor-pointer"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-all cursor-pointer"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-5 h-5 text-rose-400" />
           <span>Sign Out</span>
         </button>
       </div>
@@ -175,7 +192,7 @@ export default function AdminSidebar() {
       <div className="md:hidden fixed top-2.5 left-2.5 z-50">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-xl bg-[#0B3D5C] text-white shadow-lg border border-[#3E8E6E]/40 cursor-pointer hover:bg-[#082D44]"
+          className="p-2 rounded-xl bg-[var(--ink)] text-white shadow-lg border border-[var(--iris)]/40 cursor-pointer hover:bg-[var(--iris-dark)]"
           aria-label="Toggle Sidebar"
         >
           <Menu className="w-5 h-5" />
@@ -198,7 +215,7 @@ export default function AdminSidebar() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-[85vw] max-w-[260px] bg-[#0B3D5C] text-white h-full shadow-2xl z-10 overflow-y-auto"
+              className="relative w-[85vw] max-w-[260px] bg-[var(--ink)] text-white h-full shadow-2xl z-10 overflow-y-auto"
             >
               {sidebarContent}
             </motion.aside>
@@ -207,7 +224,7 @@ export default function AdminSidebar() {
       </AnimatePresence>
 
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex w-64 bg-[#0B3D5C] text-white min-h-screen shadow-xl flex-shrink-0 flex-col">
+      <aside className="hidden md:flex w-64 bg-[var(--ink)] text-white min-h-screen shadow-xl flex-shrink-0 flex-col">
         {sidebarContent}
       </aside>
     </>

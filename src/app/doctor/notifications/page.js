@@ -25,7 +25,13 @@ import {
   XCircle,
   X,
   CheckCheck,
-  LogOut
+  LogOut,
+  User,
+  Users,
+  Mail,
+  Phone,
+  CreditCard,
+  MessageSquare
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -47,6 +53,23 @@ export default function DoctorNotificationsPage() {
     newTime: "",
   });
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Full Appointment detail modal state
+  const [detailModal, setDetailModal] = useState({
+    open: false,
+    item: null,
+    appt: null,
+  });
+
+  // Automatically reset bell unread counter on visiting notifications page
+  useEffect(() => {
+    if (!authLoading && (doctorId || doctorProfile?.name)) {
+      const docKey = doctorId || (doctorProfile?.name || "").toLowerCase().trim() || "doc";
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`doctor_last_seen_notifs_${docKey}`, String(Date.now()));
+      }
+    }
+  }, [authLoading, doctorId, doctorProfile]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -225,9 +248,39 @@ export default function DoctorNotificationsPage() {
     }
   };
 
+  // Open detail modal when notification item is clicked
+  const handleItemClick = (item) => {
+    handleMarkRead(item);
+
+    let fullAppt = item.appt;
+    if (!fullAppt && item.appointmentId) {
+      fullAppt = appointmentsDocs.find((a) => a.id === item.appointmentId);
+    }
+    if (!fullAppt && item.id) {
+      fullAppt = appointmentsDocs.find((a) => a.id === item.id);
+    }
+
+    setDetailModal({
+      open: true,
+      item: item,
+      appt: fullAppt || item.appt || {
+        id: item.id,
+        name: item.patientName || item.title?.replace("Appointment Request: ", "") || "Patient",
+        service: item.service || "Eye Treatment",
+        status: item.status || "pending",
+        message: item.message,
+      },
+    });
+  };
+
   // Mark all read
   const handleMarkAllRead = async () => {
     try {
+      const docKey = doctorId || (doctorProfile?.name || "").toLowerCase().trim() || "doc";
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`doctor_last_seen_notifs_${docKey}`, String(Date.now()));
+      }
+
       const unreadItems = fullDoctorStream.filter((n) => !n.is_read);
       await Promise.all(
         unreadItems.map((n) =>
@@ -344,9 +397,9 @@ export default function DoctorNotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F7F5] font-sans flex flex-col">
+    <div className="min-h-screen bg-[var(--fog)] flex flex-col">
       {/* Top Header */}
-      <header className="bg-[#0B3D5C] text-white sticky top-0 z-30 shadow-md">
+      <header className="bg-[var(--ink)] text-white sticky top-0 z-30 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
@@ -381,11 +434,11 @@ export default function DoctorNotificationsPage() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D5E5DD] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#3E8E6E] bg-[#E8F0EC] px-2.5 py-0.5 rounded-md border border-[#D5E5DD]">
-                Doctor Clinical Notifications
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
+                Doctor Hospital Notifications
               </span>
               {unreadCount > 0 && (
                 <span className="text-xs font-bold text-white bg-rose-500 px-2.5 py-0.5 rounded-full animate-pulse">
@@ -393,18 +446,18 @@ export default function DoctorNotificationsPage() {
                 </span>
               )}
             </div>
-            <h2 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight mt-1">
+            <h2 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
               Saved Notifications Stream
             </h2>
-            <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
-              All appointments and clinical updates stored from start to present ({fullDoctorStream.length} items).
+            <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
+              All appointments and hospital updates stored from start to present ({fullDoctorStream.length} items). Click any item for details.
             </p>
           </div>
 
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllRead}
-              className="inline-flex items-center gap-2 bg-[#0B3D5C] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-[#082D44] transition-all cursor-pointer self-start sm:self-auto"
+              className="inline-flex items-center gap-2 bg-[var(--ink)] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-[var(--iris-dark)] transition-all cursor-pointer self-start sm:self-auto"
             >
               <CheckCheck className="w-4 h-4 text-[#5EEAD4]" />
               Mark All as Read
@@ -413,7 +466,7 @@ export default function DoctorNotificationsPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="bg-white p-2.5 rounded-2xl border border-[#D5E5DD] shadow-xs flex items-center gap-2 max-w-lg">
+        <div className="bg-white p-2.5 rounded-2xl border border-[var(--line)] shadow-xs flex items-center gap-2 max-w-lg">
           {[
             { id: "all", label: `All (${fullDoctorStream.length})` },
             { id: "pending", label: "Pending" },
@@ -425,8 +478,8 @@ export default function DoctorNotificationsPage() {
               onClick={() => setActiveFilter(tab.id)}
               className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
                 activeFilter === tab.id
-                  ? "bg-[#0B3D5C] text-white shadow-xs"
-                  : "bg-[#F4F7F5] text-[#3F4B4A] hover:bg-[#E8F0EC]"
+                  ? "bg-[var(--ink)] text-white shadow-xs"
+                  : "bg-[var(--fog)] text-[var(--slate)] hover:bg-[var(--fog)]"
               }`}
             >
               {tab.label}
@@ -436,15 +489,15 @@ export default function DoctorNotificationsPage() {
 
         {/* Notifications List */}
         {loading ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-[#D5E5DD]">
-            <div className="w-8 h-8 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-bold text-[#0B3D5C]">Loading Notifications...</p>
+          <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)]">
+            <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-xs font-bold text-[var(--ink)]">Loading Notifications...</p>
           </div>
         ) : filteredNotifs.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-[#D5E5DD] space-y-3">
+          <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] space-y-3">
             <Bell className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="text-base font-extrabold text-[#0B3D5C]">No Notifications Found</h3>
-            <p className="text-xs font-semibold text-[#3F4B4A]">
+            <h3 className="text-base font-extrabold text-[var(--ink)]">No Notifications Found</h3>
+            <p className="text-xs font-semibold text-[var(--slate)]">
               There are no saved notifications matching this filter.
             </p>
           </div>
@@ -458,15 +511,15 @@ export default function DoctorNotificationsPage() {
               return (
                 <div
                   key={`${item.collectionName}-${item.id}`}
-                  onClick={() => handleMarkRead(item)}
-                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer relative ${
+                  onClick={() => handleItemClick(item)}
+                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer relative hover:shadow-md ${
                     isUnread
                       ? "bg-rose-50/50 border-rose-200 shadow-xs"
                       : st === "confirmed"
                       ? "bg-emerald-50/40 border-emerald-200"
                       : st === "cancelled"
                       ? "bg-rose-50/30 border-rose-200"
-                      : "bg-[#F4F7F5] border-[#D5E5DD]"
+                      : "bg-white border-[var(--line)]"
                   }`}
                 >
                   <div className="flex items-start gap-4 min-w-0 flex-1">
@@ -493,9 +546,12 @@ export default function DoctorNotificationsPage() {
                         <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-white border border-slate-200">
                           {st}
                         </span>
-                        <h4 className="text-sm font-extrabold text-[#0B3D5C]">
+                        <h4 className="text-sm font-extrabold text-[var(--ink)]">
                           {item.title}
                         </h4>
+                        <span className="text-[10px] font-semibold text-[var(--iris)] underline">
+                          (Click for full details)
+                        </span>
                       </div>
 
                       <p className="text-xs font-semibold text-slate-700 leading-relaxed">
@@ -530,7 +586,7 @@ export default function DoctorNotificationsPage() {
                             })
                           }
                           disabled={isProcessing}
-                          className="bg-[#0B3D5C] hover:bg-[#082D45] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                          className="bg-[var(--ink)] hover:bg-[var(--iris-dark)] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                         >
                           Reschedule
                         </button>
@@ -559,11 +615,178 @@ export default function DoctorNotificationsPage() {
         )}
       </main>
 
+      {/* Appointment Full Detail Modal */}
+      {detailModal.open && detailModal.appt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full border border-[var(--line)] shadow-2xl space-y-5 overflow-hidden max-h-[90vh] overflow-y-auto">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
+                  Appointment Details
+                </span>
+                <h3 className="text-xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+                  {detailModal.appt.name || "Patient Appointment"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setDetailModal({ open: false, item: null, appt: null })}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Status & Service Badge */}
+            <div className="flex items-center justify-between gap-3 bg-[var(--fog)] p-3 rounded-2xl border border-[var(--line)]/60">
+              <div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Requested Treatment</span>
+                <span className="text-sm font-extrabold text-[var(--iris)]">{detailModal.appt.service || "Eye Treatment"}</span>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
+                detailModal.appt.status === "confirmed"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : detailModal.appt.status === "cancelled"
+                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                  : "bg-amber-50 text-amber-700 border-amber-200"
+              }`}>
+                {detailModal.appt.status || "pending"}
+              </span>
+            </div>
+
+            {/* Section 1: Patient Information */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-extrabold tracking-wider text-[var(--iris)] uppercase flex items-center gap-1.5 border-b border-slate-100 pb-1">
+                <User className="w-3.5 h-3.5" /> Patient Information
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Patient Name</span>
+                  <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.name || "N/A"}</span>
+                </div>
+                {detailModal.appt.patientCnic && (
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Patient CNIC</span>
+                    <span className="font-extrabold text-[var(--ink)] font-mono">{detailModal.appt.patientCnic}</span>
+                  </div>
+                )}
+                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Phone Number</span>
+                  <span className="font-extrabold text-emerald-700">{detailModal.appt.phone || "N/A"}</span>
+                </div>
+                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Email Address</span>
+                  <span className="font-extrabold text-[var(--ink)] truncate block">{detailModal.appt.email || "N/A"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Guardian Details */}
+            {(detailModal.appt.guardianName || detailModal.appt.guardianCnic) && (
+              <div className="space-y-2">
+                <span className="text-[11px] font-extrabold tracking-wider text-[var(--iris)] uppercase flex items-center gap-1.5 border-b border-slate-100 pb-1">
+                  <Users className="w-3.5 h-3.5" /> Guardian Details
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Guardian Name</span>
+                    <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.guardianName || "N/A"}</span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Relation</span>
+                    <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.guardianRelation || "Guardian"}</span>
+                  </div>
+                  {detailModal.appt.guardianCnic && (
+                    <div className="sm:col-span-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Guardian CNIC</span>
+                      <span className="font-extrabold text-[var(--ink)] font-mono">{detailModal.appt.guardianCnic}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Section 3: Schedule & Slot */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-extrabold tracking-wider text-[var(--iris)] uppercase flex items-center gap-1.5 border-b border-slate-100 pb-1">
+                <Calendar className="w-3.5 h-3.5" /> Schedule & Slot
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60">
+                  <span className="text-[10px] font-bold text-[var(--slate)] uppercase block">Date</span>
+                  <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.date || "N/A"}</span>
+                </div>
+                <div className="bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60">
+                  <span className="text-[10px] font-bold text-[var(--slate)] uppercase block">Time Slot</span>
+                  <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.time || "N/A"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions Bar */}
+            <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              {detailModal.appt.phone && (
+                <a
+                  href={`https://wa.me/${detailModal.appt.phone.replace(/\D/g, "").replace(/^0/, "92")}?text=${encodeURIComponent("Hello! This is regarding your appointment at Eye Hospital.")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4" /> WhatsApp Patient
+                </a>
+              )}
+
+              <div className="flex items-center gap-2 ml-auto">
+                {detailModal.appt.status === "pending" && (
+                  <>
+                    <button
+                      onClick={() => {
+                        const item = detailModal.item || { id: detailModal.appt.id, patientName: detailModal.appt.name, appt: detailModal.appt };
+                        handleAccept(item);
+                        setDetailModal({ open: false, item: null, appt: null });
+                      }}
+                      disabled={isProcessing}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => {
+                        const item = detailModal.item || { id: detailModal.appt.id, patientName: detailModal.appt.name, appt: detailModal.appt };
+                        setRescheduleModal({
+                          open: true,
+                          appt: detailModal.appt,
+                          newDate: detailModal.appt?.date || "",
+                          newTime: detailModal.appt?.time || "",
+                        });
+                        setDetailModal({ open: false, item: null, appt: null });
+                      }}
+                      disabled={isProcessing}
+                      className="bg-[var(--ink)] hover:bg-[var(--iris-dark)] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Reschedule
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setDetailModal({ open: false, item: null, appt: null })}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Reschedule Modal */}
       {rescheduleModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-[#D5E5DD] shadow-2xl space-y-4">
-            <h3 className="text-lg font-extrabold text-[#0B3D5C]">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-[var(--line)] shadow-2xl space-y-4">
+            <h3 className="text-lg font-extrabold text-[var(--ink)]">
               Reschedule Appointment
             </h3>
             <p className="text-xs text-slate-600 font-semibold">
@@ -572,7 +795,7 @@ export default function DoctorNotificationsPage() {
 
             <form onSubmit={handleRescheduleSubmit} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-[#0B3D5C] block mb-1">New Date</label>
+                <label className="text-xs font-bold text-[var(--ink)] block mb-1">New Date</label>
                 <input
                   type="date"
                   required
@@ -580,12 +803,12 @@ export default function DoctorNotificationsPage() {
                   onChange={(e) =>
                     setRescheduleModal({ ...rescheduleModal, newDate: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:border-[#3E8E6E]"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:border-[var(--iris)]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[#0B3D5C] block mb-1">New Time Slot</label>
+                <label className="text-xs font-bold text-[var(--ink)] block mb-1">New Time Slot</label>
                 <input
                   type="time"
                   required
@@ -593,7 +816,7 @@ export default function DoctorNotificationsPage() {
                   onChange={(e) =>
                     setRescheduleModal({ ...rescheduleModal, newTime: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:border-[#3E8E6E]"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:border-[var(--iris)]"
                 />
               </div>
 
@@ -610,7 +833,7 @@ export default function DoctorNotificationsPage() {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="flex-1 py-2.5 rounded-xl bg-[#0B3D5C] text-white text-xs font-bold hover:bg-[#082D44] cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-[var(--ink)] text-white text-xs font-bold hover:bg-[var(--iris-dark)] cursor-pointer"
                 >
                   Confirm Reschedule
                 </button>

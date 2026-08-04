@@ -15,38 +15,38 @@ const GALLERY_IMAGES = [
   },
   {
     id: 2,
-    src: "/images/clinic-exam.jpg",
-    alt: "Haji Murad Eye Hospital Advanced Diagnostic & Examination Room",
-    caption: "Advanced Eye Examination & Consultation",
-    tag: "Diagnostics Suite",
+    src: "/images/hero-1.jpg",
+    alt: "Advanced Ophthalmic Eye Examination & Diagnostics",
+    caption: "High Precision Eye Examination",
+    tag: "Retina Diagnostics",
   },
   {
     id: 3,
-    src: "/images/operation-theater.jpg",
-    alt: "Haji Murad Eye Hospital Surgical Microscope Operation Theater",
-    caption: "Carl Zeiss Micro-Incision Surgery Theater",
-    tag: "Operation Theater",
+    src: "/images/hero-2.jpg",
+    alt: "Specialist Ophthalmic Consultation & Slit Lamp Exam",
+    caption: "Specialist Slit-Lamp Consultation",
+    tag: "Doctor Clinic",
   },
   {
     id: 4,
+    src: "/images/hero-3.jpg",
+    alt: "Femtosecond Laser Eye Surgery Precision",
+    caption: "Blade-Free Laser Eye Surgery Suite",
+    tag: "Laser Surgery",
+  },
+  {
+    id: 5,
     src: "/images/clinic-exam.jpg",
     alt: "Human Iris & Vision Examination Suite",
     caption: "Advanced Iris & Retina Diagnostics",
     tag: "Refractive Care",
   },
   {
-    id: 5,
+    id: 6,
     src: "/images/operation-theater.jpg",
     alt: "Ophthalmology Surgical Suite",
-    caption: "Femtosecond Laser & Microscope Repair",
-    tag: "Specialist Care",
-  },
-  {
-    id: 6,
-    src: "/images/haji-murad-main-campus.jpg",
-    alt: "Haji Murad Trust Eye Hospital Entrance Grounds",
-    caption: "Patient Care & Reception Grounds",
-    tag: "Hospital Entrance",
+    caption: "Carl Zeiss Micro-Incision Surgery Theater",
+    tag: "Operation Theater",
   },
 ];
 
@@ -92,8 +92,8 @@ export default function EyeGallery() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Background Soft Glow Aura */}
-      <div className="absolute w-72 h-72 sm:w-80 sm:h-80 rounded-full bg-gradient-to-tr from-[#0B3D5C]/15 to-[#3E8E6E]/20 blur-3xl pointer-events-none" />
+      {/* Background Soft Glow Aura (Soft Light UV Shade) */}
+      <div className="absolute w-72 h-72 sm:w-80 sm:h-80 rounded-full bg-gradient-to-tr from-indigo-950/10 to-[#8B5CF6]/10 blur-3xl pointer-events-none" />
 
       {/* Outer Decorative Pulsing Glow Ring */}
       <motion.div
@@ -106,7 +106,7 @@ export default function EyeGallery() {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="absolute w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full border-2 border-dashed border-[#3E8E6E]/30 pointer-events-none"
+        className="absolute w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full border-2 border-dashed border-indigo-400/20 pointer-events-none"
       />
 
       {/* MAIN CONTAINER: IDLE CROSSFADE / EXPANDED ORBITAL GALLERY */}
@@ -148,8 +148,8 @@ export default function EyeGallery() {
                   }}
                   className={`absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 cursor-pointer transition-shadow shadow-md ${
                     isSelected
-                      ? "bg-gradient-to-tr from-[#0B3D5C] to-[#3E8E6E] ring-4 ring-[#3E8E6E]/30 shadow-lg"
-                      : "bg-white border-2 border-[#D5E5DD] hover:border-[#3E8E6E]"
+                      ? "bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] ring-4 ring-[var(--iris)]/30 shadow-lg"
+                      : "bg-white border-2 border-[var(--line)] hover:border-[var(--iris)]"
                   }`}
                 >
                   <div className="w-full h-full rounded-full overflow-hidden relative">
@@ -170,7 +170,7 @@ export default function EyeGallery() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-[#0B3D5C] to-[#3E8E6E] shadow-xl z-20 overflow-hidden relative"
+              className="w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] shadow-xl z-20 overflow-hidden relative"
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -194,7 +194,7 @@ export default function EyeGallery() {
           </div>
         ) : (
           /* IDLE / MOBILE VIEW: MAIN SINGLE ROTATING PHOTO FRAME */
-          <div className="relative w-full h-full rounded-full p-1.5 bg-gradient-to-tr from-[#0B3D5C] via-[#2A607D] to-[#3E8E6E] shadow-xl overflow-hidden group cursor-pointer">
+          <div className="relative w-full h-full rounded-full p-1.5 bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] shadow-xl overflow-hidden group cursor-pointer">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeImage.id}
@@ -213,7 +213,7 @@ export default function EyeGallery() {
                 />
 
                 {/* Subtle Inner Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B3D5C]/40 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--ink)]/40 via-transparent to-transparent pointer-events-none" />
               </motion.div>
             </AnimatePresence>
           </div>
@@ -226,16 +226,16 @@ export default function EyeGallery() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mt-4 glass-card bg-white/95 rounded-2xl px-4 py-2.5 flex items-center gap-3 border border-[#D5E5DD] shadow-md z-30 pointer-events-none max-w-[260px]"
+        className="mt-4 glass-card bg-white/95 rounded-2xl px-4 py-2.5 flex items-center gap-3 border border-[var(--line)] shadow-md z-30 pointer-events-none max-w-[260px]"
       >
-        <div className="w-8 h-8 rounded-xl bg-[#E8F0EC] flex items-center justify-center text-[#3E8E6E] flex-shrink-0">
+        <div className="w-8 h-8 rounded-xl bg-[var(--fog)] flex items-center justify-center text-[var(--iris)] flex-shrink-0">
           <Activity className="w-4 h-4 animate-pulse" />
         </div>
         <div className="text-left overflow-hidden">
-          <span className="text-[9px] font-bold text-[#3E8E6E] uppercase tracking-widest block truncate">
+          <span className="text-[9px] font-bold text-[var(--iris)] uppercase tracking-widest block truncate">
             {activeImage.tag}
           </span>
-          <span className="text-xs font-bold text-[#0B3D5C] block truncate leading-snug">
+          <span className="text-xs font-bold text-[var(--ink)] block truncate leading-snug">
             {activeImage.caption}
           </span>
         </div>
@@ -245,7 +245,7 @@ export default function EyeGallery() {
       <div className="mt-3 flex items-center gap-3 z-30">
         <button
           onClick={handlePrev}
-          className="p-1 rounded-full border border-[#D5E5DD] bg-white text-[#0B3D5C] hover:text-[#3E8E6E] hover:border-[#3E8E6E] shadow-xs transition-colors cursor-pointer"
+          className="p-1 rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-xs transition-colors cursor-pointer"
           aria-label="Previous photo"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
@@ -258,8 +258,8 @@ export default function EyeGallery() {
               onClick={() => setActiveIndex(idx)}
               className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                 idx === activeIndex
-                  ? "w-5 bg-[#0B3D5C]"
-                  : "w-2 bg-[#D5E5DD] hover:bg-[#3E8E6E]"
+                  ? "w-5 bg-[var(--ink)]"
+                  : "w-2 bg-[var(--line)] hover:bg-[var(--iris)]"
               }`}
               aria-label={`Go to photo ${idx + 1}`}
             />
@@ -268,7 +268,7 @@ export default function EyeGallery() {
 
         <button
           onClick={handleNext}
-          className="p-1 rounded-full border border-[#D5E5DD] bg-white text-[#0B3D5C] hover:text-[#3E8E6E] hover:border-[#3E8E6E] shadow-xs transition-colors cursor-pointer"
+          className="p-1 rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-xs transition-colors cursor-pointer"
           aria-label="Next photo"
         >
           <ChevronRight className="w-3.5 h-3.5" />

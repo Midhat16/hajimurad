@@ -116,7 +116,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
 
   return (
     <div className="space-y-2">
-      <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
         {label}
       </label>
 
@@ -129,7 +129,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
       />
 
       {value ? (
-        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-[#D5E5DD] shadow-xs">
+        <div className="flex items-center gap-4 p-4 bg-[var(--fog)] rounded-2xl border border-[var(--line)] shadow-xs">
           <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-200 border border-slate-300 flex-shrink-0">
             <img
               src={value}
@@ -152,7 +152,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-xs font-bold text-[#0B3D5C] hover:text-[#3E8E6E] transition-colors cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200"
+                className="text-xs font-bold text-[var(--ink)] hover:text-[var(--iris)] transition-colors cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200"
               >
                 Change Image
               </button>
@@ -167,20 +167,20 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
           </div>
         </div>
       ) : (
-        <div className="p-6 border-2 border-dashed border-[#D5E5DD] hover:border-[#3E8E6E] rounded-2xl bg-[#F4F7F5] transition-all">
+        <div className="p-6 border-2 border-dashed border-[var(--line)] hover:border-[var(--iris)] rounded-2xl bg-[var(--fog)] transition-all">
           {uploading ? (
             <div className="flex flex-col items-center py-4 text-center">
-              <div className="w-9 h-9 border-3 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-              <p className="text-xs font-bold text-[#0B3D5C]">Processing & Uploading Picture...</p>
+              <div className="w-9 h-9 border-3 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
+              <p className="text-xs font-bold text-[var(--ink)]">Processing & Uploading Picture...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-white border border-[#D5E5DD] flex items-center justify-center text-[#3E8E6E] shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-[var(--line)] flex items-center justify-center text-[var(--iris)] shadow-xs">
                 <UploadCloud className="w-6 h-6" />
               </div>
 
               <div>
-                <p className="text-xs font-bold text-[#0B3D5C]">Select Doctor Photograph</p>
+                <p className="text-xs font-bold text-[var(--ink)]">{label || "Select Photograph / Image"}</p>
                 <p className="text-[11px] text-slate-400 mt-0.5">JPG, PNG, WEBP supported</p>
               </div>
 
@@ -188,7 +188,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2.5 bg-[#0B3D5C] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-[#082D44] transition-colors cursor-pointer flex items-center gap-2"
+                  className="px-4 py-2.5 bg-[var(--ink)] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-[var(--iris-dark)] transition-colors cursor-pointer flex items-center gap-2"
                 >
                   <ImageIcon className="w-4 h-4" />
                   Browse Image File

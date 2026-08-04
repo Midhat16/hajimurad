@@ -62,10 +62,9 @@ export default function Services() {
   };
 
   return (
-    <section id="services" className="py-14 lg:py-16 bg-[#E8F0EC] relative overflow-hidden">
+    <section id="services" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
       {/* Background elements */}
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#3E8E6E]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
-      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-[#0B3D5C]/10 rounded-full blur-3xl pointer-events-none translate-y-1/3" />
+      <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-slate-100/40 rounded-full blur-3xl pointer-events-none translate-y-1/3" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -77,13 +76,13 @@ export default function Services() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[11px] font-bold tracking-widest text-[#3E8E6E] uppercase bg-white px-3 py-1 rounded-full border border-[#D5E5DD] shadow-xs">
+            <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
               Department of Ophthalmology
             </span>
-            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
+            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
               World-Class Eye Care Services
             </h2>
-            <p className="mt-3 text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
+            <p className="mt-3 text-base sm:text-lg text-[var(--slate)] leading-relaxed">
               Haji Murad Eye Hospital features dedicated sub-specialties to deliver highly personalized vision solutions, from standard screenings to the most complex microsurgical restorations.
             </p>
           </motion.div>
@@ -104,33 +103,33 @@ export default function Services() {
 
             return (
               <motion.div key={service.id || index} variants={cardVariants} className="h-full">
-                <TiltCard className="glass-card glass-card-hover rounded-3xl p-6 sm:p-7 cursor-pointer flex flex-col justify-between h-full bg-white border border-[#D5E5DD] relative overflow-hidden group">
+                <TiltCard className="glass-card glass-card-hover rounded-3xl p-6 sm:p-7 cursor-pointer flex flex-col justify-between h-full bg-white border border-[var(--line)] relative overflow-hidden group">
                   
                   {/* Subtle inner corner highlight */}
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#0B3D5C] to-[#3E8E6E] opacity-[0.04] group-hover:opacity-[0.1] rounded-bl-full transition-opacity duration-300" />
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[var(--ink)] to-[var(--iris)] opacity-[0.04] group-hover:opacity-[0.1] rounded-bl-full transition-opacity duration-300" />
                   
                   <div>
                     {/* Icon Box */}
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0B3D5C] to-[#3E8E6E] p-0.5 shadow-md flex items-center justify-center mb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] p-0.5 shadow-md flex items-center justify-center mb-5">
                       <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center group-hover:bg-transparent transition-colors duration-300">
-                        <IconComponent className="w-6 h-6 text-[#0B3D5C] group-hover:text-white transition-colors duration-300" />
+                        <IconComponent className="w-6 h-6 text-[var(--ink)] group-hover:text-white transition-colors duration-300" />
                       </div>
                     </div>
 
                     {/* Title & Description */}
-                    <h3 className="text-lg sm:text-xl font-bold text-[#0B3D5C] group-hover:text-[#3E8E6E] transition-colors duration-300">
+                    <h3 className="text-lg sm:text-xl font-bold text-[var(--ink)] group-hover:text-[var(--iris)] transition-colors duration-300">
                       {service.title}
                     </h3>
-                    <p className="mt-2 text-[#3F4B4A] text-sm sm:text-base leading-relaxed">
+                    <p className="mt-2 text-[var(--slate)] text-sm sm:text-base leading-relaxed">
                       {service.description}
                     </p>
 
                     {/* Features list */}
                     {service.features && (
-                      <ul className="mt-4 space-y-1.5 border-t border-[#D5E5DD]/60 pt-4">
+                      <ul className="mt-4 space-y-1.5 border-t border-[var(--line)]/60 pt-4">
                         {service.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#3F4B4A]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#3E8E6E]" />
+                          <li key={idx} className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[var(--slate)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--iris)]" />
                             {feat}
                           </li>
                         ))}

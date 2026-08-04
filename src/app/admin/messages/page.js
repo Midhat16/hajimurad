@@ -29,6 +29,7 @@ import {
   ExternalLink,
   FileText,
   Check,
+  CheckCheck,
   AlertCircle,
   Phone,
   Search
@@ -176,7 +177,21 @@ export default function AdminMessagesPage() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [activeDoctorThread]);
+    if (!selectedDoctorId || activeDoctorThread.length === 0) return;
+
+    activeDoctorThread.forEach(async (m) => {
+      if (m.sender_type === "doctor" && (m.is_read !== true || m.read !== true)) {
+        try {
+          await updateDoc(doc(db, m.collectionName || "doctor_messages", m.id), {
+            is_read: true,
+            read: true,
+          });
+        } catch (err) {
+          console.warn("Notice marking doctor message read by admin:", err);
+        }
+      }
+    });
+  }, [activeDoctorThread, selectedDoctorId]);
 
   // Admin sends reply to selected Doctor
   const handleAdminReplySubmit = async (e) => {
@@ -385,29 +400,29 @@ export default function AdminMessagesPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D5E5DD] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#3E8E6E] bg-[#E8F0EC] px-2.5 py-0.5 rounded-md border border-[#D5E5DD]">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
               Communication Center
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight mt-1">
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
             Hospital Inbox & Messaging
           </h1>
-          <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
+          <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
             Manage private Doctor channels and public patient contact form inquiries.
           </p>
         </div>
 
         {/* Main Tab Toggle (Doctor Chats vs Patient Inquiries) */}
-        <div className="bg-[#E8F0EC] p-1.5 rounded-2xl border border-[#D5E5DD] flex items-center gap-1.5 self-start sm:self-auto">
+        <div className="bg-[var(--fog)] p-1.5 rounded-2xl border border-[var(--line)] flex items-center gap-1.5 self-start sm:self-auto">
           <button
             onClick={() => setActiveMainTab("doctor_chats")}
             className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
               activeMainTab === "doctor_chats"
-                ? "bg-[#0B3D5C] text-white shadow-xs"
-                : "text-[#3F4B4A] hover:bg-white/50"
+                ? "bg-[var(--ink)] text-white shadow-xs"
+                : "text-[var(--slate)] hover:bg-white/50"
             }`}
           >
             <Stethoscope className="w-4 h-4 text-[#5EEAD4]" />
@@ -417,8 +432,8 @@ export default function AdminMessagesPage() {
             onClick={() => setActiveMainTab("patient_inquiries")}
             className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
               activeMainTab === "patient_inquiries"
-                ? "bg-[#0B3D5C] text-white shadow-xs"
-                : "text-[#3F4B4A] hover:bg-white/50"
+                ? "bg-[var(--ink)] text-white shadow-xs"
+                : "text-[var(--slate)] hover:bg-white/50"
             }`}
           >
             <Users className="w-4 h-4 text-[#5EEAD4]" />
@@ -429,14 +444,14 @@ export default function AdminMessagesPage() {
 
       {/* VIEW 1: DOCTOR DIRECT CHATS */}
       {activeMainTab === "doctor_chats" && (
-        <div className="bg-white rounded-3xl border border-[#D5E5DD] shadow-lg grid grid-cols-1 lg:grid-cols-12 min-h-[550px] overflow-hidden">
+        <div className="bg-white rounded-3xl border border-[var(--line)] shadow-lg grid grid-cols-1 lg:grid-cols-12 min-h-[550px] overflow-hidden">
           {/* Left Sidebar: Per-Doctor Threads List */}
-          <div className="lg:col-span-4 border-r border-[#D5E5DD] bg-[#FAFDFB] flex flex-col">
-            <div className="p-4 border-b border-[#D5E5DD] bg-[#E8F0EC]">
-              <h3 className="text-xs font-extrabold text-[#0B3D5C] uppercase tracking-wider">
+          <div className="lg:col-span-4 border-r border-[var(--line)] bg-[#FAFDFB] flex flex-col">
+            <div className="p-4 border-b border-[var(--line)] bg-[var(--fog)]">
+              <h3 className="text-xs font-extrabold text-[var(--ink)] uppercase tracking-wider">
                 Doctor Inbox Threads ({doctorsList.length})
               </h3>
-              <p className="text-[11px] text-[#3F4B4A] font-semibold mt-0.5">
+              <p className="text-[11px] text-[var(--slate)] font-semibold mt-0.5">
                 Select a doctor to view their private thread
               </p>
             </div>
@@ -463,7 +478,7 @@ export default function AdminMessagesPage() {
 
                   const lastMsg = threadMsgs.length > 0 ? threadMsgs[threadMsgs.length - 1] : null;
                   const unreadDoctorMsgs = threadMsgs.filter(
-                    (m) => m.sender_type === "doctor" && !m.is_read
+                    (m) => m.sender_type === "doctor" && m.is_read !== true && m.read !== true
                   ).length;
 
                   return (
@@ -472,16 +487,16 @@ export default function AdminMessagesPage() {
                       onClick={() => setSelectedDoctorId(docItem.id)}
                       className={`p-4 transition-all cursor-pointer flex items-center justify-between gap-3 ${
                         isSelected
-                          ? "bg-[#0B3D5C] text-white"
-                          : "hover:bg-[#E8F0EC]/60 text-slate-800"
+                          ? "bg-[var(--ink)] text-white"
+                          : "hover:bg-[var(--fog)]/60 text-slate-800"
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div
                           className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold flex-shrink-0 ${
                             isSelected
-                              ? "bg-[#3E8E6E] text-white"
-                              : "bg-[#E8F0EC] text-[#0B3D5C]"
+                              ? "bg-[var(--iris)] text-white"
+                              : "bg-[var(--fog)] text-[var(--ink)]"
                           }`}
                         >
                           <Stethoscope className="w-5 h-5" />
@@ -518,22 +533,22 @@ export default function AdminMessagesPage() {
             {selectedDoctorId ? (
               <>
                 {/* Active Thread Subheader */}
-                <div className="p-4 border-b border-[#D5E5DD] bg-[#E8F0EC] flex items-center justify-between">
+                <div className="p-4 border-b border-[var(--line)] bg-[var(--fog)] flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#0B3D5C] text-white flex items-center justify-center font-bold">
+                    <div className="w-10 h-10 rounded-2xl bg-[var(--ink)] text-white flex items-center justify-center font-bold">
                       <User className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-extrabold text-[#0B3D5C]">
+                      <h3 className="text-sm font-extrabold text-[var(--ink)]">
                         {selectedDoctorObj.name || "Dr. Specialist"}
                       </h3>
-                      <p className="text-xs font-semibold text-[#3F4B4A]">
+                      <p className="text-xs font-semibold text-[var(--slate)]">
                         {selectedDoctorObj.specialty || "Private Doctor Channel"}
                       </p>
                     </div>
                   </div>
 
-                  <span className="text-[11px] font-bold text-[#3E8E6E] bg-white px-3 py-1 rounded-full border border-[#D5E5DD] flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-[var(--iris)] bg-white px-3 py-1 rounded-full border border-[var(--line)] flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Isolated Thread
                   </span>
@@ -544,7 +559,7 @@ export default function AdminMessagesPage() {
                   {activeDoctorThread.length === 0 ? (
                     <div className="py-20 text-center space-y-3 max-w-sm mx-auto">
                       <MessageSquare className="w-10 h-10 text-slate-300 mx-auto" />
-                      <h4 className="text-sm font-extrabold text-[#0B3D5C]">No Messages Yet</h4>
+                      <h4 className="text-sm font-extrabold text-[var(--ink)]">No Messages Yet</h4>
                       <p className="text-xs text-slate-500 font-medium">
                         There are no direct messages between you and {selectedDoctorObj.name} yet. Type a message below to start chatting.
                       </p>
@@ -567,18 +582,27 @@ export default function AdminMessagesPage() {
                           <div
                             className={`max-w-[85%] sm:max-w-[70%] p-4 rounded-2xl text-xs leading-relaxed ${
                               isAdmin
-                                ? "bg-[#0B3D5C] text-white rounded-tr-xs"
-                                : "bg-white text-slate-800 border border-[#D5E5DD] rounded-tl-xs shadow-xs"
+                                ? "bg-[var(--ink)] text-white rounded-tr-xs"
+                                : "bg-white text-slate-800 border border-[var(--line)] rounded-tl-xs shadow-xs"
                             }`}
                           >
                             <p className="whitespace-pre-wrap font-medium">{msg.message}</p>
                             <div
-                              className={`mt-2 flex items-center justify-end gap-1.5 text-[10px] ${
+                              className={`mt-2 flex items-center justify-end gap-1 text-[10px] ${
                                 isAdmin ? "text-slate-300" : "text-slate-400"
                               }`}
                             >
                               <Clock className="w-3 h-3" />
                               <span>{formatTime(msg.createdAt)}</span>
+                              {isAdmin && (
+                                <span className="ml-1 inline-flex items-center">
+                                  {msg.is_read === true || msg.read === true ? (
+                                    <CheckCheck className="w-4 h-4 text-sky-400 font-extrabold" title="Read by Doctor" />
+                                  ) : (
+                                    <Check className="w-3.5 h-3.5 text-slate-300" title="Sent (Unread)" />
+                                  )}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -591,19 +615,19 @@ export default function AdminMessagesPage() {
                 {/* Reply Input Bar */}
                 <form
                   onSubmit={handleAdminReplySubmit}
-                  className="p-4 border-t border-[#D5E5DD] bg-white flex items-center gap-2.5"
+                  className="p-4 border-t border-[var(--line)] bg-white flex items-center gap-2.5"
                 >
                   <input
                     type="text"
                     placeholder={`Reply to ${selectedDoctorObj.name || "Doctor"}...`}
                     value={replyInputText}
                     onChange={(e) => setReplyInputText(e.target.value)}
-                    className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#3E8E6E] bg-slate-50/50"
+                    className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[var(--iris)] bg-white"
                   />
                   <button
                     type="submit"
                     disabled={isReplying || !replyInputText.trim()}
-                    className="px-5 py-3 rounded-2xl bg-[#3E8E6E] hover:bg-[#32755a] disabled:opacity-50 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md flex items-center gap-2"
+                    className="px-5 py-3 rounded-2xl bg-[var(--iris)] hover:bg-[var(--iris-dark)] disabled:opacity-50 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md flex items-center gap-2"
                   >
                     <span>Reply</span>
                     <Send className="w-4 h-4" />
@@ -621,10 +645,10 @@ export default function AdminMessagesPage() {
 
       {/* VIEW 2: PATIENT WEBSITE INQUIRIES */}
       {activeMainTab === "patient_inquiries" && (
-        <div className="bg-white rounded-3xl border border-[#D5E5DD] shadow-lg p-6 sm:p-8 space-y-6">
+        <div className="bg-white rounded-3xl border border-[var(--line)] shadow-lg p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-base font-extrabold text-[#0B3D5C]">
+              <h2 className="text-base font-extrabold text-[var(--ink)]">
                 Website Patient Inquiries ({patientInquiries.length})
               </h2>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -645,7 +669,7 @@ export default function AdminMessagesPage() {
           </div>
 
           {loading ? (
-            <div className="py-12 text-center text-xs font-bold text-[#0B3D5C]">
+            <div className="py-12 text-center text-xs font-bold text-[var(--ink)]">
               Loading Patient Inquiries...
             </div>
           ) : patientInquiries.length === 0 ? (
@@ -667,7 +691,7 @@ export default function AdminMessagesPage() {
                         ? "bg-amber-50/30 border-amber-200 shadow-xs"
                         : isReplied
                         ? "bg-emerald-50/20 border-emerald-200"
-                        : "bg-[#FAFDFB] border-[#D5E5DD]"
+                        : "bg-[#FAFDFB] border-[var(--line)]"
                     }`}
                   >
                     {/* Header bar */}
@@ -679,7 +703,7 @@ export default function AdminMessagesPage() {
                               ? "bg-emerald-600 text-white"
                               : isUnread
                               ? "bg-amber-500 text-white"
-                              : "bg-[#0B3D5C] text-white"
+                              : "bg-[var(--ink)] text-white"
                           }`}
                         >
                           <User className="w-5 h-5" />
@@ -687,7 +711,7 @@ export default function AdminMessagesPage() {
 
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-extrabold text-[#0B3D5C]">
+                            <h4 className="text-xs font-extrabold text-[var(--ink)]">
                               {msg.name || "Patient"}
                             </h4>
 
@@ -712,13 +736,18 @@ export default function AdminMessagesPage() {
                             {msg.email && (
                               <a
                                 href={`mailto:${msg.email}`}
-                                className="hover:text-[#3E8E6E] underline decoration-slate-300 flex items-center gap-1"
+                                className="hover:text-[var(--iris)] underline decoration-slate-300 flex items-center gap-1"
                               >
                                 <Mail className="w-3 h-3 text-slate-400" />
                                 {msg.email}
                               </a>
                             )}
-                            {msg.phone && <span>📞 {msg.phone}</span>}
+                            {msg.phone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="w-3 h-3 text-slate-400 inline" />
+                                {msg.phone}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -732,7 +761,7 @@ export default function AdminMessagesPage() {
 
                     {/* Patient inquiry message text */}
                     <div className="bg-white/80 p-4 rounded-2xl border border-slate-100 shadow-xs">
-                      <p className="text-xs font-semibold text-slate-800 leading-relaxed uppercase tracking-tight font-mono text-[11px] text-[#0B3D5C] mb-1">
+                      <p className="text-xs font-semibold text-slate-800 leading-relaxed uppercase tracking-tight font-mono text-[11px] text-[var(--ink)] mb-1">
                         INQUIRY MESSAGE:
                       </p>
                       <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -791,7 +820,7 @@ export default function AdminMessagesPage() {
                         {msg.email && msg.email.trim() !== "" && (
                           <button
                             onClick={() => openReplyModal(msg)}
-                            className="px-3 py-1.5 rounded-xl bg-[#0B3D5C] hover:bg-[#082a40] text-white text-xs font-extrabold transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+                            className="px-3 py-1.5 rounded-xl bg-[var(--ink)] hover:bg-[var(--iris-dark)] text-white text-xs font-extrabold transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
                             title="Reply via Email"
                           >
                             <Mail className="w-3.5 h-3.5 text-[#5EEAD4]" />
@@ -823,12 +852,12 @@ export default function AdminMessagesPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-[#D5E5DD] overflow-hidden flex flex-col max-h-[90vh]"
+              className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-[var(--line)] overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Modal Header */}
-              <div className="bg-[#0B3D5C] text-white p-5 flex items-center justify-between">
+              <div className="bg-[var(--ink)] text-white p-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#3E8E6E] text-white flex items-center justify-center font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-[var(--iris)] text-white flex items-center justify-center font-bold">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
@@ -850,8 +879,8 @@ export default function AdminMessagesPage() {
               {/* Modal Body */}
               <div className="p-6 overflow-y-auto space-y-4 flex-1">
                 {/* Original inquiry recap box */}
-                <div className="bg-[#FAFDFB] p-4 rounded-2xl border border-[#D5E5DD] space-y-1">
-                  <div className="flex items-center justify-between text-[11px] font-extrabold text-[#0B3D5C]">
+                <div className="bg-[#FAFDFB] p-4 rounded-2xl border border-[var(--line)] space-y-1">
+                  <div className="flex items-center justify-between text-[11px] font-extrabold text-[var(--ink)]">
                     <span>PATIENT: {replyingInquiry.name || "Unknown"}</span>
                     <span className="text-slate-400 font-normal">{formatTime(replyingInquiry.createdAt)}</span>
                   </div>
@@ -862,14 +891,14 @@ export default function AdminMessagesPage() {
 
                 {/* Quick Templates Bar */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-extrabold text-[#0B3D5C] uppercase tracking-wider block">
+                  <label className="text-[11px] font-extrabold text-[var(--ink)] uppercase tracking-wider block">
                     Quick Reply Templates:
                   </label>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => applyTemplate("cataract")}
-                      className="px-3 py-1.5 rounded-xl bg-[#E8F0EC] hover:bg-[#3E8E6E] hover:text-white text-[#0B3D5C] text-xs font-bold border border-[#D5E5DD] transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[var(--ink)] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                       Cataract & Surgery Charges
@@ -877,7 +906,7 @@ export default function AdminMessagesPage() {
                     <button
                       type="button"
                       onClick={() => applyTemplate("appointment")}
-                      className="px-3 py-1.5 rounded-xl bg-[#E8F0EC] hover:bg-[#3E8E6E] hover:text-white text-[#0B3D5C] text-xs font-bold border border-[#D5E5DD] transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[var(--ink)] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <FileText className="w-3.5 h-3.5 text-sky-500" />
                       Appointment Booking
@@ -885,7 +914,7 @@ export default function AdminMessagesPage() {
                     <button
                       type="button"
                       onClick={() => applyTemplate("general")}
-                      className="px-3 py-1.5 rounded-xl bg-[#E8F0EC] hover:bg-[#3E8E6E] hover:text-white text-[#0B3D5C] text-xs font-bold border border-[#D5E5DD] transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[var(--ink)] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Check className="w-3.5 h-3.5 text-emerald-500" />
                       General Reply
@@ -895,7 +924,7 @@ export default function AdminMessagesPage() {
 
                 {/* Subject Line */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-[#0B3D5C] uppercase tracking-wider block">
+                  <label className="text-[11px] font-extrabold text-[var(--ink)] uppercase tracking-wider block">
                     Email Subject:
                   </label>
                   <input
@@ -903,13 +932,13 @@ export default function AdminMessagesPage() {
                     value={patientReplySubject}
                     onChange={(e) => setPatientReplySubject(e.target.value)}
                     placeholder="Enter email subject..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#3E8E6E] bg-slate-50/50"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[var(--iris)] bg-white"
                   />
                 </div>
 
                 {/* Reply Message Body */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-[#0B3D5C] uppercase tracking-wider block">
+                  <label className="text-[11px] font-extrabold text-[var(--ink)] uppercase tracking-wider block">
                     Email Message Content:
                   </label>
                   <textarea
@@ -917,7 +946,7 @@ export default function AdminMessagesPage() {
                     value={patientReplyText}
                     onChange={(e) => setPatientReplyText(e.target.value)}
                     placeholder="Type your official email reply to the patient here..."
-                    className="w-full p-4 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#3E8E6E] bg-slate-50/50 leading-relaxed"
+                    className="w-full p-4 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[var(--iris)] bg-white leading-relaxed"
                   />
                 </div>
 
@@ -965,7 +994,7 @@ export default function AdminMessagesPage() {
                     type="button"
                     onClick={handleSendPatientEmail}
                     disabled={sendingPatientEmail || !patientReplyText.trim()}
-                    className="px-6 py-2.5 rounded-xl bg-[#3E8E6E] hover:bg-[#32755a] disabled:opacity-50 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md flex items-center gap-2"
+                    className="px-6 py-2.5 rounded-xl bg-[var(--iris)] hover:bg-[var(--iris-dark)] disabled:opacity-50 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md flex items-center gap-2"
                   >
                     {sendingPatientEmail ? (
                       <span>Sending Email...</span>

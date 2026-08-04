@@ -20,6 +20,7 @@ export default function AdminAppointmentsPage() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
+    // 1. Subscribe to appointments
     const q = query(collection(db, "appointments"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(
       q,
@@ -33,7 +34,6 @@ export default function AdminAppointmentsPage() {
       },
       (error) => {
         console.warn("Appointments snapshot fallback:", error.message);
-        // Fallback without orderBy if index is building
         const unsubFallback = onSnapshot(
           collection(db, "appointments"),
           (snap) => {
@@ -47,7 +47,57 @@ export default function AdminAppointmentsPage() {
       }
     );
 
-    return () => unsub();
+    // 2. Auto-mark unread appointment notifications as read when Admin views Appointments Desk
+    const unsubNotifs = onSnapshot(
+      collection(db, "notifications"),
+      (snap) => {
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          const isApptNotif =
+            (data.recipient_type || "admin") === "admin" &&
+            (data.type === "doctor_action" ||
+              data.type === "appointment" ||
+              data.type === "appointment_booked" ||
+              data.type === "appointment_action" ||
+              (data.title && /appointment/i.test(data.title)));
+
+          if (isApptNotif && data.is_read !== true && data.read !== true) {
+            updateDoc(doc(db, "notifications", d.id), { is_read: true, read: true }).catch(() => {});
+          }
+        });
+      },
+      (err) => console.warn("Notice: notifs auto-read in appointments desk:", err)
+    );
+
+    // 3. Auto-mark unread activityLog appointment entries as read when Admin views Appointments Desk
+    const unsubLogs = onSnapshot(
+      collection(db, "activityLog"),
+      (snap) => {
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          const act = (data.action || "").toLowerCase();
+          const isApptLog =
+            Boolean(data.appointmentId) ||
+            act.includes("accept") ||
+            act.includes("reject") ||
+            act.includes("reschedule") ||
+            act.includes("confirm") ||
+            act.includes("cancel") ||
+            (data.message && /appointment/i.test(data.message));
+
+          if (isApptLog && data.read !== true && data.is_read !== true) {
+            updateDoc(doc(db, "activityLog", d.id), { read: true, is_read: true }).catch(() => {});
+          }
+        });
+      },
+      (err) => console.warn("Notice: activityLog auto-read in appointments desk:", err)
+    );
+
+    return () => {
+      unsub();
+      unsubNotifs();
+      unsubLogs();
+    };
   }, []);
 
   const openConfirmModal = (appt) => {
@@ -68,6 +118,8 @@ export default function AdminAppointmentsPage() {
         status: "confirmed",
         date: confirmDate,
         time: confirmTime,
+        is_read: true,
+        read: true,
         confirmedAt: new Date().toISOString(),
       });
 
@@ -96,6 +148,8 @@ export default function AdminAppointmentsPage() {
     try {
       await updateDoc(doc(db, "appointments", apptId), {
         status: "cancelled",
+        is_read: true,
+        read: true,
         cancelledAt: new Date().toISOString(),
       });
 
@@ -121,26 +175,26 @@ export default function AdminAppointmentsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D5E5DD] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
             Patient Appointments Desk
           </h1>
-          <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
-            Review, adjust dates/slots, and confirm patient clinical consultation requests.
+          <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
+            Review, adjust dates/slots, and confirm patient hospital consultation requests.
           </p>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-white border border-[#D5E5DD] rounded-xl self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-white border border-[var(--line)] rounded-xl self-start sm:self-auto">
           {["all", "pending", "confirmed", "cancelled"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
                 filter === f
-                  ? "bg-[#0B3D5C] text-white shadow-xs"
-                  : "text-slate-600 hover:bg-[#E8F0EC]"
+                  ? "bg-[var(--ink)] text-white shadow-xs"
+                  : "text-slate-600 hover:bg-[var(--fog)]"
               }`}
             >
               {f}
@@ -151,13 +205,13 @@ export default function AdminAppointmentsPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[#0B3D5C]">Loading Appointments...</p>
+          <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-bold text-[var(--ink)]">Loading Appointments...</p>
         </div>
       ) : filteredAppointments.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-3xl border border-[#D5E5DD]">
+        <div className="p-12 text-center bg-white rounded-3xl border border-[var(--line)]">
           <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-[#0B3D5C]">No Appointments Found</h3>
+          <h3 className="text-base font-bold text-[var(--ink)]">No Appointments Found</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
             {filter === "all"
               ? "No patient appointment requests have been logged yet."
@@ -173,7 +227,7 @@ export default function AdminAppointmentsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl border border-[#D5E5DD] shadow-sm p-6 flex flex-col justify-between hover:border-[#3E8E6E] transition-all relative group"
+              className="bg-white rounded-3xl border border-[var(--line)] shadow-sm p-6 flex flex-col justify-between hover:border-[var(--iris)] transition-all relative group"
             >
               <div>
                 {/* Status Badge & Time */}
@@ -197,33 +251,55 @@ export default function AdminAppointmentsPage() {
                   </span>
                 </div>
 
-                {/* Patient Name */}
+                {/* Patient Name & Guardian info */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#E8F0EC] text-[#0B3D5C] font-bold flex items-center justify-center text-sm shadow-xs flex-shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-[var(--fog)] text-[var(--ink)] font-bold flex items-center justify-center text-sm shadow-xs flex-shrink-0">
                     {appt.name?.charAt(0) || "P"}
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#0B3D5C]">{appt.name}</h3>
-                    <p className="text-xs text-[#3E8E6E] font-bold">{appt.service}</p>
+                    <h3 className="text-base font-bold text-[var(--ink)]">{appt.name}</h3>
+                    {(appt.dob || appt.age || appt.gender) && (
+                      <span className="text-[11px] font-bold text-slate-500 block">
+                        {appt.gender || "Patient"}{appt.age ? `, ${appt.age} Yrs` : ""}{appt.dob ? ` (DOB: ${appt.dob})` : ""}
+                      </span>
+                    )}
+                    {appt.guardianName && (
+                      <p className="text-[11px] font-semibold text-slate-500">
+                        {appt.guardianRelation || "Guardian"}: {appt.guardianName}
+                      </p>
+                    )}
+                    <p className="text-xs text-[var(--iris)] font-bold mt-0.5">{appt.service}</p>
                   </div>
                 </div>
 
                 {/* Details list */}
                 <div className="space-y-2 text-xs border-t border-slate-100 pt-3">
+                  {appt.patientCnic && (
+                    <div className="flex items-center gap-2 text-[var(--ink)] font-semibold font-mono text-xs bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
+                      <span className="text-[10px] font-bold text-[var(--slate)] uppercase tracking-wider">Patient CNIC:</span>
+                      <span>{appt.patientCnic}</span>
+                    </div>
+                  )}
+                  {appt.guardianCnic && (
+                    <div className="flex items-center gap-2 text-[var(--ink)] font-semibold font-mono text-xs bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
+                      <span className="text-[10px] font-bold text-[var(--slate)] uppercase tracking-wider">Guardian CNIC:</span>
+                      <span>{appt.guardianCnic}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-slate-600 font-medium">
-                    <User className="w-4 h-4 text-[#0B3D5C] flex-shrink-0" />
+                    <User className="w-4 h-4 text-[var(--ink)] flex-shrink-0" />
                     <span>Doctor: {appt.doctor}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600 font-medium">
                     <Mail className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    <span className="truncate">{appt.email}</span>
+                    <span className="truncate">{appt.email || "No email"}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600 font-semibold">
                     <Phone className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                     <span>{appt.phone}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[#0B3D5C] font-bold bg-[#F4F7F5] p-2 rounded-xl border border-[#D5E5DD]/60">
-                    <Calendar className="w-4 h-4 text-[#3E8E6E] flex-shrink-0" />
+                  <div className="flex items-center gap-2 text-[var(--ink)] font-bold bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
+                    <Calendar className="w-4 h-4 text-[var(--iris)] flex-shrink-0" />
                     <span>
                       {appt.date} ({appt.time})
                     </span>
@@ -299,7 +375,7 @@ export default function AdminAppointmentsPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-extrabold text-[#0B3D5C]">
+              <h3 className="text-lg font-extrabold text-[var(--ink)]">
                 Confirm Appointment Slot
               </h3>
               <p className="text-xs text-slate-500 mt-1 font-medium">
@@ -309,7 +385,7 @@ export default function AdminAppointmentsPage() {
               <form onSubmit={handleConfirmSubmit} className="mt-5 space-y-4">
                 {/* Date */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
                     Final Date
                   </label>
                   <input
@@ -317,22 +393,22 @@ export default function AdminAppointmentsPage() {
                     value={confirmDate}
                     onChange={(e) => setConfirmDate(e.target.value)}
                     required
-                    className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] rounded-xl px-4 py-2.5 text-xs text-[#0B3D5C] font-semibold focus:outline-none"
+                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2.5 text-xs text-[var(--ink)] font-semibold focus:outline-none"
                   />
                 </div>
 
                 {/* Time */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
                     Time Slot / Hours
                   </label>
                   <input
                     type="text"
                     value={confirmTime}
                     onChange={(e) => setConfirmTime(e.target.value)}
-                    placeholder="e.g. Morning (10:30 AM)"
+                    placeholder="Preferred time slot"
                     required
-                    className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] rounded-xl px-4 py-2.5 text-xs text-[#0B3D5C] font-semibold focus:outline-none"
+                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2.5 text-xs text-[var(--ink)] font-semibold focus:outline-none"
                   />
                 </div>
 

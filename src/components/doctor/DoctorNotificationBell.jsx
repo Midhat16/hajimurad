@@ -25,6 +25,8 @@ export default function DoctorNotificationBell() {
   useEffect(() => {
     if (!doctorId && !doctorProfile?.name) return;
     const doctorNameClean = (doctorProfile?.name || "").toLowerCase().trim();
+    const docKey = doctorId || doctorNameClean || "doc";
+    const lastSeenTime = parseInt(typeof window !== "undefined" ? localStorage.getItem(`doctor_last_seen_notifs_${docKey}`) || "0" : "0", 10);
 
     let unreadNotifsMap = new Map();
     let unreadApptsMap = new Map();
@@ -52,7 +54,8 @@ export default function DoctorNotificationBell() {
             ((data.recipient_id && doctorId && data.recipient_id === doctorId) ||
               (data.doctorName && doctorNameClean && data.doctorName.toLowerCase().includes(doctorNameClean)));
 
-          if (isForDoctor && data.is_read !== true && data.read !== true) {
+          const itemTime = data.createdAt?.seconds ? data.createdAt.seconds * 1000 : 0;
+          if (isForDoctor && data.is_read !== true && data.read !== true && itemTime > lastSeenTime) {
             unreadNotifsMap.set(`notif-${d.id}`, true);
           }
         });
@@ -97,8 +100,8 @@ export default function DoctorNotificationBell() {
             (appt.doctorId && doctorId && appt.doctorId === doctorId) ||
             (appt.doctor && doctorNameClean && appt.doctor.toLowerCase().includes(doctorNameClean));
 
-          // SIRF NAYE PENDING APPOINTMENTS (jo status === "pending" hain)
-          const isNewPending = isAssigned && appt.status === "pending";
+          const itemTime = appt.createdAt?.seconds ? appt.createdAt.seconds * 1000 : 0;
+          const isNewPending = isAssigned && appt.status === "pending" && appt.readByDoctor !== true && itemTime > lastSeenTime;
 
           if (isNewPending) {
             unreadApptsMap.set(`appt-${d.id}`, true);
@@ -120,7 +123,8 @@ export default function DoctorNotificationBell() {
             (msg.doctorId && doctorId && msg.doctorId === doctorId) ||
             (msg.doctorName && doctorNameClean && msg.doctorName.toLowerCase().includes(doctorNameClean));
 
-          if (isForThisDoc && msg.sender_type === "admin" && msg.is_read !== true && msg.read !== true) {
+          const itemTime = msg.createdAt?.seconds ? msg.createdAt.seconds * 1000 : 0;
+          if (isForThisDoc && msg.sender_type === "admin" && msg.is_read !== true && msg.read !== true && itemTime > lastSeenTime) {
             unreadMsgsMap.set(`msg-${d.id}`, true);
           }
         });
@@ -146,7 +150,7 @@ export default function DoctorNotificationBell() {
         >
           <Bell className="w-5 h-5 text-slate-100" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#0B3D5C] animate-pulse shadow-md">
+            <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[var(--ink)] animate-pulse shadow-md">
               {unreadCount}
             </span>
           )}
@@ -173,12 +177,12 @@ export default function DoctorNotificationBell() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h5 className="text-xs font-black text-[#0B3D5C] truncate">{t.title}</h5>
+                <h5 className="text-xs font-black text-[var(--ink)] truncate">{t.title}</h5>
                 <p className="text-xs font-semibold text-slate-700 mt-0.5 leading-snug">{t.subtitle}</p>
                 <Link
                   href={t.href}
                   onClick={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}
-                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[#0B3D5C] underline hover:text-[#3E8E6E]"
+                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[var(--ink)] underline hover:text-[var(--iris)]"
                 >
                   View Details &rarr;
                 </Link>

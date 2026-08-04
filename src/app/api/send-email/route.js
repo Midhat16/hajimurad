@@ -43,14 +43,14 @@ export async function POST(req) {
 
     const htmlContent = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-radius: 12px; background-color: #ffffff;">
-        <div style="background-color: #0B3D5C; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <div style="background-color: #2B1F1A; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
           <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">Haji Murad Eye Hospital</h2>
           <p style="color: #5EEAD4; margin: 5px 0 0 0; font-size: 13px;">Official Inquiry Response</p>
         </div>
 
         <div style="padding: 24px; color: #334155; line-height: 1.6;">
-          <p style="font-size: 14px; font-weight: 600; color: #0B3D5C;">Dear ${patientName || "Patient"},</p>
-          <div style="font-size: 14px; color: #1e293b; background-color: #f8fafc; padding: 16px; border-left: 4px solid #3E8E6E; margin: 16px 0; border-radius: 4px; whitespace-wrap: pre-line;">
+          <p style="font-size: 14px; font-weight: 600; color: #2B1F1A;">Dear ${patientName || "Patient"},</p>
+          <div style="font-size: 14px; color: #1e293b; background-color: #f8fafc; padding: 16px; border-left: 4px solid #C4232C; margin: 16px 0; border-radius: 4px; whitespace-wrap: pre-line;">
             ${message.replace(/\n/g, "<br/>")}
           </div>
           <p style="font-size: 13px; color: #64748b; margin-top: 24px;">

@@ -6,15 +6,9 @@ import {
   MessageSquare,
   Calendar,
   X,
-  CheckCircle2,
-  XCircle,
-  RefreshCw,
   Stethoscope,
-  Filter,
-  ChevronRight,
-  Clock
 } from "lucide-react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,12 +19,45 @@ export default function NotificationBell() {
   const isInitialRef = useRef(true);
 
   // Helper to add toast notification
-  const addToast = (type, title, subtitle, href) => {
+  const addToast = (type, title, subtitle, href, docInfo = {}) => {
     const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, type, title, subtitle, href }]);
+    setToasts((prev) => [...prev, { id, type, title, subtitle, href, ...docInfo }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 6000);
+  };
+
+  // Helper to mark a specific toast's underlying notification as read permanently in Firestore
+  const handleToastClick = async (toast) => {
+    console.log("[NotificationBell] handleToastClick called for toast:", toast);
+    setToasts((prev) => prev.filter((item) => item.id !== toast.id));
+    try {
+      // 1. Mark primary target document by its real docId
+      if (toast.collectionName && toast.docId) {
+        console.log(`[NotificationBell] Updating ${toast.collectionName} docId: ${toast.docId}`);
+        await updateDoc(doc(db, toast.collectionName, toast.docId), {
+          is_read: true,
+          read: true,
+        });
+      }
+
+      // 2. Query & mark matching docs across notifications and activityLog by appointmentId
+      if (toast.appointmentId) {
+        console.log(`[NotificationBell] Cross-syncing appointmentId: ${toast.appointmentId}`);
+        const qNotifs = query(collection(db, "notifications"), where("appointmentId", "==", toast.appointmentId));
+        const snapNotifs = await getDocs(qNotifs);
+        const p1 = snapNotifs.docs.map((d) => updateDoc(doc(db, "notifications", d.id), { is_read: true, read: true }).catch(() => {}));
+
+        const qLogs = query(collection(db, "activityLog"), where("appointmentId", "==", toast.appointmentId));
+        const snapLogs = await getDocs(qLogs);
+        const p2 = snapLogs.docs.map((d) => updateDoc(doc(db, "activityLog", d.id), { is_read: true, read: true }).catch(() => {}));
+
+        await Promise.all([...p1, ...p2]);
+        await updateDoc(doc(db, "appointments", toast.appointmentId), { is_read: true, read: true }).catch(() => {});
+      }
+    } catch (err) {
+      console.warn("Notice: handleToastClick error handled:", err);
+    }
   };
 
   useEffect(() => {
@@ -40,12 +67,28 @@ export default function NotificationBell() {
     let unreadLogsMap = new Map();
 
     const updateTotalUnread = () => {
-      const allUnreadKeys = new Set([
-        ...Array.from(unreadNotifsMap.keys()),
-        ...Array.from(unreadApptsMap.keys()),
-        ...Array.from(unreadMsgsMap.keys()),
-        ...Array.from(unreadLogsMap.keys()),
-      ]);
+      const allUnreadKeys = new Set();
+
+      unreadNotifsMap.forEach((item, id) => {
+        const key = item.appointmentId ? `appt-${item.appointmentId}` : `notif-${id}`;
+        allUnreadKeys.add(key);
+      });
+
+      unreadApptsMap.forEach((item, id) => {
+        allUnreadKeys.add(`appt-${id}`);
+      });
+
+      unreadMsgsMap.forEach((item, id) => {
+        allUnreadKeys.add(`msg-${id}`);
+      });
+
+      unreadLogsMap.forEach((item, id) => {
+        const key = item.appointmentId ? `appt-${item.appointmentId}` : `log-${id}`;
+        if (!allUnreadKeys.has(key)) {
+          allUnreadKeys.add(key);
+        }
+      });
+
       setUnreadCount(allUnreadKeys.size);
     };
 
@@ -56,8 +99,8 @@ export default function NotificationBell() {
         unreadNotifsMap.clear();
         snap.docs.forEach((docSnap) => {
           const n = docSnap.data();
-          if ((n.recipient_type || "admin") === "admin" && n.is_read !== true && n.read !== true) {
-            unreadNotifsMap.set(`notif-${docSnap.id}`, true);
+          if ((n.recipient_type || "admin") === "admin" && n.sender_type !== "admin" && n.is_read !== true && n.read !== true) {
+            unreadNotifsMap.set(docSnap.id, { id: docSnap.id, appointmentId: n.appointmentId || "" });
           }
         });
 
@@ -65,12 +108,18 @@ export default function NotificationBell() {
           snap.docChanges().forEach((change) => {
             if (change.type === "added") {
               const data = change.doc.data();
-              if ((data.recipient_type || "admin") === "admin") {
+              if ((data.recipient_type || "admin") === "admin" && data.sender_type !== "admin") {
+                const targetHref =
+                  data.type === "appointment" || data.type === "appointment_action" || data.type === "doctor_action"
+                    ? "/admin/appointments"
+                    : (data.href || "/admin/notifications");
+
                 addToast(
                   data.type || "notification",
                   data.title || "New Notification",
                   data.message || "",
-                  data.href || "/admin/notifications"
+                  targetHref,
+                  { docId: change.doc.id, collectionName: "notifications", appointmentId: data.appointmentId || "" }
                 );
               }
             }
@@ -92,7 +141,7 @@ export default function NotificationBell() {
         snap.docs.forEach((docSnap) => {
           const appt = docSnap.data();
           if (appt.is_read !== true && appt.read !== true && appt.status === "pending") {
-            unreadApptsMap.set(`appt-${docSnap.id}`, true);
+            unreadApptsMap.set(docSnap.id, { id: docSnap.id });
           }
         });
         updateTotalUnread();
@@ -108,7 +157,7 @@ export default function NotificationBell() {
         snap.docs.forEach((docSnap) => {
           const msg = docSnap.data();
           if (msg.sender_type !== "admin" && msg.is_read !== true && msg.read !== true) {
-            unreadMsgsMap.set(`msg-${docSnap.id}`, true);
+            unreadMsgsMap.set(docSnap.id, { id: docSnap.id });
           }
         });
         updateTotalUnread();
@@ -116,7 +165,7 @@ export default function NotificationBell() {
       (err) => console.warn("Admin msgs subscription notice:", err)
     );
 
-    // 4. Subscribe to activityLog collection for Admin (triggers toast & badge on every doctor/admin action)
+    // 4. Subscribe to activityLog collection for Admin (triggers toast & badge on every doctor action)
     const unsubLogs = onSnapshot(
       collection(db, "activityLog"),
       (snap) => {
@@ -124,7 +173,7 @@ export default function NotificationBell() {
         snap.docs.forEach((docSnap) => {
           const log = docSnap.data();
           if (log.read !== true && log.is_read !== true) {
-            unreadLogsMap.set(`log-${docSnap.id}`, true);
+            unreadLogsMap.set(docSnap.id, { id: docSnap.id, appointmentId: log.appointmentId || "" });
           }
         });
 
@@ -137,7 +186,8 @@ export default function NotificationBell() {
                 "doctor_action",
                 `Doctor Action: ${act}`,
                 log.message || `Appointment was ${log.action} by Dr. ${log.doctorName || "Doctor"}`,
-                log.doctorId ? `/admin/doctors/activity?id=${log.doctorId}` : "/admin/doctors"
+                "/admin/appointments",
+                { docId: change.doc.id, collectionName: "activityLog", appointmentId: log.appointmentId || "" }
               );
             }
           });
@@ -162,7 +212,7 @@ export default function NotificationBell() {
       <div className="relative">
         <Link
           href="/admin/notifications"
-          className="relative p-2.5 rounded-xl bg-white border border-[#D5E5DD] text-[#0B3D5C] hover:bg-[#E8F0EC] transition-all cursor-pointer shadow-xs flex items-center justify-center"
+          className="relative p-2.5 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all cursor-pointer shadow-xs flex items-center justify-center"
           title="Open Notifications Center"
         >
           <Bell className="w-5 h-5" />
@@ -183,24 +233,26 @@ export default function NotificationBell() {
               initial={{ opacity: 0, x: 50, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 50, scale: 0.9 }}
-              className={`pointer-events-auto bg-white rounded-2xl border shadow-2xl p-4 flex items-start gap-3 border-l-4 ${t.type === "doctor"
-                ? "border-l-emerald-600 border-slate-200"
-                : t.type === "appointment"
+              className={`pointer-events-auto bg-white rounded-2xl border shadow-2xl p-4 flex items-start gap-3 border-l-4 ${
+                t.type === "doctor" || t.type === "doctor_action"
+                  ? "border-l-emerald-600 border-slate-200"
+                  : t.type === "appointment" || t.type === "appointment_booked"
                   ? "border-l-sky-600 border-slate-200"
                   : "border-l-amber-500 border-slate-200"
-                }`}
+              }`}
             >
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-xs ${t.type === "doctor"
-                  ? "bg-emerald-600"
-                  : t.type === "appointment"
+                className={`w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 mt-0.5 shadow-xs ${
+                  t.type === "doctor" || t.type === "doctor_action"
+                    ? "bg-emerald-600"
+                    : t.type === "appointment" || t.type === "appointment_booked"
                     ? "bg-sky-600"
                     : "bg-amber-600"
-                  }`}
+                }`}
               >
-                {t.type === "doctor" ? (
+                {t.type === "doctor" || t.type === "doctor_action" ? (
                   <Stethoscope className="w-5 h-5" />
-                ) : t.type === "appointment" ? (
+                ) : t.type === "appointment" || t.type === "appointment_booked" ? (
                   <Calendar className="w-5 h-5" />
                 ) : (
                   <MessageSquare className="w-5 h-5" />
@@ -208,7 +260,7 @@ export default function NotificationBell() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h5 className="text-xs font-black text-[#0B3D5C] truncate">
+                <h5 className="text-xs font-black text-[var(--ink)] truncate">
                   {t.title}
                 </h5>
                 <p className="text-xs font-semibold text-slate-700 mt-0.5 leading-snug">
@@ -216,8 +268,8 @@ export default function NotificationBell() {
                 </p>
                 <Link
                   href={t.href}
-                  onClick={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}
-                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[#0B3D5C] underline hover:text-[#3E8E6E]"
+                  onClick={() => handleToastClick(t)}
+                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[var(--ink)] underline hover:text-[var(--iris)]"
                 >
                   View Details &rarr;
                 </Link>
@@ -225,7 +277,7 @@ export default function NotificationBell() {
 
               <button
                 onClick={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>

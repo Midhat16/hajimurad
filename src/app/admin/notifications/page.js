@@ -3,6 +3,7 @@
 // Admin Notifications Center Stream - Complete History (Past & Present)
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
@@ -18,6 +19,7 @@ import {
 import { motion } from "framer-motion";
 
 export default function AdminNotificationsPage() {
+  const router = useRouter();
   const [notificationsDocs, setNotificationsDocs] = useState([]);
   const [appointmentsDocs, setAppointmentsDocs] = useState([]);
   const [messagesDocs, setMessagesDocs] = useState([]);
@@ -113,7 +115,16 @@ export default function AdminNotificationsPage() {
     }
 
     let href = n.href || "/admin/notifications";
-    if (href === "/admin/messages" || href.startsWith("/admin/messages")) {
+    const isApptNotif =
+      n.type === "appointment" ||
+      n.type === "appointment_action" ||
+      n.type === "doctor_action" ||
+      (n.title && /appointment/i.test(n.title)) ||
+      (n.message && /appointment/i.test(n.message));
+
+    if (isApptNotif) {
+      href = "/admin/appointments";
+    } else if (href === "/admin/messages" || href.startsWith("/admin/messages")) {
       if (isDoctorMsg) {
         href = n.doctorId
           ? `/admin/messages?tab=doctor_chats&doctorId=${n.doctorId}`
@@ -126,12 +137,14 @@ export default function AdminNotificationsPage() {
     allNotificationsMap.set(`notif-${n.id}`, {
       id: n.id,
       collectionName: "notifications",
+      appointmentId: n.appointmentId || "",
       type: n.type || "appointment",
+      sender_type: n.sender_type || "",
       isDoctorMsg,
       title: formattedTitle,
       message: n.message || "",
       href,
-      is_read: n.is_read === true,
+      is_read: n.is_read === true || n.read === true,
       timestamp: n.createdAt,
       rawTime,
     });
@@ -145,7 +158,9 @@ export default function AdminNotificationsPage() {
       allNotificationsMap.set(mapKey, {
         id: appt.id,
         collectionName: "appointments",
+        appointmentId: appt.id,
         type: "appointment",
+        sender_type: appt.sender_type || "patient",
         title: `New Appointment Request: ${appt.name || "Patient"}`,
         message: `Requested ${appt.service || "Eye Treatment"} with ${appt.doctor || "Doctor"} on ${appt.date || "N/A"} (${appt.time || "N/A"})`,
         href: "/admin/appointments",
@@ -180,7 +195,9 @@ export default function AdminNotificationsPage() {
       allNotificationsMap.set(mapKey, {
         id: msg.id,
         collectionName: "messages",
+        appointmentId: "",
         type: isDoctorMsg ? "doctor_message" : "message",
+        sender_type: msg.sender_type || (isDoctorMsg ? "doctor" : "patient"),
         isDoctorMsg,
         title,
         message: msg.message || "Contact message received",
@@ -193,18 +210,43 @@ export default function AdminNotificationsPage() {
   });
 
   // D. Add records from `activityLog` collection (doctor actions)
+  // Deduplicate with notifications collection if same appointmentId/message
   activityLogsDocs.forEach((log) => {
     const rawTime = log.timestamp?.seconds ? log.timestamp.seconds * 1000 : Date.now();
     const act = (log.action || "").toUpperCase();
     const mapKey = `act-${log.id}`;
+    const apptId = log.appointmentId || "";
+
+    // Check if we already have a notification for this appointment doctor action
+    const existingEntry = Array.from(allNotificationsMap.values()).find(
+      (n) => apptId && n.appointmentId === apptId && (n.type === "doctor_action" || n.collectionName === "notifications")
+    );
+
+    if (existingEntry) {
+      // Sync read state if log is read
+      if ((log.read === true || log.is_read === true) && !existingEntry.is_read) {
+        existingEntry.is_read = true;
+      }
+      return;
+    }
+
     if (!allNotificationsMap.has(mapKey)) {
+      const isApptLog =
+        act.includes("ACCEPT") ||
+        act.includes("REJECT") ||
+        act.includes("RESCHEDULE") ||
+        act.includes("APPOINTMENT") ||
+        (log.message && /appointment/i.test(log.message));
+
       allNotificationsMap.set(mapKey, {
         id: log.id,
         collectionName: "activityLog",
+        appointmentId: apptId,
         type: "doctor_action",
+        sender_type: log.sender_type || "doctor",
         title: `Doctor Action: Appointment ${act}`,
         message: log.message || `Appointment was ${log.action} by Dr. ${log.doctorName || "Doctor"} for ${log.patientName || "Patient"}`,
-        href: log.doctorId ? `/admin/doctors/${log.doctorId}/activity` : "/admin/doctors",
+        href: `/admin/notifications/action-detail?id=${log.id}`,
         is_read: log.read === true || log.is_read === true,
         timestamp: log.timestamp,
         rawTime,
@@ -212,7 +254,9 @@ export default function AdminNotificationsPage() {
     }
   });
 
-  const fullStream = Array.from(allNotificationsMap.values());
+  const fullStream = Array.from(allNotificationsMap.values()).filter(
+    (item) => item.sender_type !== "admin"
+  );
   fullStream.sort((a, b) => b.rawTime - a.rawTime);
 
   // Filter based on 3 tabs: "All", "Appointments", "Messages"
@@ -230,28 +274,71 @@ export default function AdminNotificationsPage() {
 
   const unreadCount = fullStream.filter((n) => !n.is_read).length;
 
-  // Mark single notification as read in Firestore
+  // Mark single notification as read in Firestore across all matching collections
   const handleMarkAsRead = async (item) => {
-    if (item.is_read) return;
+    if (!item) return;
+    console.log("[AdminNotificationsPage] handleMarkAsRead called for:", item.collectionName, item.id);
     try {
+      // 1. Mark target doc as read
       await updateDoc(doc(db, item.collectionName, item.id), {
         is_read: true,
         read: true,
       });
+
+      // 2. Cross-sync: Mark any matching notification in `notifications`, `activityLog`, or `appointments` by appointmentId
+      const apptId = item.appointmentId || (item.collectionName === "appointments" ? item.id : "");
+      if (apptId) {
+        const syncPromises = [];
+
+        notificationsDocs
+          .filter((n) => n.appointmentId === apptId && (n.is_read !== true && n.read !== true))
+          .forEach((n) => syncPromises.push(updateDoc(doc(db, "notifications", n.id), { is_read: true, read: true }).catch(() => {})));
+
+        activityLogsDocs
+          .filter((l) => l.appointmentId === apptId && (l.read !== true && l.is_read !== true))
+          .forEach((l) => syncPromises.push(updateDoc(doc(db, "activityLog", l.id), { is_read: true, read: true }).catch(() => {})));
+
+        appointmentsDocs
+          .filter((a) => a.id === apptId && (a.read !== true && a.is_read !== true))
+          .forEach((a) => syncPromises.push(updateDoc(doc(db, "appointments", a.id), { read: true, is_read: true }).catch(() => {})));
+
+        await Promise.all(syncPromises);
+      }
     } catch (err) {
       console.warn("Failed to mark read:", err);
     }
   };
 
-  // Mark all notifications as read
+  // Mark all notifications as read across all collections
   const handleMarkAllRead = async () => {
     try {
-      const unreadList = fullStream.filter((n) => !n.is_read);
-      await Promise.all(
-        unreadList.map((n) =>
-          updateDoc(doc(db, n.collectionName, n.id), { is_read: true, read: true })
-        )
-      );
+      const promises = [];
+
+      notificationsDocs.forEach((n) => {
+        if (n.is_read !== true && n.read !== true) {
+          promises.push(updateDoc(doc(db, "notifications", n.id), { is_read: true, read: true }));
+        }
+      });
+
+      activityLogsDocs.forEach((l) => {
+        if (l.read !== true && l.is_read !== true) {
+          promises.push(updateDoc(doc(db, "activityLog", l.id), { is_read: true, read: true }));
+        }
+      });
+
+      appointmentsDocs.forEach((a) => {
+        if (a.read !== true && a.is_read !== true) {
+          promises.push(updateDoc(doc(db, "appointments", a.id), { read: true, is_read: true }));
+        }
+      });
+
+      messagesDocs.forEach((m) => {
+        if (m.read !== true && m.is_read !== true) {
+          promises.push(updateDoc(doc(db, "messages", m.id), { read: true, is_read: true }));
+        }
+      });
+
+      await Promise.all(promises);
     } catch (err) {
       console.warn("Failed to mark all read:", err);
     }
@@ -267,17 +354,17 @@ export default function AdminNotificationsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D5E5DD] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/dashboard"
-            className="p-2.5 rounded-xl bg-white border border-[#D5E5DD] text-[#0B3D5C] hover:bg-[#E8F0EC] transition-all shadow-xs"
+            className="p-2.5 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all shadow-xs"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#3E8E6E] bg-[#E8F0EC] px-2.5 py-0.5 rounded-md border border-[#D5E5DD]">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
                 Hospital Management Audit
               </span>
               {unreadCount > 0 && (
@@ -286,10 +373,10 @@ export default function AdminNotificationsPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight mt-1">
+            <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
               Admin Notifications Center
             </h1>
-            <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
+            <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
               Complete history of all appointments, doctor actions, and messages from start to present ({fullStream.length} total recorded).
             </p>
           </div>
@@ -298,7 +385,7 @@ export default function AdminNotificationsPage() {
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllRead}
-            className="inline-flex items-center gap-2 bg-[#0B3D5C] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-[#082D44] transition-all cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-2 bg-[var(--ink)] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-[var(--iris-dark)] transition-all cursor-pointer self-start sm:self-auto"
           >
             <CheckCheck className="w-4 h-4 text-[#5EEAD4]" />
             Mark All as Read
@@ -307,7 +394,7 @@ export default function AdminNotificationsPage() {
       </div>
 
       {/* 3 Filter Tabs (All, Appointments, Messages) */}
-      <div className="bg-white p-3 rounded-2xl border border-[#D5E5DD] shadow-xs flex items-center gap-2 max-w-md">
+      <div className="bg-white p-3 rounded-2xl border border-[var(--line)] shadow-xs flex items-center gap-2 max-w-md">
         {[
           { id: "all", label: `All (${fullStream.length})` },
           {
@@ -323,8 +410,8 @@ export default function AdminNotificationsPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${activeTab === tab.id
-              ? "bg-[#0B3D5C] text-white shadow-xs"
-              : "bg-[#F4F7F5] text-[#3F4B4A] hover:bg-[#E8F0EC]"
+              ? "bg-[var(--ink)] text-white shadow-xs"
+              : "bg-[var(--fog)] text-[var(--slate)] hover:bg-[var(--fog)]"
               }`}
           >
             {tab.label}
@@ -334,25 +421,25 @@ export default function AdminNotificationsPage() {
 
       {/* Main Notifications Feed List */}
       {loading ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-[#D5E5DD]">
-          <div className="w-8 h-8 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-bold text-[#0B3D5C]">Loading Saved Notifications Stream...</p>
+        <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)]">
+          <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs font-bold text-[var(--ink)]">Loading Saved Notifications Stream...</p>
         </div>
       ) : filteredNotifications.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-[#D5E5DD] space-y-3">
+        <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] space-y-3">
           <Bell className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="text-base font-extrabold text-[#0B3D5C]">No Notifications Found</h3>
-          <p className="text-xs font-semibold text-[#3F4B4A] max-w-sm mx-auto">
+          <h3 className="text-base font-extrabold text-[var(--ink)]">No Notifications Found</h3>
+          <p className="text-xs font-semibold text-[var(--slate)] max-w-sm mx-auto">
             No saved notifications currently match the selected filter.
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D5E5DD] shadow-sm space-y-4">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-extrabold text-[#0B3D5C] uppercase tracking-wider">
+            <h2 className="text-sm font-extrabold text-[var(--ink)] uppercase tracking-wider">
               Complete History Stream ({filteredNotifications.length})
             </h2>
-            <span className="text-xs font-bold text-[#3E8E6E] bg-[#E8F0EC] px-3 py-1 rounded-full border border-[#D5E5DD]">
+            <span className="text-xs font-bold text-[var(--iris)] bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
               Saved From Start
             </span>
           </div>
@@ -369,9 +456,13 @@ export default function AdminNotificationsPage() {
                   layout
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative group ${isUnread
+                  onClick={async () => {
+                    await handleMarkAsRead(item);
+                    router.push(item.href);
+                  }}
+                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative group cursor-pointer hover:shadow-md ${isUnread
                     ? "bg-rose-50/50 border-rose-200 shadow-xs"
-                    : "bg-[#F4F7F5] border-[#D5E5DD] opacity-90"
+                    : "bg-[var(--fog)] border-[var(--line)] opacity-90"
                     }`}
                 >
                   <div className="flex items-start gap-4 min-w-0 flex-1">
@@ -410,7 +501,7 @@ export default function AdminNotificationsPage() {
                               : "Patient Message Inquiry"}
                         </span>
 
-                        <h4 className="text-sm font-extrabold text-[#0B3D5C] truncate">
+                        <h4 className="text-sm font-extrabold text-[var(--ink)] truncate">
                           {item.title}
                         </h4>
                       </div>
@@ -428,14 +519,18 @@ export default function AdminNotificationsPage() {
                       <span>{formatTimestamp(item.timestamp)}</span>
                     </div>
 
-                    <Link
-                      href={item.href}
-                      onClick={() => handleMarkAsRead(item)}
-                      className="px-3.5 py-2 rounded-xl bg-[#0B3D5C] text-white hover:bg-[#082D44] text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(item);
+                        router.push(item.href);
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-[var(--ink)] text-white hover:bg-[var(--iris-dark)] text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
                     >
                       View Details
                       <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
+                    </button>
 
                     {/* RED MARK INDICATOR IF UNREAD */}
                     {isUnread && (

@@ -32,10 +32,9 @@ export default function Technology() {
   }, []);
 
   return (
-    <section id="technology" className="py-14 lg:py-16 bg-[#F4F7F5] relative overflow-hidden">
+    <section id="technology" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
       {/* Background radial glow */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#3E8E6E]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#0B3D5C]/10 rounded-full blur-3xl pointer-events-none translate-x-1/4 translate-y-1/4" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-slate-100/40 rounded-full blur-3xl pointer-events-none translate-x-1/4 translate-y-1/4" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -47,13 +46,13 @@ export default function Technology() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[11px] font-bold tracking-widest text-[#3E8E6E] uppercase bg-[#E8F0EC] px-3 py-1 rounded-full border border-[#D5E5DD]">
+            <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
               Diagnostic & Surgical Suite
             </span>
-            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
+            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
               Pioneering Ophthalmic Technology
             </h2>
-            <p className="mt-3 text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
+            <p className="mt-3 text-base sm:text-lg text-[var(--slate)] leading-relaxed">
               We invest in state-of-the-art medical hardware to deliver surgeries with maximum safety margins, microscopic precision, and rapid visual recovery.
             </p>
           </motion.div>
@@ -74,27 +73,27 @@ export default function Technology() {
                   onClick={() => setActiveTech(idx)}
                   className={`p-4 sm:p-5 rounded-2xl cursor-pointer transition-all duration-300 border ${
                     isActive
-                      ? "bg-white border-[#0B3D5C] shadow-sm"
-                      : "bg-white/70 hover:bg-white border-[#D5E5DD] shadow-xs"
+                      ? "bg-white border-[var(--ink)] shadow-sm"
+                      : "bg-white/70 hover:bg-white border-[var(--line)] shadow-xs"
                   }`}
                 >
                   <div className="flex items-center gap-3.5">
                     {tech.imageUrl ? (
-                      <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border border-[#D5E5DD]">
+                      <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border border-[var(--line)]">
                         <img src={tech.imageUrl} alt={tech.name} className="w-full h-full object-cover" />
                       </div>
                     ) : (
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                        isActive ? "bg-[#0B3D5C] text-white" : "bg-[#E8F0EC] text-[#3E8E6E]"
+                        isActive ? "bg-[var(--ink)] text-white" : "bg-[var(--fog)] text-[var(--iris)]"
                       }`}>
                         <Icon className="w-5 h-5" />
                       </div>
                     )}
                     <div className="text-left">
-                      <p className="text-[9px] font-bold text-[#3E8E6E] uppercase tracking-widest leading-none">
+                      <p className="text-[9px] font-bold text-[var(--iris)] uppercase tracking-widest leading-none">
                         {tech.category}
                       </p>
-                      <h3 className="text-sm sm:text-base font-bold text-[#0B3D5C] mt-0.5 leading-snug">
+                      <h3 className="text-sm sm:text-base font-bold text-[var(--ink)] mt-0.5 leading-snug">
                         {tech.name}
                       </h3>
                     </div>
@@ -112,15 +111,15 @@ export default function Technology() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4 }}
-                className="glass-card bg-white rounded-3xl p-6 sm:p-8 border border-[#D5E5DD] shadow-md flex flex-col justify-between h-full min-h-[420px]"
+                className="glass-card bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md flex flex-col justify-between h-full min-h-[420px]"
               >
                 <div className="space-y-6">
                   {/* Dashboard Header */}
-                  <div className="border-b border-[#D5E5DD]/60 pb-5">
-                    <span className="text-xs font-bold text-[#3E8E6E] uppercase tracking-widest">
+                  <div className="border-b border-[var(--line)] pb-5">
+                    <span className="text-xs font-bold text-[var(--iris)] uppercase tracking-widest">
                       Equipment Specs & Performance
                     </span>
-                    <h3 className="text-2xl font-extrabold text-[#0B3D5C] mt-1">
+                    <h3 className="text-2xl font-extrabold text-[var(--ink)] mt-1">
                       {techList[activeTech].name}
                     </h3>
                   </div>

@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Save, Phone, Mail, MapPin, AlertCircle, CheckCircle2, Shield } from "lucide-react";
+import { Save, Phone, Mail, MapPin, AlertCircle, CheckCircle2, Shield, Building2, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ImagePicker from "@/components/admin/ImagePicker";
 
 const DEFAULT_SETTINGS = {
   uanNumber: "111 333 456",
@@ -16,19 +17,33 @@ const DEFAULT_SETTINGS = {
   address: "Upper Chanab Canal Bank G.T Road Gujranwala",
 };
 
+const DEFAULT_PROFILE = {
+  hospitalName: "Haji Murad Trust Eye Hospital",
+  logoUrl: "/images/logo.png",
+};
+
 export default function AdminSettingsPage() {
   const [formData, setFormData] = useState(DEFAULT_SETTINGS);
+  const [profileData, setProfileData] = useState(DEFAULT_PROFILE);
   const [loading, setLoading] = useState(true);
+  
+  // Contact Info States
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  // Profile States
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState(false);
+  const [profileError, setProfileError] = useState("");
+
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const snap = await getDoc(doc(db, "siteContent", "contactInfo"));
-        if (snap.exists()) {
-          const data = snap.data();
+        // Fetch Contact Info
+        const contactSnap = await getDoc(doc(db, "siteContent", "contactInfo"));
+        if (contactSnap.exists()) {
+          const data = contactSnap.data();
           const uanVal = data.uanNumber || data.mainDeskNumber || DEFAULT_SETTINGS.uanNumber;
           const callVal = data.callNumber || data.emergencyNumber || DEFAULT_SETTINGS.callNumber;
           const helpVal = data.helplineNumber || data.secondaryNumber || DEFAULT_SETTINGS.helplineNumber;
@@ -42,8 +57,18 @@ export default function AdminSettingsPage() {
             emergencyNumber: callVal,
           });
         }
+
+        // Fetch Hospital Profile
+        const profileSnap = await getDoc(doc(db, "siteContent", "profile"));
+        if (profileSnap.exists()) {
+          const pData = profileSnap.data();
+          setProfileData({
+            hospitalName: pData.hospitalName || DEFAULT_PROFILE.hospitalName,
+            logoUrl: pData.logoUrl || DEFAULT_PROFILE.logoUrl,
+          });
+        }
       } catch (err) {
-        console.error("Error fetching contact settings:", err);
+        console.error("Error fetching settings:", err);
       } finally {
         setLoading(false);
       }
@@ -54,6 +79,43 @@ export default function AdminSettingsPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setProfileError("");
+    setProfileSuccess(false);
+
+    if (!profileData.hospitalName.trim()) {
+      setProfileError("Hospital name cannot be empty.");
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      await setDoc(
+        doc(db, "siteContent", "profile"),
+        {
+          hospitalName: profileData.hospitalName.trim(),
+          logoUrl: profileData.logoUrl || DEFAULT_PROFILE.logoUrl,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+
+      setProfileSuccess(true);
+      setTimeout(() => setProfileSuccess(false), 4000);
+    } catch (err) {
+      console.error("Error saving profile settings:", err);
+      setProfileError("Failed to save profile settings. Please try again.");
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -97,30 +159,115 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[#0B3D5C]">Loading Site Contact Settings...</p>
+        <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-xs font-bold text-[var(--ink)]">Loading Site Settings...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-8 pb-12">
       {/* Header */}
-      <div className="border-b border-[#D5E5DD] pb-4 flex items-center justify-between">
+      <div className="border-b border-[var(--line)] pb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight flex items-center gap-2">
-            <Shield className="w-6 h-6 text-[#3E8E6E]" />
-            Site Contact Settings
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight flex items-center gap-2">
+            <Shield className="w-6 h-6 text-[var(--iris)]" />
+            Site Settings & Configuration
           </h1>
-          <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
-            Manage UAN, Call # line, Helpline/Mobile #, email, and clinic location displayed across website Footer and Contact page.
+          <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
+            Manage Hospital Profile (Logo & Name) and Contact Information displayed across website & dashboards.
           </p>
         </div>
       </div>
 
-      {/* Form Card */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D5E5DD] shadow-sm space-y-6">
-        
+      {/* SECTION 1: Hospital Profile Settings */}
+      <form onSubmit={handleProfileSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
+        <div className="flex items-center gap-2.5 pb-4 border-b border-[var(--fog)]">
+          <div className="w-9 h-9 rounded-xl bg-[var(--fog)] text-[var(--iris)] flex items-center justify-center font-bold">
+            <Building2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-[var(--ink)]">Hospital Branding & Profile</h2>
+            <p className="text-xs font-semibold text-[var(--slate)]">Update hospital logo image and official name dynamically.</p>
+          </div>
+        </div>
+
+        {profileError && (
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center gap-3 text-xs font-bold">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <span>{profileError}</span>
+          </div>
+        )}
+
+        <div className="space-y-6">
+          {/* Hospital Name */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-[var(--iris)]" />
+              Hospital Name *
+            </label>
+            <input
+              type="text"
+              name="hospitalName"
+              value={profileData.hospitalName}
+              onChange={handleProfileChange}
+              placeholder=""
+              required
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+            />
+          </div>
+
+          {/* Hospital Logo Image Picker */}
+          <ImagePicker
+            label="Hospital Logo Image *"
+            value={profileData.logoUrl}
+            onChange={(url) => setProfileData((prev) => ({ ...prev, logoUrl: url }))}
+          />
+        </div>
+
+        {/* Profile Footer Actions */}
+        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+          <div>
+            <AnimatePresence>
+              {profileSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>Hospital Profile Updated Successfully! Dynamic on site now.</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            disabled={isSavingProfile}
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            {isSavingProfile ? "Saving Profile..." : "Save Hospital Profile"}
+          </motion.button>
+        </div>
+      </form>
+
+      {/* SECTION 2: Contact Info Settings */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
+        <div className="flex items-center gap-2.5 pb-4 border-b border-[var(--fog)]">
+          <div className="w-9 h-9 rounded-xl bg-[var(--fog)] text-[var(--iris)] flex items-center justify-center font-bold">
+            <Phone className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-[var(--ink)]">Site Contact Information</h2>
+            <p className="text-xs font-semibold text-[var(--slate)]">Manage UAN, helpline numbers, email, and physical clinic address.</p>
+          </div>
+        </div>
+
         {error && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center gap-3 text-xs font-bold">
             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -131,8 +278,8 @@ export default function AdminSettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* UAN Number */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-[#3E8E6E]" />
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-[var(--iris)]" />
               UAN Number *
             </label>
             <input
@@ -140,15 +287,15 @@ export default function AdminSettingsPage() {
               name="uanNumber"
               value={formData.uanNumber || ""}
               onChange={handleChange}
-              placeholder="e.g. 111 333 456"
+              placeholder="UAN helpline number"
               required
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Call # Number */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block flex items-center gap-1.5">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-rose-500" />
               Call # *
             </label>
@@ -157,16 +304,16 @@ export default function AdminSettingsPage() {
               name="callNumber"
               value={formData.callNumber || ""}
               onChange={handleChange}
-              placeholder="e.g. 0332-4290724"
+              placeholder="03XX-XXXXXXX"
               required
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Email Address */}
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-[#3E8E6E]" />
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-[var(--iris)]" />
               Official Email Address *
             </label>
             <input
@@ -176,14 +323,14 @@ export default function AdminSettingsPage() {
               onChange={handleChange}
               placeholder=""
               required
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Physical Address */}
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#3E8E6E]" />
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[var(--iris)]" />
               Clinic Physical Address *
             </label>
             <textarea
@@ -193,7 +340,7 @@ export default function AdminSettingsPage() {
               rows={3}
               placeholder=""
               required
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
             />
           </div>
         </div>
@@ -210,7 +357,7 @@ export default function AdminSettingsPage() {
                   className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200"
                 >
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span>Settings Saved Successfully! Live on site now.</span>
+                  <span>Contact Info Saved Successfully! Live on site now.</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -221,13 +368,14 @@ export default function AdminSettingsPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSaving}
-            className="flex items-center gap-2 bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? "Saving Changes..." : "Save Changes"}
+            {isSaving ? "Saving Contact Info..." : "Save Contact Info"}
           </motion.button>
         </div>
       </form>
     </div>
   );
 }
+

@@ -57,7 +57,7 @@ export default function Contact() {
     if (!formData.phone.trim()) {
       newErrors.phone = "Please enter your phone number";
     } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(phoneClean)) {
-      newErrors.phone = "Please enter a valid phone number (e.g. 0300-1234567)";
+      newErrors.phone = "Please enter a valid phone number (03XX-XXXXXXX)";
     }
 
     if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
@@ -143,10 +143,9 @@ export default function Contact() {
   ];
 
   return (
-    <section id="contact" className="py-14 lg:py-16 bg-[#E8F0EC] relative overflow-hidden">
+    <section id="contact" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
       {/* Background soft blur */}
-      <div className="absolute top-1/3 left-0 w-90 h-90 bg-[#3E8E6E]/10 rounded-full blur-3xl pointer-events-none -translate-x-1/2" />
-      <div className="absolute bottom-1/3 right-0 w-90 h-90 bg-[#0B3D5C]/10 rounded-full blur-3xl pointer-events-none translate-x-1/2" />
+      <div className="absolute bottom-1/3 right-0 w-90 h-90 bg-slate-100/40 rounded-full blur-3xl pointer-events-none translate-x-1/2" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -158,13 +157,13 @@ export default function Contact() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[11px] font-bold tracking-widest text-[#3E8E6E] uppercase bg-white px-3 py-1 rounded-full border border-[#D5E5DD] shadow-xs">
+            <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
               Reach Our Desk
             </span>
-            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
+            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
               Contact Us
             </h2>
-            <p className="mt-3 text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
+            <p className="mt-3 text-base sm:text-lg text-[var(--slate)] leading-relaxed">
               Have questions about our eye care services, appointments, or treatment options? Speak directly with our hospital team.
             </p>
           </motion.div>
@@ -186,19 +185,19 @@ export default function Contact() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
-                    className="flex gap-3.5 p-4 rounded-2xl border border-[#D5E5DD] bg-white shadow-xs hover:border-[#3E8E6E] transition-all duration-300 group"
+                    className="flex gap-3.5 p-4 rounded-2xl border border-[var(--line)] bg-white shadow-xs hover:border-[var(--iris)] transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F0EC] text-[#3E8E6E] shadow-xs">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[var(--fog)] text-[var(--iris)] shadow-xs">
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="text-left">
-                      <h4 className="font-bold text-[#0B3D5C] text-sm sm:text-base">{info.title}</h4>
+                      <h4 className="font-bold text-[var(--ink)] text-sm sm:text-base">{info.title}</h4>
                       {info.details.map((line, lIdx) => (
-                        <p key={lIdx} className="text-xs sm:text-sm text-[#3F4B4A] mt-0.5 leading-relaxed font-medium">
+                        <p key={lIdx} className="text-xs sm:text-sm text-[var(--slate)] mt-0.5 leading-relaxed font-medium">
                           {info.isEmail ? (
                             <a
                               href={`mailto:${contactData.email || 'info@hajimuradhospital.org'}`}
-                              className="text-[#0B3D5C] hover:text-[#3E8E6E] font-bold hover:underline"
+                              className="text-[var(--ink)] hover:text-[var(--iris)] font-bold hover:underline"
                             >
                               {line}
                             </a>
@@ -219,7 +218,7 @@ export default function Contact() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="w-full rounded-[28px] overflow-hidden border border-[#D5E5DD] shadow-sm relative bg-white"
+              className="w-full rounded-[28px] overflow-hidden border border-[var(--line)] shadow-sm relative bg-white"
             >
               <iframe
                 src="https://maps.google.com/maps?q=Haji+Murad+Trust+Eye+Hospital+Gujranwala&t=&z=16&ie=UTF8&iwloc=B&output=embed"
@@ -246,22 +245,22 @@ export default function Contact() {
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">Send an Inquiry</h3>
-                  <p className="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wider">Direct Clinical Inbox</p>
+                  <p className="text-xs text-slate-400 mt-1 font-semibold uppercase tracking-wider">Direct Hospital Inbox</p>
                 </div>
 
                 {/* Name */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Your Name</label>
+                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Your Name</label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter name"
-                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all ${
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all ${
                       errors.name
-                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
-                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                        ? "border-red-300 focus:ring-red-200 bg-red-50/20"
+                        : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                     }`}
                   />
                   {errors.name && (
@@ -271,17 +270,17 @@ export default function Contact() {
 
                 {/* Email Address (Optional) */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Email Address</label>
+                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Email Address</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="name@email.com"
-                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all ${
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all ${
                       errors.email
-                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
-                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                        ? "border-red-300 focus:ring-red-200 bg-red-50/20"
+                        : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                     }`}
                   />
                   {errors.email && (
@@ -291,17 +290,17 @@ export default function Contact() {
 
                 {/* Phone Number */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Phone Number</label>
+                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Phone Number</label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="03XX-XXXXXXX"
-                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all ${
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all ${
                       errors.phone
-                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
-                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                        ? "border-red-300 focus:ring-red-200 bg-red-50/20"
+                        : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                     }`}
                   />
                   {errors.phone && (
@@ -311,17 +310,17 @@ export default function Contact() {
 
                 {/* Message */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Message</label>
+                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Message</label>
                   <textarea
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
                     rows="4"
-                    placeholder="Type your clinical inquiry..."
-                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:ring-4 transition-all resize-none ${
+                    placeholder="Type your inquiry for hospital team..."
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none ${
                       errors.message
-                        ? "border-red-500 ring-2 ring-red-100 bg-red-50/20"
-                        : "border-slate-200 focus:border-medical-blue focus:ring-sky-100"
+                        ? "border-red-300 focus:ring-red-200 bg-red-50/20"
+                        : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                     }`}
                   />
                   {errors.message && (

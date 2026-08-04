@@ -9,12 +9,14 @@ import {
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAdminAuth } from "@/context/AdminAuthContext";
+import { useHospitalProfile } from "@/lib/useHospitalProfile";
 import { Eye, EyeOff, Lock, Mail, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { user, isAuthorized, fetchAuthorizedEmail } = useAdminAuth();
+  const { profile } = useHospitalProfile();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -104,44 +106,54 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Authorization success -> Navigate to dashboard
       router.push("/admin/dashboard");
     } catch (err) {
-      setError(err.message || "An unexpected error occurred.");
+      console.error("Admin Login Error:", err);
+      if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        setError("Invalid Password. Please double check your credentials.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many failed attempts. Account temporarily locked for security.");
+      } else {
+        setError(err.message || "Failed to authenticate. Please check your credentials.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!mounted) {
+  if (!mounted) return null;
+
+  if (user && isAuthorized) {
     return (
-      <div className="min-h-screen bg-[#F4F7F5] flex flex-col justify-center items-center">
-        <div className="w-12 h-12 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-4" />
+      <div className="min-h-screen bg-[var(--fog)] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-[var(--ink)]">Redirecting to Admin Portal...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7F5] flex flex-col justify-center items-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--fog)] flex flex-col justify-center items-center p-4 relative overflow-hidden">
       {/* Soft background glows */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#3E8E6E]/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#0B3D5C]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-slate-100/40 rounded-full blur-3xl pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 border border-[#D5E5DD] shadow-xl relative z-10"
+        className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 border border-[var(--line)] shadow-xl relative z-10"
       >
         {/* Header Branding */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0B3D5C] to-[#3E8E6E] flex items-center justify-center shadow-lg shadow-[#0B3D5C]/20 mb-4">
-            <Eye className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-2xl bg-white border border-[var(--line)] p-2.5 flex items-center justify-center shadow-md shadow-[var(--ink)]/10 mb-4 overflow-hidden">
+            <img src={profile.logoUrl} alt={profile.hospitalName} className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight">
-            Haji Murad Eye Hospital
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+            {profile.hospitalName}
           </h1>
-          <p className="text-xs font-bold text-[#3E8E6E] uppercase tracking-widest mt-1 flex items-center gap-1">
+          <p className="text-xs font-bold text-[var(--iris)] uppercase tracking-widest mt-1 flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5" />
             Admin Portal Access
           </p>
@@ -163,7 +175,7 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Authorized Admin Email
             </label>
             <div className="relative">
@@ -174,14 +186,14 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
 
           {/* Password input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Password
             </label>
             <div className="relative">
@@ -192,12 +204,12 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-3.5 text-slate-400 hover:text-[#0B3D5C] transition-colors cursor-pointer"
+                className="absolute right-4 top-3.5 text-slate-400 hover:text-[var(--ink)] transition-colors cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
@@ -215,7 +227,7 @@ export default function AdminLoginPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white py-3.5 rounded-xl font-bold shadow-md shadow-[#0B3D5C]/15 hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer text-sm"
+            className="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-3.5 rounded-xl font-bold shadow-md shadow-[var(--ink)]/15 hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer text-sm"
           >
             {isSubmitting ? (
               <>
@@ -231,7 +243,7 @@ export default function AdminLoginPage() {
           </motion.button>
         </form>
 
-        <div className="mt-8 text-center border-t border-[#D5E5DD]/60 pt-4">
+        <div className="mt-8 text-center border-t border-[var(--line)]/60 pt-4">
           <p className="text-[11px] text-slate-400 font-medium">
             Restricted System — Authorized Personnel Only
           </p>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ImagePicker from "./ImagePicker";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft, Calendar, Lock } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -15,6 +15,8 @@ const GRADIENT_OPTIONS = [
   { label: "Amber Yellow to Orange", value: "from-amber-400 to-orange-500" },
 ];
 
+const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 export default function DoctorForm({ initialData = null, onSave, isSaving = false, title = "Add New Doctor" }) {
   const router = useRouter();
 
@@ -25,7 +27,6 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
     education: initialData?.education || "",
     fellowship: initialData?.fellowship || "",
     pmdcNo: initialData?.pmdcNo || "",
-    availabilityDays: initialData?.availabilityDays || "",
     bio: initialData?.bio || "",
     metrics: initialData?.metrics || "",
     gradient: initialData?.gradient || "from-sky-400 to-blue-500",
@@ -33,6 +34,10 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
     photoUrl: initialData?.photoUrl || initialData?.photo || initialData?.imageUrl || "",
     loginEmail: initialData?.loginEmail || initialData?.email || "",
     loginPassword: initialData?.loginPassword || initialData?.password || "",
+    workingDays: initialData?.workingDays && Array.isArray(initialData.workingDays) && initialData.workingDays.length > 0
+      ? initialData.workingDays
+      : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    workingHours: initialData?.workingHours || { start: "09:00", end: "15:00" },
   });
 
   useEffect(() => {
@@ -44,7 +49,6 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
         education: initialData.education || "",
         fellowship: initialData.fellowship || "",
         pmdcNo: initialData.pmdcNo || "",
-        availabilityDays: initialData.availabilityDays || "",
         bio: initialData.bio || "",
         metrics: initialData.metrics || "",
         gradient: initialData.gradient || "from-sky-400 to-blue-500",
@@ -52,6 +56,10 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
         photoUrl: initialData.photoUrl || initialData.photo || initialData.imageUrl || "",
         loginEmail: initialData.loginEmail || initialData.email || "",
         loginPassword: initialData.loginPassword || initialData.password || "",
+        workingDays: initialData.workingDays && Array.isArray(initialData.workingDays) && initialData.workingDays.length > 0
+          ? initialData.workingDays
+          : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        workingHours: initialData.workingHours || { start: "09:00", end: "15:00" },
       });
     }
   }, [initialData]);
@@ -73,6 +81,27 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
     });
   };
 
+  const handleDayToggle = (day) => {
+    setFormData((prev) => {
+      const current = prev.workingDays || [];
+      const updated = current.includes(day)
+        ? current.filter((d) => d !== day)
+        : [...current, day];
+      return { ...prev, workingDays: updated };
+    });
+  };
+
+  const handleHoursChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      workingHours: {
+        ...(prev.workingHours || { start: "09:00", end: "15:00" }),
+        [name]: value,
+      },
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name.trim()) return alert("Doctor Name is required.");
@@ -80,6 +109,12 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
     if (!formData.education.trim()) return alert("Education is required.");
     if (!formData.loginEmail.trim()) return alert("Login Email is required.");
     if (!formData.loginPassword.trim()) return alert("Login Password is required.");
+    if (!formData.workingDays || formData.workingDays.length === 0) {
+      return alert("At least one Working Day must be selected.");
+    }
+    if (!formData.workingHours?.start || !formData.workingHours?.end) {
+      return alert("Working Hours (Start and End time) are required.");
+    }
 
     // Compute initials fallback if empty
     let finalInitials = formData.initials;
@@ -103,27 +138,27 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Top Header Navigation */}
-      <div className="flex items-center justify-between border-b border-[#D5E5DD] pb-4">
+      <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/doctors"
-            className="p-2 rounded-xl bg-white border border-[#D5E5DD] text-[#0B3D5C] hover:bg-[#E8F0EC] transition-all"
+            className="p-2 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight">
+            <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
               {title}
             </h1>
-            <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
-              Fill in all clinical credentials and upload a photo for the public doctor profile card.
+            <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
+              Fill in all doctor credentials and upload a photo for the public doctor profile card.
             </p>
           </div>
         </div>
       </div>
 
       {/* Form Container */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D5E5DD] shadow-sm space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
         
         {/* Photo Picker */}
         <ImagePicker
@@ -135,7 +170,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Full Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Doctor Full Name *
             </label>
             <input
@@ -145,13 +180,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               onChange={handleChange}
               placeholder=""
               required
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Role */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Hospital Role / Designation
             </label>
             <input
@@ -160,13 +195,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.role}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Specialty */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Specialty Sub-Field
             </label>
             <input
@@ -175,13 +210,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.specialty}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Education */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Medical Education / Degree
             </label>
             <input
@@ -190,13 +225,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.education}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Fellowship */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Fellowship Training
             </label>
             <input
@@ -205,13 +240,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.fellowship}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* PMDC Number */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               PMDC Registration No.
             </label>
             <input
@@ -220,28 +255,89 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.pmdcNo}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
-          {/* Availability Days & Timing */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
-              OPD Availability Days & Timing
-            </label>
-            <input
-              type="text"
-              name="availabilityDays"
-              value={formData.availabilityDays}
-              onChange={handleChange}
-              placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
-            />
+
+          {/* Structured Schedule Configuration Section */}
+          <div className="md:col-span-2 p-5 rounded-2xl bg-[var(--fog)]/80 border border-[var(--line)] space-y-4">
+            <div>
+              <h3 className="text-xs font-extrabold text-[var(--ink)] uppercase tracking-wider flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[var(--iris)]" /> Doctor Working Days & Hours (Required)
+              </h3>
+              <p className="text-xs text-[var(--slate)] mt-0.5 font-medium">
+                Set doctor's official days & working hours. Sunday is permanently closed for appointments.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Working Days Checkboxes */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  Working Days * (Select Days)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {DAYS_OF_WEEK.map((day) => {
+                    const isChecked = (formData.workingDays || []).includes(day);
+                    return (
+                      <label
+                        key={day}
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                          isChecked
+                            ? "bg-white border-[var(--iris)] text-[var(--iris)] shadow-xs"
+                            : "bg-white/50 border-[var(--line)] text-slate-500 hover:border-slate-300"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleDayToggle(day)}
+                          className="w-4 h-4 rounded text-[var(--iris)] focus:ring-[var(--iris)]"
+                        />
+                        <span>{day.slice(0, 3)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Working Hours Pickers */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  Working Hours * (Start & End Time)
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-500 block mb-1">Start Time</span>
+                    <input
+                      type="time"
+                      name="start"
+                      value={formData.workingHours?.start || "09:00"}
+                      onChange={handleHoursChange}
+                      required
+                      className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-4 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-500 block mb-1">End Time</span>
+                    <input
+                      type="time"
+                      name="end"
+                      value={formData.workingHours?.end || "15:00"}
+                      onChange={handleHoursChange}
+                      required
+                      className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-4 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Metrics */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Track Record / Metrics Badge
             </label>
             <input
@@ -250,20 +346,20 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.metrics}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Card Gradient Theme */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Card Avatar Gradient Accent
             </label>
             <select
               name="gradient"
               value={formData.gradient}
               onChange={handleChange}
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             >
               {GRADIENT_OPTIONS.map((g) => (
                 <option key={g.value} value={g.value}>
@@ -275,7 +371,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
           {/* Initials */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
               Fallback Initials (2 letters)
             </label>
             <input
@@ -285,24 +381,24 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               onChange={handleChange}
               maxLength={3}
               placeholder=""
-              className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
         </div>
 
         {/* Account Credentials Section (Private for Doctor Login) */}
-        <div className="p-5 rounded-2xl bg-[#E8F0EC]/60 border border-[#D5E5DD] space-y-4">
+        <div className="p-5 rounded-2xl bg-[var(--fog)]/60 border border-[var(--line)] space-y-4">
           <div>
-            <h3 className="text-sm font-extrabold text-[#0B3D5C] flex items-center gap-2">
-              🔒 Doctor Account Credentials
+            <h3 className="text-sm font-extrabold text-[var(--ink)] flex items-center gap-2">
+              <Lock className="w-4 h-4 text-[var(--iris)]" /> Doctor Account Credentials
             </h3>
-            <p className="text-xs text-[#3F4B4A] mt-0.5 font-semibold">
+            <p className="text-xs text-[var(--slate)] mt-0.5 font-semibold">
               Ye sirf doctor login ke liye hain, public site par kabhi nahi dikhengi.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
                 Login Email
               </label>
               <input
@@ -312,11 +408,11 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                 onChange={handleChange}
                 autoComplete="off"
                 placeholder="doctor@example.com"
-                className="w-full bg-white border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
                 Login Password
               </label>
               <input
@@ -326,7 +422,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                 onChange={handleChange}
                 autoComplete="new-password"
                 placeholder="Password"
-                className="w-full bg-white border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
@@ -334,8 +430,8 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
         {/* Bio */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#0B3D5C] uppercase tracking-wider block">
-            Doctor Clinical Bio
+          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            Doctor Bio & Overview
           </label>
           <textarea
             name="bio"
@@ -343,7 +439,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
             onChange={handleChange}
             rows={4}
             placeholder=""
-            className="w-full bg-[#F4F7F5] border border-[#D5E5DD] focus:border-[#3E8E6E] focus:ring-[#3E8E6E]/20 rounded-xl px-4 py-3 text-sm text-[#0B3D5C] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
           />
         </div>
 
@@ -360,7 +456,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSaving}
-            className="flex items-center gap-2 bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {isSaving ? "Saving Doctor..." : "Save Doctor Profile"}

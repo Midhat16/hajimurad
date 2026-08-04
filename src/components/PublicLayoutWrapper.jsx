@@ -11,7 +11,9 @@ export default function PublicLayoutWrapper({ children }) {
   const isPortalRoute =
     pathname?.startsWith("/admin") ||
     pathname === "/doctor/login" ||
-    pathname?.startsWith("/doctor/");
+    pathname?.startsWith("/doctor/") ||
+    pathname === "/media/view" ||
+    pathname?.startsWith("/media/view");
 
   if (isPortalRoute) {
     return <>{children}</>;

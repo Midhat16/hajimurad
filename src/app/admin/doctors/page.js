@@ -107,19 +107,19 @@ export default function AdminDoctorsListPage() {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D5E5DD] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
             Doctors & Specialists
           </h1>
-          <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
+          <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
             Manage expert medical board members appearing on the public site in real-time.
           </p>
         </div>
 
         <Link
           href="/admin/doctors/new"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add New Doctor
@@ -128,19 +128,19 @@ export default function AdminDoctorsListPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[#0B3D5C]">Loading Doctors...</p>
+          <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-bold text-[var(--ink)]">Loading Doctors...</p>
         </div>
       ) : doctors.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-3xl border border-[#D5E5DD]">
+        <div className="p-12 text-center bg-white rounded-3xl border border-[var(--line)]">
           <Stethoscope className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-[#0B3D5C]">No Doctors Added Yet</h3>
+          <h3 className="text-base font-bold text-[var(--ink)]">No Doctors Added Yet</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
             Click "Add New Doctor" to create your first specialist card.
           </p>
           <Link
             href="/admin/doctors/new"
-            className="mt-4 inline-flex items-center gap-2 bg-[#0B3D5C] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs hover:bg-[#082D44] transition-colors"
+            className="mt-4 inline-flex items-center gap-2 bg-[var(--ink)] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs hover:bg-[var(--iris-dark)] transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Doctor Now
@@ -155,20 +155,20 @@ export default function AdminDoctorsListPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl border border-[#D5E5DD] shadow-sm p-6 flex flex-col justify-between hover:border-[#3E8E6E] transition-all relative group"
+              className="bg-white rounded-3xl border border-[var(--line)] shadow-sm p-6 flex flex-col justify-between hover:border-[var(--iris)] transition-all relative group"
             >
               <div>
                 {/* Doctor Avatar / Photo */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border border-[#D5E5DD] shadow-xs">
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border border-[var(--line)] shadow-xs">
                     <AdminDoctorAvatar docItem={doc} />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-bold text-[#0B3D5C] truncate">
+                    <h3 className="text-base font-bold text-[var(--ink)] truncate">
                       {doc.name}
                     </h3>
-                    <p className="text-[11px] font-bold text-[#3E8E6E] tracking-wider truncate">
+                    <p className="text-[11px] font-bold text-[var(--iris)] tracking-wider truncate">
                       {toTitleCase(doc.role)}
                     </p>
                     <p className="text-xs text-slate-500 truncate mt-0.5 font-medium">
@@ -180,7 +180,7 @@ export default function AdminDoctorsListPage() {
                 {/* Info badges */}
                 <div className="space-y-2 border-t border-slate-100 pt-3 text-xs">
                   <div className="flex items-center gap-2 text-slate-600 font-medium truncate">
-                    <GraduationCap className="w-4 h-4 text-[#3E8E6E] flex-shrink-0" />
+                    <GraduationCap className="w-4 h-4 text-[var(--iris)] flex-shrink-0" />
                     <span className="truncate">{doc.education || "N/A"}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600 font-medium truncate">
@@ -191,7 +191,7 @@ export default function AdminDoctorsListPage() {
 
                 {/* Bio Snippet */}
                 {doc.bio && (
-                  <p className="mt-3 text-xs text-slate-500 line-clamp-2 italic font-serif">
+                  <p className="mt-3 text-xs text-slate-500 line-clamp-2 italic">
                     "{doc.bio}"
                   </p>
                 )}
@@ -249,7 +249,7 @@ export default function AdminDoctorsListPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-extrabold text-[#0B3D5C]">
+              <h3 className="text-lg font-extrabold text-[var(--ink)]">
                 Confirm Delete Doctor
               </h3>
               <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">

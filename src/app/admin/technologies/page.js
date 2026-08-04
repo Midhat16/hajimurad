@@ -52,19 +52,19 @@ export default function AdminTechnologiesListPage() {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D5E5DD] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
             Surgical & Diagnostic Technologies
           </h1>
-          <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
+          <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
             Manage high-precision laser hardware and diagnostic devices in the technology suite.
           </p>
         </div>
 
         <Link
           href="/admin/technologies/new"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add Technology
@@ -73,19 +73,19 @@ export default function AdminTechnologiesListPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[#0B3D5C]">Loading Technologies...</p>
+          <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-bold text-[var(--ink)]">Loading Technologies...</p>
         </div>
       ) : technologies.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-3xl border border-[#D5E5DD]">
+        <div className="p-12 text-center bg-white rounded-3xl border border-[var(--line)]">
           <Cpu className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-[#0B3D5C]">No Technology Added Yet</h3>
+          <h3 className="text-base font-bold text-[var(--ink)]">No Technology Added Yet</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
             Click "Add Technology" to showcase your hospital's advanced diagnostic lasers.
           </p>
           <Link
             href="/admin/technologies/new"
-            className="mt-4 inline-flex items-center gap-2 bg-[#0B3D5C] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs hover:bg-[#082D44] transition-colors"
+            className="mt-4 inline-flex items-center gap-2 bg-[var(--ink)] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs hover:bg-[var(--iris-dark)] transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Technology Now
@@ -100,22 +100,22 @@ export default function AdminTechnologiesListPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl border border-[#D5E5DD] shadow-sm p-6 flex flex-col justify-between hover:border-[#3E8E6E] transition-all relative group"
+              className="bg-white rounded-3xl border border-[var(--line)] shadow-sm p-6 flex flex-col justify-between hover:border-[var(--iris)] transition-all relative group"
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     {tech.imageUrl ? (
-                      <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[#D5E5DD] shadow-xs flex-shrink-0">
+                      <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[var(--line)] shadow-xs flex-shrink-0">
                         <img src={tech.imageUrl} alt={tech.name} className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-[#E8F0EC] text-[#3E8E6E] flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 rounded-2xl bg-[var(--fog)] text-[var(--iris)] flex items-center justify-center flex-shrink-0">
                         <Cpu className="w-6 h-6" />
                       </div>
                     )}
                     <div>
-                      <span className="text-[10px] font-bold text-[#3E8E6E] uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-[var(--iris)] uppercase tracking-wider block">
                         {tech.category || "Hardware"}
                       </span>
                       <span className="text-xs font-bold text-slate-400">
@@ -129,7 +129,7 @@ export default function AdminTechnologiesListPage() {
                   </span>
                 </div>
 
-                <h3 className="text-base font-bold text-[#0B3D5C]">
+                <h3 className="text-base font-bold text-[var(--ink)]">
                   {tech.name}
                 </h3>
 
@@ -183,7 +183,7 @@ export default function AdminTechnologiesListPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-extrabold text-[#0B3D5C]">
+              <h3 className="text-lg font-extrabold text-[var(--ink)]">
                 Confirm Delete Equipment
               </h3>
               <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">

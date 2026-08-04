@@ -6,8 +6,9 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { collection, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useHospitalProfile, formatBrandName } from "@/lib/useHospitalProfile";
 
-// Custom SVG components for brand icons since Lucide v1.x removed brand icons
+// Custom SVG components for brand icons
 const FacebookIcon = (props) => (
   <svg
     viewBox="0 0 24 24"
@@ -32,9 +33,9 @@ const InstagramIcon = (props) => (
     strokeLinejoin="round"
     {...props}
   >
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
   </svg>
 );
 
@@ -95,6 +96,8 @@ const DEFAULT_CONTACT_INFO = {
 export default function Footer() {
   const [services, setServices] = useState([]);
   const [contactInfo, setContactInfo] = useState(DEFAULT_CONTACT_INFO);
+  const { profile } = useHospitalProfile();
+  const brand = formatBrandName(profile.hospitalName);
 
   useEffect(() => {
     // 1. Live subscription to Firestore services collection
@@ -138,33 +141,36 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-[#E8F0EC] border-t border-[#D5E5DD] pt-12 pb-6 lg:pt-14 lg:pb-6 text-left relative z-10 select-none">
+    <footer className="bg-[var(--ink)] text-white border-t border-white/10 pt-12 pb-6 lg:pt-14 lg:pb-6 text-left relative z-10 select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 pb-10 border-b border-[#D5E5DD]/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 pb-10 border-b border-white/10">
           {/* Logo & Slogan Column */}
           <div className="lg:col-span-4 space-y-5">
             <Link href="/" className="flex items-center gap-3">
-              <div className="relative h-13 w-13 sm:h-14 sm:w-14 md:h-15 md:w-15 flex-shrink-0">
-                <Image
-                  src="/images/logo.png"
-                  alt="Haji Murad Trust Eye Hospital Logo"
-                  width={60}
-                  height={60}
+              <div className="relative h-13 w-13 sm:h-14 sm:w-14 md:h-15 md:w-15 flex-shrink-0 overflow-hidden">
+                <img
+                  src={profile.logoUrl}
+                  alt={profile.hospitalName}
                   className="w-full h-full object-contain"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold tracking-tight text-[#0B3D5C] leading-tight">
-                  Haji <span className="text-[#3E8E6E]">Murad</span>
+                <span className="text-xl font-bold tracking-tight text-white leading-tight">
+                  {brand.mainFirst}{" "}
+                  {brand.mainHighlight && (
+                    <span className="text-[var(--iris)]">{brand.mainHighlight}</span>
+                  )}
                 </span>
-                <span className="text-[10px] font-semibold text-[#3E8E6E] tracking-widest uppercase">
-                  Eye Hospital
-                </span>
+                {brand.sub && (
+                  <span className="text-[10px] font-semibold text-[var(--iris)] tracking-widest uppercase">
+                    {brand.sub}
+                  </span>
+                )}
               </div>
             </Link>
 
-            <p className="text-sm text-[#3F4B4A] leading-relaxed font-semibold max-w-sm">
+            <p className="text-sm text-white/70 leading-relaxed font-medium max-w-sm">
               We coordinate premier surgical expertise with advanced diagnostics to restore visual clarity. Safeguarding your vision is our lifelong hospital focus.
             </p>
 
@@ -207,7 +213,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Visit our ${social.label} page`}
-                    className="w-10 h-10 rounded-full border border-[#D5E5DD] bg-white text-[#0B3D5C] hover:text-[#3E8E6E] hover:border-[#3E8E6E] flex items-center justify-center shadow-sm cursor-pointer"
+                    className="w-10 h-10 rounded-full bg-white text-[var(--ink)] hover:bg-[var(--iris)] hover:text-white flex items-center justify-center shadow-md cursor-pointer transition-colors"
                   >
                     <IconComponent className="w-4 h-4" />
                   </motion.a>
@@ -218,7 +224,7 @@ export default function Footer() {
 
           {/* Quick Links Column */}
           <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-xs font-bold text-[#0B3D5C] uppercase tracking-widest">
+            <h4 className="text-xs font-bold text-white uppercase tracking-widest">
               Quick Links
             </h4>
             <ul className="space-y-2.5">
@@ -233,7 +239,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-xs sm:text-sm font-bold text-[#3F4B4A] hover:text-[#0B3D5C] transition-colors"
+                    className="text-xs sm:text-sm font-semibold text-white/70 hover:text-[var(--iris)] transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -244,8 +250,8 @@ export default function Footer() {
 
           {/* Services Column - Dynamic Firestore List */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-bold text-[#0B3D5C] uppercase tracking-widest">
-              <Link href="/services" className="hover:text-[#3E8E6E] transition-colors">
+            <h4 className="text-xs font-bold text-white uppercase tracking-widest">
+              <Link href="/services" className="hover:text-[var(--iris)] transition-colors">
                 Ophthalmic Services
               </Link>
             </h4>
@@ -254,7 +260,7 @@ export default function Footer() {
                 <li key={serv.id || serv.title}>
                   <Link
                     href="/services"
-                    className="text-xs sm:text-sm font-bold text-[#3F4B4A] hover:text-[#0B3D5C] transition-colors block truncate"
+                    className="text-xs sm:text-sm font-semibold text-white/70 hover:text-[var(--iris)] transition-colors block truncate"
                   >
                     {serv.title || serv.name}
                   </Link>
@@ -265,15 +271,15 @@ export default function Footer() {
 
           {/* Contact Details Column - Dynamic Firestore Info */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-bold text-[#0B3D5C] uppercase tracking-widest">
+            <h4 className="text-xs font-bold text-white uppercase tracking-widest">
               Immediate Help
             </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-[#3F4B4A] font-semibold">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-white/70 font-medium">
               <li>
                 UAN:{" "}
                 <a
                   href={`tel:${(contactInfo.uanNumber || contactInfo.mainDeskNumber)?.replace(/\s+/g, "")}`}
-                  className="text-[#0B3D5C] font-extrabold hover:text-[#3E8E6E]"
+                  className="text-white font-extrabold hover:text-[var(--iris)] transition-colors"
                 >
                   {contactInfo.uanNumber || contactInfo.mainDeskNumber}
                 </a>
@@ -282,7 +288,7 @@ export default function Footer() {
                 Call #:{" "}
                 <a
                   href={`tel:${(contactInfo.callNumber || contactInfo.emergencyNumber)?.replace(/\s+/g, "")}`}
-                  className="text-rose-600 font-extrabold hover:underline"
+                  className="text-rose-400 font-extrabold hover:underline"
                 >
                   {contactInfo.callNumber || contactInfo.emergencyNumber}
                 </a>
@@ -291,7 +297,7 @@ export default function Footer() {
                 Email:{" "}
                 <a
                   href={`mailto:${contactInfo.email}`}
-                  className="text-[#0B3D5C] font-extrabold hover:text-[#3E8E6E]"
+                  className="text-white font-extrabold hover:text-[var(--iris)] transition-colors"
                 >
                   info@HMEHT.com
                 </a>
@@ -304,14 +310,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom copyright */}
-        <div className="pt-6 flex items-center justify-center text-center text-xs sm:text-sm text-[#3F4B4A] font-semibold">
+        <div className="pt-6 flex items-center justify-center text-center text-xs sm:text-sm text-white/70 font-medium">
           <p className="text-center">
-            Copyright © {new Date().getFullYear()} Haji Murad Eye Hospital Trust | Developed By:{" "}
+            Copyright © {new Date().getFullYear()} {profile.hospitalName} | Developed By:{" "}
             <a
               href="https://bizdevit.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#0B3D5C] hover:text-[#3E8E6E] font-bold hover:underline transition-colors"
+              className="text-white hover:text-[var(--iris)] font-bold hover:underline transition-colors"
             >
               Biz Dev IT
             </a>

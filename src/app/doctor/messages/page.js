@@ -84,7 +84,7 @@ export default function DoctorDirectChatPage() {
 
       // Mark unread admin messages as read
       unique.forEach(async (m) => {
-        if (m.sender_type === "admin" && !m.is_read) {
+        if (m.sender_type === "admin" && (m.is_read !== true || m.read !== true)) {
           try {
             await updateDoc(doc(db, m.collectionName || "doctor_messages", m.id), {
               is_read: true,
@@ -204,9 +204,9 @@ export default function DoctorDirectChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F7F5] font-sans flex flex-col">
+    <div className="min-h-screen bg-[var(--fog)] flex flex-col">
       {/* Top Bar Header */}
-      <header className="bg-[#0B3D5C] text-white sticky top-0 z-30 shadow-md">
+      <header className="bg-[var(--ink)] text-white sticky top-0 z-30 shadow-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
@@ -246,24 +246,24 @@ export default function DoctorDirectChatPage() {
 
       {/* Main Chat Container */}
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 flex flex-col">
-        <div className="bg-white rounded-3xl border border-[#D5E5DD] shadow-lg flex-1 flex flex-col overflow-hidden min-h-[500px] max-h-[78vh]">
+        <div className="bg-white rounded-3xl border border-[var(--line)] shadow-lg flex-1 flex flex-col overflow-hidden min-h-[500px] max-h-[78vh]">
           {/* Chat Window Subheader */}
-          <div className="bg-[#E8F0EC] px-6 py-4 border-b border-[#D5E5DD] flex items-center justify-between">
+          <div className="bg-[var(--fog)] px-6 py-4 border-b border-[var(--line)] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#0B3D5C] text-white flex items-center justify-center font-black shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-[var(--ink)] text-white flex items-center justify-center font-black shadow-xs">
                 <ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#0B3D5C]">
+                <h3 className="text-sm font-extrabold text-[var(--ink)]">
                   Hospital Administration Channel
                 </h3>
-                <p className="text-xs text-[#3F4B4A] font-semibold">
+                <p className="text-xs text-[var(--slate)] font-semibold">
                   Direct communication thread with Head Administrator
                 </p>
               </div>
             </div>
 
-            <span className="text-[11px] font-bold text-[#3E8E6E] bg-white px-3 py-1 rounded-full border border-[#D5E5DD] flex items-center gap-1.5">
+            <span className="text-[11px] font-bold text-[var(--iris)] bg-white px-3 py-1 rounded-full border border-[var(--line)] flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Online
             </span>
@@ -273,15 +273,15 @@ export default function DoctorDirectChatPage() {
           <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#FAFDFB]">
             {loadingMsgs ? (
               <div className="py-20 text-center space-y-3">
-                <div className="w-8 h-8 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-xs font-bold text-[#0B3D5C]">Loading Secure Chat Thread...</p>
+                <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-xs font-bold text-[var(--ink)]">Loading Secure Chat Thread...</p>
               </div>
             ) : messages.length === 0 ? (
               <div className="py-16 text-center space-y-3 max-w-sm mx-auto">
-                <div className="w-12 h-12 rounded-3xl bg-[#E8F0EC] text-[#3E8E6E] flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-3xl bg-[var(--fog)] text-[var(--iris)] flex items-center justify-center mx-auto">
                   <MessageSquare className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-extrabold text-[#0B3D5C]">No Messages Yet</h4>
+                <h4 className="text-sm font-extrabold text-[var(--ink)]">No Messages Yet</h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
                   Start a conversation with Admin below. Your thread is private to your account only.
                 </p>
@@ -306,8 +306,8 @@ export default function DoctorDirectChatPage() {
                     <div
                       className={`max-w-[85%] sm:max-w-[70%] p-4 rounded-2xl shadow-xs text-xs leading-relaxed ${
                         isDoctor
-                          ? "bg-[#0B3D5C] text-white rounded-tr-xs"
-                          : "bg-white text-slate-800 border border-[#D5E5DD] rounded-tl-xs"
+                          ? "bg-[var(--ink)] text-white rounded-tr-xs"
+                          : "bg-white text-slate-800 border border-[var(--line)] rounded-tl-xs"
                       }`}
                     >
                       <p className="whitespace-pre-wrap font-medium">{msg.message}</p>
@@ -338,20 +338,20 @@ export default function DoctorDirectChatPage() {
           {/* Bottom Send Input Bar */}
           <form
             onSubmit={handleSendMessage}
-            className="p-3 sm:p-4 bg-white border-t border-[#D5E5DD] flex items-center gap-2.5"
+            className="p-3 sm:p-4 bg-white border-t border-[var(--line)] flex items-center gap-2.5"
           >
             <input
               type="text"
               placeholder="Type your message to Hospital Admin..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#3E8E6E] bg-slate-50/50"
+              className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[var(--iris)] bg-white"
             />
 
             <button
               type="submit"
               disabled={isSending || !inputText.trim()}
-              className="px-5 py-3 rounded-2xl bg-[#3E8E6E] hover:bg-[#32755a] disabled:opacity-50 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md flex items-center gap-2"
+              className="px-5 py-3 rounded-2xl bg-[var(--iris)] hover:bg-[var(--iris-dark)] disabled:opacity-50 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md flex items-center gap-2"
             >
               <span>Send</span>
               <Send className="w-4 h-4" />

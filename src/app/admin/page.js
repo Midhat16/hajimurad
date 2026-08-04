@@ -11,9 +11,9 @@ export default function AdminPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#F4F7F5] flex flex-col justify-center items-center">
-      <div className="w-12 h-12 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-4" />
-      <p className="text-xs font-bold text-[#0B3D5C] uppercase tracking-widest">
+    <div className="min-h-screen bg-[var(--fog)] flex flex-col justify-center items-center">
+      <div className="w-12 h-12 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-4" />
+      <p className="text-xs font-bold text-[var(--ink)] uppercase tracking-widest">
         Redirecting to Admin Portal...
       </p>
     </div>

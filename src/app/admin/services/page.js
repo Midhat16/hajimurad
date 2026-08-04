@@ -59,19 +59,19 @@ export default function AdminServicesListPage() {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D5E5DD] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#0B3D5C] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
             Eye Care Services
           </h1>
-          <p className="text-xs font-semibold text-[#3F4B4A] mt-0.5">
-            Manage sub-specialty clinical departments displayed on the public site homepage.
+          <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
+            Manage sub-specialty hospital departments displayed on the public site homepage.
           </p>
         </div>
 
         <Link
           href="/admin/services/new"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0B3D5C] to-[#3E8E6E] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add New Service
@@ -80,19 +80,19 @@ export default function AdminServicesListPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-10 h-10 border-4 border-[#3E8E6E] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[#0B3D5C]">Loading Services...</p>
+          <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-bold text-[var(--ink)]">Loading Services...</p>
         </div>
       ) : services.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-3xl border border-[#D5E5DD]">
+        <div className="p-12 text-center bg-white rounded-3xl border border-[var(--line)]">
           <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-[#0B3D5C]">No Services Added Yet</h3>
+          <h3 className="text-base font-bold text-[var(--ink)]">No Services Added Yet</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-            Click "Add New Service" to create your first clinical specialty card.
+            Click "Add New Service" to create your first hospital specialty card.
           </p>
           <Link
             href="/admin/services/new"
-            className="mt-4 inline-flex items-center gap-2 bg-[#0B3D5C] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs hover:bg-[#082D44] transition-colors"
+            className="mt-4 inline-flex items-center gap-2 bg-[var(--ink)] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs hover:bg-[var(--iris-dark)] transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Service Now
@@ -110,16 +110,16 @@ export default function AdminServicesListPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-3xl border border-[#D5E5DD] shadow-sm p-6 flex flex-col justify-between hover:border-[#3E8E6E] transition-all relative group"
+                className="bg-white rounded-3xl border border-[var(--line)] shadow-sm p-6 flex flex-col justify-between hover:border-[var(--iris)] transition-all relative group"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0B3D5C] to-[#3E8E6E] p-0.5 shadow-xs flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] p-0.5 shadow-xs flex items-center justify-center mb-4">
                     <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-[#0B3D5C]" />
+                      <IconComponent className="w-6 h-6 text-[var(--ink)]" />
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-[#0B3D5C]">
+                  <h3 className="text-base font-bold text-[var(--ink)]">
                     {svc.title}
                   </h3>
 
@@ -130,8 +130,8 @@ export default function AdminServicesListPage() {
                   {svc.features && svc.features.length > 0 && (
                     <ul className="mt-4 space-y-1 border-t border-slate-100 pt-3">
                       {svc.features.slice(0, 3).map((feat, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-[11px] font-semibold text-[#3F4B4A]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#3E8E6E]" />
+                        <li key={idx} className="flex items-center gap-2 text-[11px] font-semibold text-[var(--slate)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--iris)]" />
                           <span className="truncate">{feat}</span>
                         </li>
                       ))}
@@ -185,7 +185,7 @@ export default function AdminServicesListPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-extrabold text-[#0B3D5C]">
+              <h3 className="text-lg font-extrabold text-[var(--ink)]">
                 Confirm Delete Service
               </h3>
               <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">

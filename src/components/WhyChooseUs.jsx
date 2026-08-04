@@ -94,9 +94,9 @@ export default function WhyChooseUs() {
   }, []);
 
   return (
-    <section id="why-choose-us" className="py-14 lg:py-16 bg-[#F4F7F5] relative overflow-hidden">
+    <section id="why-choose-us" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
       {/* Dynamic blurred glow shapes */}
-      <div className="absolute top-1/2 left-0 w-80 h-80 rounded-full bg-[#3E8E6E]/10 blur-3xl pointer-events-none -translate-x-1/2" />
+      <div className="absolute top-1/2 left-0 w-80 h-80 rounded-full bg-slate-100/40 blur-3xl pointer-events-none -translate-x-1/2" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
@@ -110,13 +110,13 @@ export default function WhyChooseUs() {
               transition={{ duration: 0.6 }}
               className="space-y-3"
             >
-              <span className="text-[11px] font-bold tracking-widest text-[#3E8E6E] uppercase bg-[#E8F0EC] px-3 py-1 rounded-full border border-[#D5E5DD]">
+              <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
                 {content.badgeText}
               </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B3D5C] tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
                 {content.heading}
               </h2>
-              <p className="text-base sm:text-lg text-[#3F4B4A] leading-relaxed">
+              <p className="text-base sm:text-lg text-[var(--slate)] leading-relaxed">
                 {content.description}
               </p>
             </motion.div>
@@ -132,16 +132,16 @@ export default function WhyChooseUs() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="flex gap-3.5 p-3.5 rounded-2xl bg-white border border-[#D5E5DD] hover:border-[#3E8E6E] shadow-xs transition-all duration-300 group"
+                    className="flex gap-3.5 p-3.5 rounded-2xl bg-white border border-[var(--line)] hover:border-[var(--iris)] shadow-xs transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-[#E8F0EC] flex items-center justify-center flex-shrink-0 group-hover:bg-[#0B3D5C] transition-colors duration-300">
-                      <Icon className="w-5 h-5 text-[#3E8E6E] group-hover:text-white transition-colors duration-300" />
+                    <div className="w-10 h-10 rounded-xl bg-[var(--fog)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--ink)] transition-colors duration-300">
+                      <Icon className="w-5 h-5 text-[var(--iris)] group-hover:text-white transition-colors duration-300" />
                     </div>
                     <div>
-                      <h3 className="text-base sm:text-lg font-bold text-[#0B3D5C]">
+                      <h3 className="text-base sm:text-lg font-bold text-[var(--ink)]">
                         {point.title}
                       </h3>
-                      <p className="mt-1 text-xs sm:text-sm text-[#3F4B4A] leading-relaxed">
+                      <p className="mt-1 text-xs sm:text-sm text-[var(--slate)] leading-relaxed">
                         {point.description}
                       </p>
                     </div>
@@ -159,21 +159,19 @@ export default function WhyChooseUs() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -8, scale: 1.04 }}
                 viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 80, delay: 0.1 }}
-                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[#D5E5DD]"
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[var(--line)] hover:border-[var(--iris)]/40 hover:shadow-xl transition-all duration-300 group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#E8F0EC] flex items-center justify-center text-[#3E8E6E]">
+                <div className="w-10 h-10 rounded-full bg-[var(--fog)] flex items-center justify-center text-[var(--iris)] group-hover:bg-[var(--iris)] group-hover:text-white group-hover:scale-110 transition-all duration-300">
                   <Trophy className="w-5 h-5" />
                 </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B3D5C] tracking-tight">
+                <div className="text-3xl sm:text-4xl font-extrabold text-[var(--ink)] tracking-tight">
                   <Counter target={content.yearsExperience} suffix="+" />
                 </div>
-                <p className="text-[11px] font-bold text-[#3E8E6E] uppercase tracking-widest leading-none">
+                <p className="text-[11px] font-bold text-[var(--iris)] uppercase tracking-widest leading-none">
                   Years of Expertise
-                </p>
-                <p className="text-[10px] sm:text-[11px] font-medium text-[#3F4B4A] pt-1 border-t border-[#D5E5DD]/60 w-full">
-                  Pioneering eye surgeries
                 </p>
               </motion.div>
 
@@ -181,21 +179,19 @@ export default function WhyChooseUs() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -8, scale: 1.04 }}
                 viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 80, delay: 0.2 }}
-                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[#D5E5DD]"
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
+                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[var(--line)] hover:border-[var(--iris)]/40 hover:shadow-xl transition-all duration-300 group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#E8F0EC] flex items-center justify-center text-[#3E8E6E]">
+                <div className="w-10 h-10 rounded-full bg-[var(--fog)] flex items-center justify-center text-[var(--iris)] group-hover:bg-[var(--iris)] group-hover:text-white group-hover:scale-110 transition-all duration-300">
                   <Users className="w-5 h-5" />
                 </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B3D5C] tracking-tight">
+                <div className="text-3xl sm:text-4xl font-extrabold text-[var(--ink)] tracking-tight">
                   <Counter target={content.successfulSurgeries} suffix="+" />
                 </div>
-                <p className="text-[11px] font-bold text-[#3E8E6E] uppercase tracking-widest leading-none">
+                <p className="text-[11px] font-bold text-[var(--iris)] uppercase tracking-widest leading-none">
                   Successful Surgeries
-                </p>
-                <p className="text-[10px] sm:text-[11px] font-medium text-[#3F4B4A] pt-1 border-t border-[#D5E5DD]/60 w-full">
-                  Cataract, LASIK, Retina
                 </p>
               </motion.div>
 
@@ -203,21 +199,19 @@ export default function WhyChooseUs() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -8, scale: 1.04 }}
                 viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 80, delay: 0.3 }}
-                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[#D5E5DD]"
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
+                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[var(--line)] hover:border-[var(--iris)]/40 hover:shadow-xl transition-all duration-300 group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#E8F0EC] flex items-center justify-center text-[#3E8E6E]">
+                <div className="w-10 h-10 rounded-full bg-[var(--fog)] flex items-center justify-center text-[var(--iris)] group-hover:bg-[var(--iris)] group-hover:text-white group-hover:scale-110 transition-all duration-300">
                   <Award className="w-5 h-5" />
                 </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B3D5C] tracking-tight">
+                <div className="text-3xl sm:text-4xl font-extrabold text-[var(--ink)] tracking-tight">
                   <Counter target={content.certifiedSpecialists} suffix="+" />
                 </div>
-                <p className="text-[11px] font-bold text-[#3E8E6E] uppercase tracking-widest leading-none">
+                <p className="text-[11px] font-bold text-[var(--iris)] uppercase tracking-widest leading-none">
                   Certified Specialists
-                </p>
-                <p className="text-[10px] sm:text-[11px] font-medium text-[#3F4B4A] pt-1 border-t border-[#D5E5DD]/60 w-full">
-                  Ex-Johns Hopkins, Harvard fellows
                 </p>
               </motion.div>
 
@@ -225,21 +219,19 @@ export default function WhyChooseUs() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -8, scale: 1.04 }}
                 viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 80, delay: 0.4 }}
-                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[#D5E5DD]"
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.4 }}
+                className="glass-card bg-white p-5 sm:p-6 rounded-3xl text-center space-y-2 flex flex-col items-center shadow-xs border border-[var(--line)] hover:border-[var(--iris)]/40 hover:shadow-xl transition-all duration-300 group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#E8F0EC] flex items-center justify-center text-[#3E8E6E]">
+                <div className="w-10 h-10 rounded-full bg-[var(--fog)] flex items-center justify-center text-[var(--iris)] group-hover:bg-[var(--iris)] group-hover:text-white group-hover:scale-110 transition-all duration-300">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B3D5C] tracking-tight">
+                <div className="text-3xl sm:text-4xl font-extrabold text-[var(--ink)] tracking-tight">
                   <Counter target={content.patientSuccessRate} suffix="%" />
                 </div>
-                <p className="text-[11px] font-bold text-[#3E8E6E] uppercase tracking-widest leading-none">
+                <p className="text-[11px] font-bold text-[var(--iris)] uppercase tracking-widest leading-none">
                   Patient Success Rate
-                </p>
-                <p className="text-[10px] sm:text-[11px] font-medium text-[#3F4B4A] pt-1 border-t border-[#D5E5DD]/60 w-full">
-                  Independently audited index
                 </p>
               </motion.div>
 
