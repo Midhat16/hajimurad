@@ -8,55 +8,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { sortDoctors } from "@/lib/doctorUtils";
 
-function DoctorAvatar({ doctor }) {
-  const [imgFailed, setImgFailed] = useState(false);
-  const [objectPosition, setObjectPosition] = useState("center 20%");
-  const photo = doctor.photoUrl || doctor.photo || doctor.imageUrl;
-
-  useEffect(() => {
-    setImgFailed(false);
-    setObjectPosition("center 20%");
-  }, [photo]);
-
-  const handleImageLoad = (e) => {
-    const { naturalWidth, naturalHeight } = e.target;
-    if (naturalHeight > 0 && naturalWidth > 0) {
-      const ratio = naturalHeight / naturalWidth;
-      if (ratio > 1.2) {
-        setObjectPosition("center 12%");
-      } else if (ratio < 0.85) {
-        setObjectPosition("center center");
-      } else {
-        setObjectPosition("center 18%");
-      }
-    }
-  };
-
-  if (photo && !imgFailed) {
-    return (
-      <img
-        src={photo}
-        alt={doctor.name}
-        loading="lazy"
-        decoding="async"
-        className="w-full h-full rounded-full object-cover transition-all duration-300"
-        style={{ objectPosition }}
-        onLoad={handleImageLoad}
-        onError={() => setImgFailed(true)}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`w-full h-full rounded-full bg-gradient-to-tr ${
-        doctor.gradient || "from-sky-400 to-blue-500"
-      } flex items-center justify-center text-white text-2xl font-bold shadow-inner`}
-    >
-      {doctor.initials || doctor.name?.charAt(0) || "D"}
-    </div>
-  );
-}
+import DoctorPhotoFrame from "@/components/DoctorPhotoFrame";
 
 function toTitleCase(str) {
   if (!str) return "";
@@ -156,7 +108,7 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="h-[390px] sm:h-[410px] w-full cursor-pointer select-none"
+      className="h-[430px] sm:h-[450px] w-full cursor-pointer select-none pt-6"
       style={{ perspective: "1200px" }}
       onMouseEnter={() => setIsFlipped(true)}
       onMouseLeave={() => setIsFlipped(false)}
@@ -171,24 +123,19 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
       >
         {/* 1. FRONT SIDE */}
         <div
-          className="absolute inset-0 w-full h-full rounded-[28px] p-5 sm:p-6 glass-card bg-white flex flex-col justify-between border border-[var(--line)] shadow-xs overflow-hidden"
+          className="absolute inset-0 w-full h-full rounded-[28px] p-5 sm:p-6 glass-card bg-white flex flex-col justify-between border border-[var(--line)] shadow-xs overflow-visible"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
           }}
         >
-          {/* Doctor Profile Graphic / Image */}
-          <div className="flex flex-col items-center mt-1 flex-1 justify-start">
-            <div className="relative w-22 h-22 sm:w-24 sm:h-24 rounded-full p-1 bg-gradient-to-tr from-[var(--ink)]/30 to-[var(--iris)]/30 shadow-sm flex-shrink-0">
-              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-100">
-                <DoctorAvatar doctor={doctor} />
-              </div>
-              <div className="absolute bottom-0 right-0 bg-white p-1 rounded-full border border-[var(--line)] shadow-md text-[#2B1F1A] z-10">
-                <Stethoscope className="w-3.5 h-3.5" />
-              </div>
+          {/* Doctor Profile Caduceus Framed Graphic */}
+          <div className="flex flex-col items-center flex-1 justify-start">
+            <div className="-mt-14 sm:-mt-16 mb-2">
+              <DoctorPhotoFrame doctor={doctor} size="md" />
             </div>
 
-            <h3 className="mt-3 text-lg sm:text-xl font-bold text-[#2B1F1A] text-center leading-tight">
+            <h3 className="text-lg sm:text-xl font-bold text-[#2B1F1A] text-center leading-tight">
               {doctor.name}
             </h3>
             <p className="text-xs sm:text-[13px] font-extrabold text-[var(--iris)] tracking-wide mt-0.5 text-center">
