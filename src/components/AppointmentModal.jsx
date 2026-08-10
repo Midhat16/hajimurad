@@ -75,18 +75,56 @@ const getActiveDoctorTiming = (docObj, serviceObj, selectedFeatures = []) => {
   if (selectedFeatures && selectedFeatures.length > 0 && mappings.length > 0) {
     for (const featName of selectedFeatures) {
       const mapping = mappings.find((m) => m.featureName === featName);
-      if (mapping && mapping.doctorOverrides && mapping.doctorOverrides[docObj.id]) {
-        const override = mapping.doctorOverrides[docObj.id];
-        if (override.enabled) {
-          return {
-            isOverride: true,
-            days: override.days && override.days.length > 0 ? override.days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-            startTime: override.startTime || serviceObj?.serviceStartTime || "09:00",
-            endTime: override.endTime || serviceObj?.serviceEndTime || "17:00",
-          };
+      if (mapping) {
+        // Check structured assignedDoctors list first
+        const assignedDocs = mapping.assignedDoctors || [];
+        const docEntry = assignedDocs.find((d) => d.doctorId === docObj.id);
+
+        if (docEntry && docEntry.timing) {
+          const { start, end, days, isOverride } = docEntry.timing;
+          if (isOverride) {
+            return {
+              isOverride: true,
+              days: days && days.length > 0 ? days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              startTime: start || serviceObj?.serviceStartTime || "09:00",
+              endTime: end || serviceObj?.serviceEndTime || "17:00",
+            };
+          } else {
+            return {
+              isOverride: false,
+              days: days && days.length > 0 ? days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              startTime: serviceObj?.serviceStartTime || "09:00",
+              endTime: serviceObj?.serviceEndTime || "17:00",
+            };
+          }
+        }
+
+        // Fallback check legacy doctorOverrides map
+        if (mapping.doctorOverrides && mapping.doctorOverrides[docObj.id]) {
+          const override = mapping.doctorOverrides[docObj.id];
+          if (override.enabled) {
+            return {
+              isOverride: true,
+              days: override.days && override.days.length > 0 ? override.days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              startTime: override.startTime || serviceObj?.serviceStartTime || "09:00",
+              endTime: override.endTime || serviceObj?.serviceEndTime || "17:00",
+            };
+          }
         }
       }
     }
+  }
+
+  // If service has overall timing set, use service timing
+  if (serviceObj?.serviceStartTime || serviceObj?.serviceEndTime) {
+    return {
+      isOverride: false,
+      days: docObj.workingDays && docObj.workingDays.length > 0
+        ? docObj.workingDays
+        : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      startTime: serviceObj?.serviceStartTime || "09:00",
+      endTime: serviceObj?.serviceEndTime || "17:00",
+    };
   }
 
   return {
@@ -94,8 +132,8 @@ const getActiveDoctorTiming = (docObj, serviceObj, selectedFeatures = []) => {
     days: docObj.workingDays && docObj.workingDays.length > 0
       ? docObj.workingDays
       : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    startTime: docObj.workingHours?.start || serviceObj?.serviceStartTime || "09:00",
-    endTime: docObj.workingHours?.end || serviceObj?.serviceEndTime || "17:00",
+    startTime: docObj.workingHours?.start || "09:00",
+    endTime: docObj.workingHours?.end || "17:00",
   };
 };
 

@@ -20,6 +20,7 @@ import {
   ChevronUp,
   Sliders,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -92,10 +93,26 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
       const rawFeatures = initialData.features && initialData.features.length > 0 ? initialData.features : [""];
       const rawMappings = initialData.featureDoctorMappings || [];
 
-      // Ensure mappings align with features array
+      // Ensure mappings align with features array and have assignedDoctors
       const syncedMappings = rawFeatures.map((featName) => {
         const existing = rawMappings.find((m) => m.featureName === featName);
-        return existing || { featureName: featName, assignedDoctorIds: [], doctorOverrides: {} };
+        if (existing) {
+          const assignedIds = existing.assignedDoctorIds || [];
+          const assignedDocs = existing.assignedDoctors || assignedIds.map((docId) => {
+            const ov = (existing.doctorOverrides || {})[docId];
+            return {
+              doctorId: docId,
+              timing: {
+                start: ov?.startTime || initialData.serviceStartTime || "09:00",
+                end: ov?.endTime || initialData.serviceEndTime || "17:00",
+                days: ov?.days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                isOverride: !!ov?.enabled,
+              },
+            };
+          });
+          return { ...existing, featureName: featName, assignedDoctorIds: assignedIds, assignedDoctors: assignedDocs };
+        }
+        return { featureName: featName, assignedDoctorIds: [], assignedDoctors: [], doctorOverrides: {} };
       });
 
       setFormData({
@@ -136,7 +153,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
 
       const updatedMappings = [...(prev.featureDoctorMappings || [])];
       if (!updatedMappings[index]) {
-        updatedMappings[index] = { featureName: value, assignedDoctorIds: [], doctorOverrides: {} };
+        updatedMappings[index] = { featureName: value, assignedDoctorIds: [], assignedDoctors: [], doctorOverrides: {} };
       } else {
         updatedMappings[index] = { ...updatedMappings[index], featureName: value };
       }
@@ -155,7 +172,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
       features: [...prev.features, ""],
       featureDoctorMappings: [
         ...(prev.featureDoctorMappings || []),
-        { featureName: "", assignedDoctorIds: [], doctorOverrides: {} },
+        { featureName: "", assignedDoctorIds: [], assignedDoctors: [], doctorOverrides: {} },
       ],
     }));
   };
@@ -178,109 +195,137 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
       const targetMap = updatedMappings[featureIdx] || {
         featureName: prev.features[featureIdx] || "",
         assignedDoctorIds: [],
+        assignedDoctors: [],
         doctorOverrides: {},
       };
 
       const currentDocIds = targetMap.assignedDoctorIds || [];
-      const newDocIds = currentDocIds.includes(doctorId)
-        ? currentDocIds.filter((id) => id !== doctorId)
-        : [...currentDocIds, doctorId];
+      const currentAssignedDocs = targetMap.assignedDoctors || [];
+      const isCurrentlyAssigned = currentDocIds.includes(doctorId);
+
+      let newDocIds = [];
+      let newAssignedDocs = [];
+
+      if (isCurrentlyAssigned) {
+        newDocIds = currentDocIds.filter((id) => id !== doctorId);
+        newAssignedDocs = currentAssignedDocs.filter((d) => d.doctorId !== doctorId);
+      } else {
+        newDocIds = [...currentDocIds, doctorId];
+        newAssignedDocs = [
+          ...currentAssignedDocs,
+          {
+            doctorId,
+            timing: {
+              start: prev.serviceStartTime || "09:00",
+              end: prev.serviceEndTime || "17:00",
+              days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              isOverride: false,
+            },
+          },
+        ];
+      }
+
+      // Keep legacy doctorOverrides sync'd
+      const newOverrides = { ...(targetMap.doctorOverrides || {}) };
+      if (!isCurrentlyAssigned) {
+        newOverrides[doctorId] = {
+          enabled: false,
+          startTime: prev.serviceStartTime || "09:00",
+          endTime: prev.serviceEndTime || "17:00",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        };
+      } else {
+        delete newOverrides[doctorId];
+      }
 
       updatedMappings[featureIdx] = {
         ...targetMap,
         assignedDoctorIds: newDocIds,
+        assignedDoctors: newAssignedDocs,
+        doctorOverrides: newOverrides,
       };
 
       return { ...prev, featureDoctorMappings: updatedMappings };
     });
   };
 
-  const toggleDoctorOverride = (featureIdx, doctorId) => {
-    setFormData((prev) => {
-      const updatedMappings = [...(prev.featureDoctorMappings || [])];
-      const targetMap = updatedMappings[featureIdx] || {
-        featureName: prev.features[featureIdx] || "",
-        assignedDoctorIds: [],
-        doctorOverrides: {},
-      };
-
-      const currentOverrides = targetMap.doctorOverrides || {};
-      const docOverride = currentOverrides[doctorId] || {
-        enabled: false,
-        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        startTime: prev.serviceStartTime || "09:00",
-        endTime: prev.serviceEndTime || "17:00",
-      };
-
-      currentOverrides[doctorId] = {
-        ...docOverride,
-        enabled: !docOverride.enabled,
-      };
-
-      updatedMappings[featureIdx] = {
-        ...targetMap,
-        doctorOverrides: currentOverrides,
-      };
-
-      return { ...prev, featureDoctorMappings: updatedMappings };
-    });
-  };
-
-  const toggleOverrideDay = (featureIdx, doctorId, dayName) => {
+  const handleDoctorTimingChange = (featureIdx, doctorId, field, value) => {
     setFormData((prev) => {
       const updatedMappings = [...(prev.featureDoctorMappings || [])];
       const targetMap = updatedMappings[featureIdx];
       if (!targetMap) return prev;
 
-      const currentOverrides = targetMap.doctorOverrides || {};
-      const docOverride = currentOverrides[doctorId] || {
-        enabled: true,
+      let currentAssignedDocs = [...(targetMap.assignedDoctors || [])];
+      let docIndex = currentAssignedDocs.findIndex((d) => d.doctorId === doctorId);
+
+      if (docIndex === -1) {
+        currentAssignedDocs.push({
+          doctorId,
+          timing: {
+            start: prev.serviceStartTime || "09:00",
+            end: prev.serviceEndTime || "17:00",
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            isOverride: false,
+          },
+        });
+        docIndex = currentAssignedDocs.length - 1;
+      }
+
+      const existingTiming = currentAssignedDocs[docIndex].timing || {
+        start: prev.serviceStartTime || "09:00",
+        end: prev.serviceEndTime || "17:00",
         days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        startTime: prev.serviceStartTime || "09:00",
-        endTime: prev.serviceEndTime || "17:00",
+        isOverride: false,
       };
 
-      const currentDays = docOverride.days || [];
-      const newDays = currentDays.includes(dayName)
-        ? currentDays.filter((d) => d !== dayName)
-        : [...currentDays, dayName];
+      let updatedTiming = { ...existingTiming };
 
-      currentOverrides[doctorId] = {
-        ...docOverride,
-        days: newDays,
+      if (field === "resetDefault") {
+        updatedTiming = {
+          start: prev.serviceStartTime || "09:00",
+          end: prev.serviceEndTime || "17:00",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          isOverride: false,
+        };
+      } else if (field === "dayToggle") {
+        const dayName = value;
+        const currentDays = updatedTiming.days || [];
+        const newDays = currentDays.includes(dayName)
+          ? currentDays.filter((d) => d !== dayName)
+          : [...currentDays, dayName];
+
+        updatedTiming = {
+          ...updatedTiming,
+          days: newDays,
+          isOverride: true,
+        };
+      } else {
+        // "start" or "end" time change
+        updatedTiming = {
+          ...updatedTiming,
+          [field]: value,
+          isOverride: true,
+        };
+      }
+
+      currentAssignedDocs[docIndex] = {
+        ...currentAssignedDocs[docIndex],
+        timing: updatedTiming,
+      };
+
+      // Also sync doctorOverrides map for backward compatibility
+      const updatedOverrides = { ...(targetMap.doctorOverrides || {}) };
+      updatedOverrides[doctorId] = {
+        enabled: updatedTiming.isOverride,
+        startTime: updatedTiming.start,
+        endTime: updatedTiming.end,
+        days: updatedTiming.days,
       };
 
       updatedMappings[featureIdx] = {
         ...targetMap,
-        doctorOverrides: currentOverrides,
-      };
-
-      return { ...prev, featureDoctorMappings: updatedMappings };
-    });
-  };
-
-  const handleOverrideTimeChange = (featureIdx, doctorId, field, value) => {
-    setFormData((prev) => {
-      const updatedMappings = [...(prev.featureDoctorMappings || [])];
-      const targetMap = updatedMappings[featureIdx];
-      if (!targetMap) return prev;
-
-      const currentOverrides = targetMap.doctorOverrides || {};
-      const docOverride = currentOverrides[doctorId] || {
-        enabled: true,
-        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        startTime: prev.serviceStartTime || "09:00",
-        endTime: prev.serviceEndTime || "17:00",
-      };
-
-      currentOverrides[doctorId] = {
-        ...docOverride,
-        [field]: value,
-      };
-
-      updatedMappings[featureIdx] = {
-        ...targetMap,
-        doctorOverrides: currentOverrides,
+        assignedDoctors: currentAssignedDocs,
+        doctorOverrides: updatedOverrides,
       };
 
       return { ...prev, featureDoctorMappings: updatedMappings };
@@ -301,6 +346,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
       .map((m) => ({
         featureName: m.featureName.trim(),
         assignedDoctorIds: m.assignedDoctorIds || [],
+        assignedDoctors: m.assignedDoctors || [],
         doctorOverrides: m.doctorOverrides || {},
       }));
 
@@ -330,7 +376,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
               {title}
             </h1>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
-              Define eye treatment details, operating hours, feature-specific doctor assignments, and custom timing overrides.
+              Define eye treatment details, operating hours, and per-doctor feature-specific timing assignments.
             </p>
           </div>
         </div>
@@ -410,15 +456,15 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
           />
         </div>
 
-        {/* NEW SECTION 1: Service Operating Hours */}
+        {/* Service Operating Hours */}
         <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
           <div>
             <h3 className="text-sm font-extrabold text-[#2B1F1A] flex items-center gap-2">
               <Clock className="w-4.5 h-4.5 text-[var(--iris)]" />
-              Service Operating Hours (Overall Service Schedule)
+              Service Operating Hours (Overall Service Default Timing)
             </h3>
             <p className="text-xs text-[var(--slate)] font-semibold mt-0.5">
-              Specify the default daily operating window for this specific service (e.g. 09:00 AM - 05:00 PM).
+              Specify the default daily operating window for this service (e.g. 09:00 AM - 05:00 PM). Assigned doctors will inherit this timing unless customized per feature.
             </p>
           </div>
 
@@ -426,7 +472,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
             {/* Service Start Time */}
             <div className="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
               <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
-                Service Start Time *
+                Service Default Start Time *
               </label>
               <input
                 type="time"
@@ -441,7 +487,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
             {/* Service End Time */}
             <div className="space-y-1.5 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
               <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
-                Service End Time *
+                Service Default End Time *
               </label>
               <input
                 type="time"
@@ -512,7 +558,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
               General Doctors assigned to this Service (Overall Fallback)
             </h3>
             <p className="text-xs text-[var(--slate)] font-semibold mt-0.5">
-              These doctors handle this service in general when no feature-specific assignment is selected.
+              These doctors handle this service in general when no feature-specific treatment is selected by patient.
             </p>
           </div>
 
@@ -557,16 +603,16 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
           )}
         </div>
 
-        {/* NEW SECTION 2 & 3: Granular Feature-to-Doctor Assignment & Timing Overrides */}
+        {/* Feature & Per-Doctor Timing Assignment Controls */}
         <div className="space-y-4 border-t border-slate-100 pt-5">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-extrabold text-[#2B1F1A] flex items-center gap-2">
                 <Sliders className="w-4.5 h-4.5 text-[var(--iris)]" />
-                Granular Feature & Doctor Assignment Controls
+                Assign Doctors & Per-Doctor Timing per Feature
               </h3>
               <p className="text-xs text-[var(--slate)] font-semibold mt-0.5">
-                Assign specific doctors and custom timing overrides for each treatment/feature under this service.
+                Assign specific doctors to treatment features. Each assigned doctor gets an immediate timing field pre-filled with the service default.
               </p>
             </div>
             <button
@@ -584,7 +630,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
               const mapping = (formData.featureDoctorMappings || [])[idx] || {
                 featureName: feat,
                 assignedDoctorIds: [],
-                doctorOverrides: {},
+                assignedDoctors: [],
               };
               const assignedCount = (mapping.assignedDoctorIds || []).length;
               const isExpanded = !!expandedFeatures[idx];
@@ -601,7 +647,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                       type="text"
                       value={feat}
                       onChange={(e) => handleFeatureChange(idx, e.target.value)}
-                      placeholder={`Feature #${idx + 1} Name (e.g. OCT Macula SCAN)`}
+                      placeholder={`Feature #${idx + 1} Name (e.g. PRP / OCT Macula)`}
                       className="flex-1 bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3.5 py-2 text-xs font-bold text-[#2B1F1A] focus:outline-none focus:ring-2"
                     />
 
@@ -630,7 +676,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                     )}
                   </div>
 
-                  {/* Accordion Content: Feature-to-Doctor Selection & Overrides */}
+                  {/* Accordion Content: Feature-to-Doctor Selection & Immediate Timing */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
@@ -641,28 +687,41 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                       >
                         <div className="space-y-2">
                           <label className="text-[11px] font-extrabold text-[#2B1F1A] uppercase tracking-wider block">
-                            Assign Doctors for "{feat || `Feature #${idx + 1}`}"
+                            Assign Doctors & Set Timing for "{feat || `Feature #${idx + 1}`}"
                           </label>
 
                           {availableDoctors.length === 0 ? (
                             <p className="text-xs text-slate-400 italic">No doctors available.</p>
                           ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div className="grid grid-cols-1 gap-3">
                               {availableDoctors.map((docObj) => {
                                 const isAssigned = (mapping.assignedDoctorIds || []).includes(docObj.id);
-                                const docOverride = (mapping.doctorOverrides || {})[docObj.id] || {
-                                  enabled: false,
+
+                                // Find per-doctor timing assignment entry
+                                const docAssignedEntry = (mapping.assignedDoctors || []).find(
+                                  (d) => d.doctorId === docObj.id
+                                );
+
+                                const docTiming = docAssignedEntry?.timing || {
+                                  start: formData.serviceStartTime || "09:00",
+                                  end: formData.serviceEndTime || "17:00",
                                   days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                                  startTime: formData.serviceStartTime || "09:00",
-                                  endTime: formData.serviceEndTime || "17:00",
+                                  isOverride: false,
                                 };
+
+                                const displayStart = docTiming.isOverride
+                                  ? docTiming.start
+                                  : formData.serviceStartTime || "09:00";
+                                const displayEnd = docTiming.isOverride
+                                  ? docTiming.end
+                                  : formData.serviceEndTime || "17:00";
 
                                 return (
                                   <div
                                     key={docObj.id}
-                                    className={`p-3 rounded-xl border transition-all ${
+                                    className={`p-3.5 rounded-2xl border transition-all ${
                                       isAssigned
-                                        ? "bg-indigo-50/40 border-indigo-200"
+                                        ? "bg-indigo-50/40 border-indigo-200 shadow-xs"
                                         : "bg-slate-50/50 border-slate-200 opacity-80"
                                     }`}
                                   >
@@ -690,42 +749,61 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                                       </div>
 
                                       {isAssigned && (
-                                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200 shrink-0">
                                           Assigned
                                         </span>
                                       )}
                                     </div>
 
-                                    {/* Timing Override Section for Assigned Doctor */}
+                                    {/* Immediate Timing Field for Every Assigned Doctor */}
                                     {isAssigned && (
                                       <div className="mt-3 pt-3 border-t border-indigo-100 space-y-2.5">
-                                        <label className="flex items-center gap-2 text-[11px] font-bold text-indigo-900 cursor-pointer">
-                                          <input
-                                            type="checkbox"
-                                            checked={!!docOverride.enabled}
-                                            onChange={() => toggleDoctorOverride(idx, docObj.id)}
-                                            className="w-3.5 h-3.5 text-[var(--iris)] rounded"
-                                          />
-                                          <span>Override timing for this feature/service</span>
-                                        </label>
+                                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                                          <label className="text-[11px] font-extrabold text-indigo-950 flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5 text-[var(--iris)]" />
+                                            Doctor Timing for this Feature:
+                                          </label>
 
-                                        {docOverride.enabled && (
-                                          <div className="p-3 bg-white rounded-xl border border-indigo-200 space-y-3">
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase block">
-                                              Custom Operating Days:
+                                          {!docTiming.isOverride ? (
+                                            <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                              Using service default timing ({formData.serviceStartTime || "09:00"} - {formData.serviceEndTime || "17:00"})
+                                            </span>
+                                          ) : (
+                                            <div className="flex items-center gap-1.5">
+                                              <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-200">
+                                                Custom Timing Override
+                                              </span>
+                                              <button
+                                                type="button"
+                                                onClick={() => handleDoctorTimingChange(idx, docObj.id, "resetDefault")}
+                                                className="text-[10px] font-bold text-rose-600 hover:text-rose-800 underline flex items-center gap-1 cursor-pointer"
+                                                title="Reset timing to service default"
+                                              >
+                                                <RotateCcw className="w-3 h-3" />
+                                                Reset to Default
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className="p-3 bg-white rounded-xl border border-indigo-200 space-y-3">
+                                          <div>
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                                              Operating Days for {docObj.name}:
                                             </span>
                                             <div className="flex flex-wrap gap-1.5">
                                               {WEEKDAYS.map((day) => {
-                                                const isDayActive = (docOverride.days || []).includes(day);
+                                                const activeDays = docTiming.days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                                                const isDayActive = activeDays.includes(day);
                                                 return (
                                                   <button
                                                     key={day}
                                                     type="button"
-                                                    onClick={() => toggleOverrideDay(idx, docObj.id, day)}
+                                                    onClick={() => handleDoctorTimingChange(idx, docObj.id, "dayToggle", day)}
                                                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                                                       isDayActive
                                                         ? "bg-[var(--iris)] text-white shadow-xs"
-                                                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                                                     }`}
                                                   >
                                                     {day.slice(0, 3)}
@@ -733,37 +811,37 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                                                 );
                                               })}
                                             </div>
+                                          </div>
 
-                                            <div className="grid grid-cols-2 gap-2 pt-1">
-                                              <div>
-                                                <label className="text-[10px] font-bold text-slate-500 block mb-1">
-                                                  Start Time
-                                                </label>
-                                                <input
-                                                  type="time"
-                                                  value={docOverride.startTime || "09:00"}
-                                                  onChange={(e) =>
-                                                    handleOverrideTimeChange(idx, docObj.id, "startTime", e.target.value)
-                                                  }
-                                                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-[#2B1F1A]"
-                                                />
-                                              </div>
-                                              <div>
-                                                <label className="text-[10px] font-bold text-slate-500 block mb-1">
-                                                  End Time
-                                                </label>
-                                                <input
-                                                  type="time"
-                                                  value={docOverride.endTime || "17:00"}
-                                                  onChange={(e) =>
-                                                    handleOverrideTimeChange(idx, docObj.id, "endTime", e.target.value)
-                                                  }
-                                                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-[#2B1F1A]"
-                                                />
-                                              </div>
+                                          <div className="grid grid-cols-2 gap-3 pt-1">
+                                            <div>
+                                              <label className="text-[10px] font-bold text-slate-600 block mb-1">
+                                                Start Time
+                                              </label>
+                                              <input
+                                                type="time"
+                                                value={displayStart}
+                                                onChange={(e) =>
+                                                  handleDoctorTimingChange(idx, docObj.id, "start", e.target.value)
+                                                }
+                                                className="w-full bg-slate-50 border border-slate-200 focus:border-[var(--iris)] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#2B1F1A]"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="text-[10px] font-bold text-slate-600 block mb-1">
+                                                End Time
+                                              </label>
+                                              <input
+                                                type="time"
+                                                value={displayEnd}
+                                                onChange={(e) =>
+                                                  handleDoctorTimingChange(idx, docObj.id, "end", e.target.value)
+                                                }
+                                                className="w-full bg-slate-50 border border-slate-200 focus:border-[var(--iris)] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#2B1F1A]"
+                                              />
                                             </div>
                                           </div>
-                                        )}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
