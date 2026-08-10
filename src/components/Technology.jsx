@@ -240,7 +240,7 @@ export default function Technology() {
                       Categories
                     </h3>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+                  <span className="text-[10px] font-extrabold text-[#2B1F1A] bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
                     {categoriesList.length - 1} Total
                   </span>
                 </div>
@@ -283,15 +283,15 @@ export default function Technology() {
               {/* Category Active Subheader */}
               <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                  <span className="text-xs font-black text-[#2B1F1A] uppercase tracking-wider">
                     Showing:
                   </span>
-                  <span className="text-xs font-extrabold text-[var(--iris)] bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
+                  <span className="text-xs font-black text-[var(--iris)] bg-blue-50 border border-blue-200 px-3 py-1 rounded-full shadow-xs">
                     {selectedCategory}
                   </span>
                 </div>
 
-                <span className="text-xs font-bold text-slate-500">
+                <span className="text-xs font-black text-[#2B1F1A]">
                   {filteredList.length} {filteredList.length === 1 ? "Equipment" : "Equipments"} Found
                 </span>
               </div>
