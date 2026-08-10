@@ -109,7 +109,7 @@ export default function AdminSidebar() {
         {/* Brand logo Header */}
         <div className="flex items-center justify-between px-1 pb-2 border-b border-[var(--line)]">
           <Link href="/admin/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white border border-[var(--line)] p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#A8C0D6] border border-[var(--line)] p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
               <img src={profile.logoUrl} alt={profile.hospitalName} className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
