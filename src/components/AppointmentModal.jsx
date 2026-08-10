@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { sortDoctors } from "@/lib/doctorUtils";
+import { sortDoctors, getAvailableDoctorsForFeatures, getIntersectedDoctorTiming } from "@/lib/doctorUtils";
 import { notifyOnAppointmentBooked } from "@/lib/notificationService";
 import { triggerEmailApi } from "@/lib/clientEmailHelper";
 import DatePicker from "react-datepicker";
@@ -64,77 +64,6 @@ const parseTimeToMinutes = (timeStr, defaultMinutes) => {
   if (isAM && hours === 12) hours = 0;
 
   return hours * 60 + minutes;
-};
-
-// Helper to determine active schedule/timing (including feature-level overrides) for a doctor
-const getActiveDoctorTiming = (docObj, serviceObj, selectedFeatures = []) => {
-  if (!docObj) return null;
-
-  const mappings = serviceObj?.featureDoctorMappings || [];
-
-  if (selectedFeatures && selectedFeatures.length > 0 && mappings.length > 0) {
-    for (const featName of selectedFeatures) {
-      const mapping = mappings.find((m) => m.featureName === featName);
-      if (mapping) {
-        // Check structured assignedDoctors list first
-        const assignedDocs = mapping.assignedDoctors || [];
-        const docEntry = assignedDocs.find((d) => d.doctorId === docObj.id);
-
-        if (docEntry && docEntry.timing) {
-          const { start, end, days, isOverride } = docEntry.timing;
-          if (isOverride) {
-            return {
-              isOverride: true,
-              days: days && days.length > 0 ? days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-              startTime: start || serviceObj?.serviceStartTime || "09:00",
-              endTime: end || serviceObj?.serviceEndTime || "17:00",
-            };
-          } else {
-            return {
-              isOverride: false,
-              days: days && days.length > 0 ? days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-              startTime: serviceObj?.serviceStartTime || "09:00",
-              endTime: serviceObj?.serviceEndTime || "17:00",
-            };
-          }
-        }
-
-        // Fallback check legacy doctorOverrides map
-        if (mapping.doctorOverrides && mapping.doctorOverrides[docObj.id]) {
-          const override = mapping.doctorOverrides[docObj.id];
-          if (override.enabled) {
-            return {
-              isOverride: true,
-              days: override.days && override.days.length > 0 ? override.days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-              startTime: override.startTime || serviceObj?.serviceStartTime || "09:00",
-              endTime: override.endTime || serviceObj?.serviceEndTime || "17:00",
-            };
-          }
-        }
-      }
-    }
-  }
-
-  // If service has overall timing set, use service timing
-  if (serviceObj?.serviceStartTime || serviceObj?.serviceEndTime) {
-    return {
-      isOverride: false,
-      days: docObj.workingDays && docObj.workingDays.length > 0
-        ? docObj.workingDays
-        : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      startTime: serviceObj?.serviceStartTime || "09:00",
-      endTime: serviceObj?.serviceEndTime || "17:00",
-    };
-  }
-
-  return {
-    isOverride: false,
-    days: docObj.workingDays && docObj.workingDays.length > 0
-      ? docObj.workingDays
-      : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    startTime: docObj.workingHours?.start || "09:00",
-    endTime: docObj.workingHours?.end || "17:00",
-  };
 };
 
 const generateSlotsForDoctor = (doctorObj, activeTiming = null) => {
@@ -306,6 +235,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
       unsubDoctors();
     };
   }, []);
+
   const activeDoctorObj = doctorsList.find(
     (d) => d.name === formData.doctor || d.id === formData.doctor
   );
@@ -314,11 +244,29 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     (s) => (s.title || s.name) === formData.service || s.id === formData.service
   );
 
-  const activeDoctorTiming = getActiveDoctorTiming(
+  // Dynamic INTERSECTION filtering for Doctors based on selected features
+  const filteredDoctors = getAvailableDoctorsForFeatures(
+    formData.selectedFeatures,
+    selectedServiceObject?.featureDoctorMappings,
+    doctorsList,
+    selectedServiceObject?.doctorIds
+  );
+
+  const hasEmptyDoctorIntersection =
+    formData.selectedFeatures &&
+    formData.selectedFeatures.length > 0 &&
+    selectedServiceObject?.featureDoctorMappings &&
+    selectedServiceObject.featureDoctorMappings.length > 0 &&
+    filteredDoctors.length === 0;
+
+  // Dynamic INTERSECTION timing calculation across selected features
+  const activeDoctorTiming = getIntersectedDoctorTiming(
     activeDoctorObj,
     selectedServiceObject,
     formData.selectedFeatures
   );
+
+  const hasNoTimeOverlap = !!(activeDoctorObj && activeDoctorTiming && !activeDoctorTiming.hasOverlap);
 
   const minBookingDays = selectedServiceObject && selectedServiceObject.minBookingDays !== undefined && selectedServiceObject.minBookingDays !== null
     ? Math.max(0, Number(selectedServiceObject.minBookingDays))
@@ -459,44 +407,6 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
 
   const availableServiceFeatures = selectedServiceObject?.features || [];
 
-  const filteredDoctors = doctorsList.filter((docItem) => {
-    if (
-      formData.doctor &&
-      (docItem.name === formData.doctor || docItem.id === formData.doctor)
-    ) {
-      return true;
-    }
-
-    const mappings = selectedServiceObject?.featureDoctorMappings || [];
-
-    // If specific feature(s) selected by patient and mappings exist
-    if (formData.selectedFeatures && formData.selectedFeatures.length > 0 && mappings.length > 0) {
-      const allowedDocIds = new Set();
-      formData.selectedFeatures.forEach((featName) => {
-        const m = mappings.find((item) => item.featureName === featName);
-        if (m && Array.isArray(m.assignedDoctorIds)) {
-          m.assignedDoctorIds.forEach((id) => allowedDocIds.add(id));
-        }
-      });
-
-      if (allowedDocIds.size > 0) {
-        return allowedDocIds.has(docItem.id);
-      }
-    }
-
-    // Fallback: If service has general doctorIds list
-    if (
-      selectedServiceObject &&
-      selectedServiceObject.doctorIds &&
-      Array.isArray(selectedServiceObject.doctorIds) &&
-      selectedServiceObject.doctorIds.length > 0
-    ) {
-      return selectedServiceObject.doctorIds.includes(docItem.id);
-    }
-
-    return true;
-  });
-
   const handleChange = (e) => {
     let { name, value } = e.target;
     if (name === "service") {
@@ -544,25 +454,20 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
         ? current.filter((f) => f !== featureTitle)
         : [...current, featureTitle];
 
-      // Auto-validate current doctor selection when feature selection changes
-      const mappings = selectedServiceObject?.featureDoctorMappings || [];
+      // Re-calculate intersected available doctors
+      const nextFilteredDocs = getAvailableDoctorsForFeatures(
+        updated,
+        selectedServiceObject?.featureDoctorMappings,
+        doctorsList,
+        selectedServiceObject?.doctorIds
+      );
+
       let newDoctor = prev.doctor;
-
-      if (updated.length > 0 && mappings.length > 0 && prev.doctor && prev.doctor !== "not_sure") {
-        const docObj = doctorsList.find((d) => d.name === prev.doctor || d.id === prev.doctor);
-        if (docObj) {
-          const allowedDocIds = new Set();
-          updated.forEach((featName) => {
-            const m = mappings.find((item) => item.featureName === featName);
-            if (m && Array.isArray(m.assignedDoctorIds)) {
-              m.assignedDoctorIds.forEach((id) => allowedDocIds.add(id));
-            }
-          });
-
-          if (allowedDocIds.size > 0 && !allowedDocIds.has(docObj.id)) {
-            newDoctor = ""; // reset doctor if current doctor doesn't cover selected features
-            setNoticeMessage(`Doctor selection reset: ${docObj.name} does not perform the selected treatment feature.`);
-          }
+      if (prev.doctor && prev.doctor !== "not_sure") {
+        const isStillValid = nextFilteredDocs.some((d) => d.name === prev.doctor || d.id === prev.doctor);
+        if (!isStillValid) {
+          newDoctor = "";
+          setNoticeMessage("Doctor selection reset: The previously selected doctor does not perform all currently selected treatment features.");
         }
       }
 
@@ -587,7 +492,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
       if (dayIndex === 0) {
         shouldReset = true;
       } else if (newDocVal && newDocVal !== "not_sure" && newDocObj) {
-        const timing = getActiveDoctorTiming(newDocObj, selectedServiceObject, formData.selectedFeatures);
+        const timing = getIntersectedDoctorTiming(newDocObj, selectedServiceObject, formData.selectedFeatures);
         const newDays = timing?.days || newDocObj.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         if (!newDays.includes(WEEKDAYS[dayIndex])) {
           shouldReset = true;
@@ -597,7 +502,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
 
     // Check time slot compatibility if already selected
     if (formData.time) {
-      const timing = getActiveDoctorTiming(newDocObj, selectedServiceObject, formData.selectedFeatures);
+      const timing = getIntersectedDoctorTiming(newDocObj, selectedServiceObject, formData.selectedFeatures);
       const newSlots = generateSlotsForDoctor(newDocVal === "not_sure" ? null : newDocObj, timing);
       if (!newSlots.includes(formData.time)) {
         shouldReset = true;
@@ -1227,6 +1132,19 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                           );
                         })}
                       </div>
+
+                      {/* Friendly Alert Banner when no doctor covers all selected features */}
+                      {hasEmptyDoctorIntersection && (
+                        <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold flex items-start gap-2.5 shadow-xs mt-3">
+                          <Info className="w-4.5 h-4.5 text-rose-600 shrink-0 mt-0.5" />
+                          <div className="space-y-0.5">
+                            <p className="font-extrabold text-rose-950 text-xs">No Single Doctor Available for All Selected Treatments</p>
+                            <p className="text-[11px] text-rose-800/90 font-medium leading-relaxed">
+                              No single doctor is available for all the treatments you've selected together. Please either select fewer treatments, or contact our front desk at <strong className="text-rose-950">051-8444400</strong> to arrange a combined appointment.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1241,15 +1159,20 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         name="doctor"
                         value={formData.doctor}
                         onChange={handleDoctorChange}
-                        className={`w-full bg-[var(--fog)] border ${errors.doctor
+                        disabled={hasEmptyDoctorIntersection}
+                        className={`w-full bg-[var(--fog)] border ${errors.doctor || hasEmptyDoctorIntersection
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
-                        <option value="">Select Doctor</option>
-                        <option value="not_sure" className="font-bold text-[var(--iris)]">
-                          Not Sure / Let Front Desk Decide
+                        <option value="">
+                          {hasEmptyDoctorIntersection ? "-- No Matching Doctor --" : "Select Doctor"}
                         </option>
+                        {!hasEmptyDoctorIntersection && (
+                          <option value="not_sure" className="font-bold text-[var(--iris)]">
+                            Not Sure / Let Front Desk Decide
+                          </option>
+                        )}
                         {eventContext.isEvent && eventContext.assignedDoctors && eventContext.assignedDoctors.length > 0 ? (
                           doctorsList
                             .filter((d) => eventContext.assignedDoctors.includes(d.name) || eventContext.assignedDoctors.includes(d.id))
@@ -1307,11 +1230,12 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                           maxDate={maxSelectableDate || undefined}
                           dateFormat="yyyy-MM-dd"
                           placeholderText="Date Slot"
+                          disabled={hasEmptyDoctorIntersection || hasNoTimeOverlap}
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.date
                               ? "border-red-300 focus:ring-red-200"
                               : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-black font-semibold placeholder:text-black placeholder:font-medium focus:outline-none focus:ring-4 transition-all`}
+                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-black font-semibold placeholder:text-black placeholder:font-medium focus:outline-none focus:ring-4 transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
                         />
                       )}
                     </div>
@@ -1330,10 +1254,11 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         name="time"
                         value={formData.time}
                         onChange={handleChange}
+                        disabled={hasEmptyDoctorIntersection || hasNoTimeOverlap}
                         className={`w-full bg-[var(--fog)] border ${errors.time
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
                         {eventContext.isEvent && eventContext.eventTime ? (
                           <option value={eventContext.eventTime}>
@@ -1355,6 +1280,19 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                       <p className="text-[11px] text-red-500 font-semibold">{errors.time}</p>
                     )}
                   </div>
+
+                  {/* Friendly Alert Banner when Doctor's operating times for selected features do not overlap */}
+                  {hasNoTimeOverlap && !hasEmptyDoctorIntersection && (
+                    <div className="md:col-span-2 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-start gap-2.5 shadow-xs my-1">
+                      <Info className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5">
+                        <p className="font-extrabold text-amber-950 text-xs">No Overlapping Operating Hours</p>
+                        <p className="text-[11px] text-amber-900/90 font-medium leading-relaxed">
+                          This doctor's available times for these selected treatments do not overlap. Please select fewer treatments or contact us directly.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit Button */}
@@ -1363,8 +1301,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-3.5 rounded-xl font-extrabold text-sm shadow-md shadow-[var(--ink)]/15 hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+                    disabled={isSubmitting || hasEmptyDoctorIntersection || hasNoTimeOverlap}
+                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-3.5 rounded-xl font-extrabold text-sm shadow-md shadow-[var(--ink)]/15 hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
