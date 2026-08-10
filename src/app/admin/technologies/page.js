@@ -122,6 +122,9 @@ export default function AdminTechnologiesListPage() {
                       <span className="text-xs font-bold text-[var(--iris)] uppercase tracking-wider block">
                         Sequence #{tech.order || 1}
                       </span>
+                      <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 inline-block mt-0.5">
+                        {tech.category || "Uncategorized"}
+                      </span>
                     </div>
                   </div>
                 </div>

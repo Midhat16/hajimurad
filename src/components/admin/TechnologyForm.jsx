@@ -20,8 +20,17 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
     return [];
   };
 
+  const [existingCategories, setExistingCategories] = useState([
+    "Diagnostic Equipment",
+    "Laser Equipment",
+    "Surgical & Operating Systems",
+    "Refractive & LASIK Suites",
+    "General OPD & Examination",
+  ]);
+
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
+    category: initialData?.category || "Diagnostic Equipment",
     description: initialData?.description || "",
     imageUrl: initialData?.imageUrl || "",
     images: getInitialImages(),
@@ -29,10 +38,41 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
     uses: initialData?.uses && initialData.uses.length > 0 ? initialData.uses : [""],
   });
 
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategoryInput, setCustomCategoryInput] = useState("");
+
   const [uploading, setUploading] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [pastedUrl, setPastedUrl] = useState("");
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    // Dynamically fetch unique existing categories from Firestore
+    const fetchCategories = async () => {
+      try {
+        const { collection, getDocs } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        const snap = await getDocs(collection(db, "technologies"));
+        const cats = new Set([
+          "Diagnostic Equipment",
+          "Laser Equipment",
+          "Surgical & Operating Systems",
+          "Refractive & LASIK Suites",
+          "General OPD & Examination",
+        ]);
+        snap.docs.forEach((d) => {
+          const c = d.data()?.category;
+          if (c && typeof c === "string" && c.trim() !== "") {
+            cats.add(c.trim());
+          }
+        });
+        setExistingCategories(Array.from(cats));
+      } catch (e) {
+        console.warn("Categories fetch warning:", e.message);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (initialData) {
@@ -42,6 +82,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
 
       setFormData({
         name: initialData.name || "",
+        category: initialData.category || "Diagnostic Equipment",
         description: initialData.description || "",
         imageUrl: initialData.imageUrl || "",
         images: initImgs,
@@ -413,9 +454,9 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
           </div>
         </div>
 
-        {/* Equipment Name & Order */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
-          <div className="space-y-1.5">
+        {/* Equipment Name, Category & Order */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2 border-t border-slate-100">
+          <div className="space-y-1.5 md:col-span-1">
             <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Equipment Name *
             </label>
@@ -430,9 +471,64 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 md:col-span-1">
             <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
-              Display Sequence Order (1, 2, 3...)
+              Equipment Category *
+            </label>
+            {isCustomCategory ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={customCategoryInput}
+                  onChange={(e) => {
+                    setCustomCategoryInput(e.target.value);
+                    setFormData((prev) => ({ ...prev, category: e.target.value }));
+                  }}
+                  placeholder="Enter new category name..."
+                  required
+                  className="w-full bg-[var(--fog)] border border-[var(--iris)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomCategory(false);
+                    if (!formData.category) setFormData((prev) => ({ ...prev, category: existingCategories[0] || "Diagnostic Equipment" }));
+                  }}
+                  className="px-3 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors shrink-0"
+                >
+                  Select Existing
+                </button>
+              </div>
+            ) : (
+              <select
+                name="category"
+                value={formData.category}
+                onChange={(e) => {
+                  if (e.target.value === "__create_new__") {
+                    setIsCustomCategory(true);
+                    setCustomCategoryInput("");
+                    setFormData((prev) => ({ ...prev, category: "" }));
+                  } else {
+                    setFormData((prev) => ({ ...prev, category: e.target.value }));
+                  }
+                }}
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none cursor-pointer"
+              >
+                {existingCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+                <option value="__create_new__" className="font-bold text-[var(--iris)]">
+                  + Create New Category...
+                </option>
+              </select>
+            )}
+          </div>
+
+          <div className="space-y-1.5 md:col-span-1">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+              Display Sequence Order
             </label>
             <input
               type="number"

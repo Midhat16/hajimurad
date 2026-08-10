@@ -23,8 +23,8 @@ const HERO_BANNER_IMAGES = [
     position: "center center",
   },
   {
-    src: "/images/hero-1.jpg",
-    alt: "Haji Murad Eye Hospital Operating Theater & Advanced Ophthalmic Surgery Equipment",
+    src: "/images/haji-murad-main-campus.webp",
+    alt: "Haji Murad Trust Eye Hospital Main Campus Building",
     position: "center center",
   },
 ];

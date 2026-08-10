@@ -43,10 +43,10 @@ const GALLERY_IMAGES = [
   },
   {
     id: 6,
-    src: "/images/gallery-yag-2.jpg",
-    alt: "YAG Capsulotomy",
-    caption: "YAG Capsulotomy",
-    tag: "Operation Theater",
+    src: "/images/gallery-zeiss.jpg",
+    alt: "Advanced ZEISS Ophthalmic Diagnostics",
+    caption: "Advanced ZEISS Ophthalmic Diagnostics",
+    tag: "Specialized Care",
   },
 ];
 

@@ -34,9 +34,9 @@ const DEFAULT_GALLERY_IMAGES = [
   },
   {
     id: "def-5",
-    imageUrl: "/images/gallery-yag-2.jpg",
-    title: "YAG Capsulotomy",
-    category: "Operation Theater",
+    imageUrl: "/images/gallery-zeiss.jpg",
+    title: "Advanced ZEISS Diagnostics",
+    category: "Specialized Care",
   },
   {
     id: "def-6",
