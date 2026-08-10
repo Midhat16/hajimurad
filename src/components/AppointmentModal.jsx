@@ -66,9 +66,45 @@ const parseTimeToMinutes = (timeStr, defaultMinutes) => {
   return hours * 60 + minutes;
 };
 
-const generateSlotsForDoctor = (doctorObj) => {
-  const startM = parseTimeToMinutes(doctorObj?.workingHours?.start, 540); // 9:00 AM
-  const endM = parseTimeToMinutes(doctorObj?.workingHours?.end, 900);     // 3:00 PM (15:00)
+// Helper to determine active schedule/timing (including feature-level overrides) for a doctor
+const getActiveDoctorTiming = (docObj, serviceObj, selectedFeatures = []) => {
+  if (!docObj) return null;
+
+  const mappings = serviceObj?.featureDoctorMappings || [];
+
+  if (selectedFeatures && selectedFeatures.length > 0 && mappings.length > 0) {
+    for (const featName of selectedFeatures) {
+      const mapping = mappings.find((m) => m.featureName === featName);
+      if (mapping && mapping.doctorOverrides && mapping.doctorOverrides[docObj.id]) {
+        const override = mapping.doctorOverrides[docObj.id];
+        if (override.enabled) {
+          return {
+            isOverride: true,
+            days: override.days && override.days.length > 0 ? override.days : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            startTime: override.startTime || serviceObj?.serviceStartTime || "09:00",
+            endTime: override.endTime || serviceObj?.serviceEndTime || "17:00",
+          };
+        }
+      }
+    }
+  }
+
+  return {
+    isOverride: false,
+    days: docObj.workingDays && docObj.workingDays.length > 0
+      ? docObj.workingDays
+      : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    startTime: docObj.workingHours?.start || serviceObj?.serviceStartTime || "09:00",
+    endTime: docObj.workingHours?.end || serviceObj?.serviceEndTime || "17:00",
+  };
+};
+
+const generateSlotsForDoctor = (doctorObj, activeTiming = null) => {
+  const startTimeStr = activeTiming ? activeTiming.startTime : doctorObj?.workingHours?.start;
+  const endTimeStr = activeTiming ? activeTiming.endTime : doctorObj?.workingHours?.end;
+
+  const startM = parseTimeToMinutes(startTimeStr, 540); // 9:00 AM
+  const endM = parseTimeToMinutes(endTimeStr, 900);     // 3:00 PM (15:00)
 
   let slots = [];
   let currentM = startM;
@@ -232,21 +268,26 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
       unsubDoctors();
     };
   }, []);
-
   const activeDoctorObj = doctorsList.find(
     (d) => d.name === formData.doctor || d.id === formData.doctor
   );
 
-  const selectedServiceObj = servicesList.find(
+  const selectedServiceObject = servicesList.find(
     (s) => (s.title || s.name) === formData.service || s.id === formData.service
   );
 
-  const minBookingDays = selectedServiceObj && selectedServiceObj.minBookingDays !== undefined && selectedServiceObj.minBookingDays !== null
-    ? Math.max(0, Number(selectedServiceObj.minBookingDays))
+  const activeDoctorTiming = getActiveDoctorTiming(
+    activeDoctorObj,
+    selectedServiceObject,
+    formData.selectedFeatures
+  );
+
+  const minBookingDays = selectedServiceObject && selectedServiceObject.minBookingDays !== undefined && selectedServiceObject.minBookingDays !== null
+    ? Math.max(0, Number(selectedServiceObject.minBookingDays))
     : 0;
 
-  const rawMaxBookingDays = selectedServiceObj && selectedServiceObj.maxBookingDays !== undefined && selectedServiceObj.maxBookingDays !== null && selectedServiceObj.maxBookingDays !== ""
-    ? Number(selectedServiceObj.maxBookingDays)
+  const rawMaxBookingDays = selectedServiceObject && selectedServiceObject.maxBookingDays !== undefined && selectedServiceObject.maxBookingDays !== null && selectedServiceObject.maxBookingDays !== ""
+    ? Number(selectedServiceObject.maxBookingDays)
     : null;
 
   const getSelectableDateRange = () => {
@@ -256,7 +297,9 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
       return t;
     };
 
-    const docWorkingDays = activeDoctorObj?.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const docWorkingDays = activeDoctorTiming
+      ? activeDoctorTiming.days
+      : (activeDoctorObj?.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
 
     const isValidWorkingDay = (d) => {
       const dayName = d.toLocaleDateString("en-US", { weekday: "long" });
@@ -316,11 +359,12 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
   if (formData.doctor) {
     console.log("🔍 DIAGNOSTIC -> Selected Doctor in Form:", formData.doctor);
     console.log("🔍 DIAGNOSTIC -> Matched Doctor Object:", activeDoctorObj);
-    console.log("🔍 DIAGNOSTIC -> Doctor workingHours from Firestore:", activeDoctorObj?.workingHours);
+    console.log("🔍 DIAGNOSTIC -> Doctor Active Timing (Override/Default):", activeDoctorTiming);
   }
 
   const availableTimeSlots = generateSlotsForDoctor(
-    formData.doctor === "not_sure" ? null : activeDoctorObj
+    formData.doctor === "not_sure" ? null : activeDoctorObj,
+    activeDoctorTiming
   );
 
   const validateForm = () => {
@@ -375,10 +419,6 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     return Object.keys(tempErrors).length === 0;
   };
 
-  const selectedServiceObject = servicesList.find(
-    (s) => (s.title || s.name) === formData.service
-  );
-
   const availableServiceFeatures = selectedServiceObject?.features || [];
 
   const filteredDoctors = doctorsList.filter((docItem) => {
@@ -388,6 +428,25 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     ) {
       return true;
     }
+
+    const mappings = selectedServiceObject?.featureDoctorMappings || [];
+
+    // If specific feature(s) selected by patient and mappings exist
+    if (formData.selectedFeatures && formData.selectedFeatures.length > 0 && mappings.length > 0) {
+      const allowedDocIds = new Set();
+      formData.selectedFeatures.forEach((featName) => {
+        const m = mappings.find((item) => item.featureName === featName);
+        if (m && Array.isArray(m.assignedDoctorIds)) {
+          m.assignedDoctorIds.forEach((id) => allowedDocIds.add(id));
+        }
+      });
+
+      if (allowedDocIds.size > 0) {
+        return allowedDocIds.has(docItem.id);
+      }
+    }
+
+    // Fallback: If service has general doctorIds list
     if (
       selectedServiceObject &&
       selectedServiceObject.doctorIds &&
@@ -396,6 +455,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     ) {
       return selectedServiceObject.doctorIds.includes(docItem.id);
     }
+
     return true;
   });
 
@@ -445,9 +505,33 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
       const updated = exists
         ? current.filter((f) => f !== featureTitle)
         : [...current, featureTitle];
+
+      // Auto-validate current doctor selection when feature selection changes
+      const mappings = selectedServiceObject?.featureDoctorMappings || [];
+      let newDoctor = prev.doctor;
+
+      if (updated.length > 0 && mappings.length > 0 && prev.doctor && prev.doctor !== "not_sure") {
+        const docObj = doctorsList.find((d) => d.name === prev.doctor || d.id === prev.doctor);
+        if (docObj) {
+          const allowedDocIds = new Set();
+          updated.forEach((featName) => {
+            const m = mappings.find((item) => item.featureName === featName);
+            if (m && Array.isArray(m.assignedDoctorIds)) {
+              m.assignedDoctorIds.forEach((id) => allowedDocIds.add(id));
+            }
+          });
+
+          if (allowedDocIds.size > 0 && !allowedDocIds.has(docObj.id)) {
+            newDoctor = ""; // reset doctor if current doctor doesn't cover selected features
+            setNoticeMessage(`Doctor selection reset: ${docObj.name} does not perform the selected treatment feature.`);
+          }
+        }
+      }
+
       return {
         ...prev,
         selectedFeatures: updated,
+        doctor: newDoctor,
       };
     });
   };
@@ -465,7 +549,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
       if (dayIndex === 0) {
         shouldReset = true;
       } else if (newDocVal && newDocVal !== "not_sure" && newDocObj) {
-        const newDays = newDocObj.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const timing = getActiveDoctorTiming(newDocObj, selectedServiceObject, formData.selectedFeatures);
+        const newDays = timing?.days || newDocObj.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         if (!newDays.includes(WEEKDAYS[dayIndex])) {
           shouldReset = true;
         }
@@ -474,7 +559,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
 
     // Check time slot compatibility if already selected
     if (formData.time) {
-      const newSlots = generateSlotsForDoctor(newDocVal === "not_sure" ? null : newDocObj);
+      const timing = getActiveDoctorTiming(newDocObj, selectedServiceObject, formData.selectedFeatures);
+      const newSlots = generateSlotsForDoctor(newDocVal === "not_sure" ? null : newDocObj, timing);
       if (!newSlots.includes(formData.time)) {
         shouldReset = true;
       }
@@ -516,8 +602,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
 
     const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
     if (dayName === "Sunday") return false;
-    if (!formData.doctor || formData.doctor === "not_sure") return true;
-    const docDays = activeDoctorObj?.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const docDays = activeDoctorTiming?.days || activeDoctorObj?.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return docDays.includes(dayName);
   };
 
