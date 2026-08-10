@@ -170,16 +170,16 @@ function ApplyFormContent() {
 
             {/* Quick Metrics */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-[var(--line)]/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">Available Seats</span>
-                <span className="font-extrabold text-[#2B1F1A] text-sm flex items-center gap-1 mt-0.5">
-                  <Users className="w-4 h-4 text-[var(--iris)]" /> {internship.seatsAvailable || "Limited"} Positions
+              <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-black text-slate-800 uppercase block">Available Seats</span>
+                <span className="font-black text-[#2B1F1A] text-sm flex items-center gap-1 mt-0.5">
+                  <Users className="w-4 h-4 text-[var(--iris)] shrink-0" /> {internship.seatsAvailable || "Limited"} Positions
                 </span>
               </div>
-              <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-[var(--line)]/60">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">Certificate</span>
-                <span className="font-extrabold text-emerald-700 text-sm flex items-center gap-1 mt-0.5">
-                  <CheckCircle2 className="w-4 h-4" /> Official Award
+              <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-black text-slate-800 uppercase block">Certificate</span>
+                <span className="font-black text-emerald-950 text-sm flex items-center gap-1 mt-0.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" /> Official Award
                 </span>
               </div>
             </div>
