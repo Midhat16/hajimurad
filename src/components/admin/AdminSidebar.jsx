@@ -18,7 +18,6 @@ import {
   Sparkles,
   Settings,
   LogOut,
-  Eye,
   Menu,
   X,
   ExternalLink,
@@ -105,36 +104,36 @@ export default function AdminSidebar() {
   }, []);
 
   const sidebarContent = (
-    <div className="flex flex-col justify-between h-full p-5">
-      <div className="space-y-8">
-        {/* Brand logo */}
-        <div className="flex items-center justify-between px-2">
+    <div className="flex flex-col justify-between h-full p-4 sm:p-5">
+      <div className="space-y-6">
+        {/* Brand logo Header */}
+        <div className="flex items-center justify-between px-1 pb-2 border-b border-[var(--line)]">
           <Link href="/admin/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 p-1 flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-white border border-[var(--line)] p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
               <img src={profile.logoUrl} alt={profile.hospitalName} className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-extrabold tracking-tight text-white leading-tight">
+              <span className="text-sm font-black tracking-tight text-[#2B1F1A] leading-tight">
                 {brand.mainFirst}{" "}
                 {brand.mainHighlight && (
                   <span className="text-[var(--iris)]">{brand.mainHighlight}</span>
                 )}
               </span>
-              <span className="text-[10px] font-bold text-[var(--iris)] tracking-widest uppercase">
-                Admin Portal
+              <span className="text-[10px] font-black text-[var(--iris)] tracking-widest uppercase">
+                ADMIN PORTAL
               </span>
             </div>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
-            className="md:hidden text-slate-300 hover:text-white"
+            className="md:hidden p-1 rounded-lg text-slate-700 hover:bg-white/80"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Nav Items */}
-        <nav className="space-y-1.5">
+        {/* Nav Items List */}
+        <nav className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-230px)] custom-scrollbar pr-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -145,18 +144,18 @@ export default function AdminSidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all group ${
                   isActive
-                    ? "bg-[var(--iris)] text-white shadow-md"
-                    : "text-white hover:bg-[var(--iris-dark)]"
+                    ? "bg-[var(--iris)] text-white shadow-sm ring-1 ring-[var(--iris)]"
+                    : "text-[#2B1F1A] hover:bg-white/90 hover:text-[var(--iris)]"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className="w-5 h-5 flex-shrink-0 text-white" />
+                  <Icon className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${isActive ? "text-white" : "text-[#2B1F1A] group-hover:text-[var(--iris)]"}`} />
                   <span>{item.label}</span>
                 </div>
                 {isMessages && unreadMsgsCount > 0 && (
-                  <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-xs">
+                  <span className="bg-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-xs">
                     {unreadMsgsCount}
                   </span>
                 )}
@@ -167,21 +166,21 @@ export default function AdminSidebar() {
       </div>
 
       {/* Footer Actions */}
-      <div className="border-t border-slate-700/60 pt-4 space-y-2">
+      <div className="border-t border-[var(--line)] pt-3.5 space-y-1.5">
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-emerald-400 hover:bg-emerald-950/30 hover:text-emerald-300 transition-all"
+          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-black text-emerald-950 hover:bg-white/80 transition-all"
         >
-          <ExternalLink className="w-4 h-4 text-emerald-400" />
+          <ExternalLink className="w-4 h-4 text-emerald-700 shrink-0" />
           <span>View Live Website</span>
         </Link>
 
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-all cursor-pointer"
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-black text-rose-900 hover:bg-white/80 hover:text-rose-950 transition-all cursor-pointer"
         >
-          <LogOut className="w-5 h-5 text-rose-400" />
+          <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-rose-700 shrink-0" />
           <span>Sign Out</span>
         </button>
       </div>
@@ -194,7 +193,7 @@ export default function AdminSidebar() {
       <div className="md:hidden fixed top-2.5 left-2.5 z-50">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-xl bg-[var(--ink)] text-white shadow-lg border border-[var(--iris)]/40 cursor-pointer hover:bg-[var(--iris-dark)]"
+          className="p-2 rounded-xl bg-[var(--fog)] text-[#2B1F1A] shadow-md border border-[var(--line)] cursor-pointer hover:bg-white transition-colors"
           aria-label="Toggle Sidebar"
         >
           <Menu className="w-5 h-5" />
@@ -210,14 +209,14 @@ export default function AdminSidebar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs"
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
             />
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-[85vw] max-w-[260px] bg-[var(--ink)] text-white h-full shadow-2xl z-10 overflow-y-auto"
+              className="relative w-[85vw] max-w-[260px] bg-[var(--fog)] border-r border-[var(--line)] text-[#2B1F1A] h-full shadow-2xl z-10 overflow-y-auto"
             >
               {sidebarContent}
             </motion.aside>
@@ -226,7 +225,7 @@ export default function AdminSidebar() {
       </AnimatePresence>
 
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex w-64 bg-[var(--ink)] text-white min-h-screen shadow-xl flex-shrink-0 flex-col">
+      <aside className="hidden md:flex w-64 bg-[var(--fog)] border-r border-[var(--line)] text-[#2B1F1A] min-h-screen shadow-sm flex-shrink-0 flex-col">
         {sidebarContent}
       </aside>
     </>
