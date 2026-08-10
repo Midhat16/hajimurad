@@ -206,10 +206,12 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     const unsubServices = onSnapshot(
       collection(db, "services"),
       (snapshot) => {
-        const items = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
+        const items = snapshot.docs
+          .map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          }))
+          .filter((svc) => svc.isDeleted !== true);
         setServicesList(items);
       },
       (err) => console.warn("Services subscription notice:", err.message)

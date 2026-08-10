@@ -67,6 +67,32 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
   const [availableDoctors, setAvailableDoctors] = useState([]);
   const [expandedFeatures, setExpandedFeatures] = useState({});
 
+  const [allServicesList, setAllServicesList] = useState([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [templateCopiedNotice, setTemplateCopiedNotice] = useState("");
+
+  useEffect(() => {
+    try {
+      const unsub = onSnapshot(
+        collection(db, "services"),
+        (snapshot) => {
+          const list = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          }));
+          list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+          setAllServicesList(list);
+        },
+        (err) => {
+          console.warn("Services subscription notice for ServiceForm template list:", err.message);
+        }
+      );
+      return () => unsub();
+    } catch (err) {
+      console.warn("Failed to fetch services template list:", err);
+    }
+  }, []);
+
   useEffect(() => {
     try {
       const unsub = onSnapshot(
@@ -130,6 +156,59 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
       });
     }
   }, [initialData]);
+
+  const handleSelectTemplate = (e) => {
+    const serviceId = e.target.value;
+    setSelectedTemplateId(serviceId);
+
+    if (!serviceId) {
+      setTemplateCopiedNotice("");
+      return;
+    }
+
+    const selectedSvc = allServicesList.find((s) => s.id === serviceId);
+    if (!selectedSvc) return;
+
+    const rawFeatures = selectedSvc.features && selectedSvc.features.length > 0 ? selectedSvc.features : [""];
+    const rawMappings = selectedSvc.featureDoctorMappings || [];
+
+    const syncedMappings = rawFeatures.map((featName) => {
+      const existing = rawMappings.find((m) => m.featureName === featName);
+      if (existing) {
+        const assignedIds = existing.assignedDoctorIds || [];
+        const assignedDocs = existing.assignedDoctors || assignedIds.map((docId) => {
+          const ov = (existing.doctorOverrides || {})[docId];
+          return {
+            doctorId: docId,
+            timing: {
+              start: ov?.startTime || selectedSvc.serviceStartTime || "09:00",
+              end: ov?.endTime || selectedSvc.serviceEndTime || "17:00",
+              days: ov?.days || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              isOverride: !!ov?.enabled,
+            },
+          };
+        });
+        return { ...existing, featureName: featName, assignedDoctorIds: assignedIds, assignedDoctors: assignedDocs };
+      }
+      return { featureName: featName, assignedDoctorIds: [], assignedDoctors: [], doctorOverrides: {} };
+    });
+
+    setFormData({
+      title: selectedSvc.title || "",
+      description: selectedSvc.description || "",
+      icon: selectedSvc.icon || "Sparkles",
+      color: selectedSvc.color || "from-sky-400 to-blue-500",
+      features: rawFeatures,
+      doctorIds: selectedSvc.doctorIds || [],
+      minBookingDays: selectedSvc.minBookingDays !== undefined && selectedSvc.minBookingDays !== null ? selectedSvc.minBookingDays : 0,
+      maxBookingDays: selectedSvc.maxBookingDays !== undefined && selectedSvc.maxBookingDays !== null ? selectedSvc.maxBookingDays : "",
+      serviceStartTime: selectedSvc.serviceStartTime || "09:00",
+      serviceEndTime: selectedSvc.serviceEndTime || "17:00",
+      featureDoctorMappings: syncedMappings,
+    });
+
+    setTemplateCopiedNotice(`Successfully pre-filled form using template "${selectedSvc.title || "Service"}". You can freely edit any details below.`);
+  };
 
   const toggleDoctorSelection = (doctorId) => {
     setFormData((prev) => {
@@ -384,6 +463,42 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
 
       {/* Form Container */}
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
+        
+        {/* COPY DETAILS FROM AN EXISTING SERVICE (TEMPLATE DROPDOWN) */}
+        {!initialData && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[var(--iris)] shrink-0" />
+              <label className="text-xs font-black text-[#2B1F1A] uppercase tracking-wider">
+                Copy details from an existing service (optional)
+              </label>
+            </div>
+            <p className="text-xs text-slate-600 font-medium">
+              Select a previously created service (including deleted ones) to pre-fill all fields (features, timings, doctors). Saving will create a brand new service without modifying the template.
+            </p>
+            <div className="relative pt-1">
+              <select
+                value={selectedTemplateId}
+                onChange={handleSelectTemplate}
+                className="w-full bg-white border border-blue-300 focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all cursor-pointer shadow-xs"
+              >
+                <option value="">-- Start from scratch (Or pick a service template) --</option>
+                {allServicesList.map((svc) => (
+                  <option key={svc.id} value={svc.id}>
+                    {svc.title || svc.name || "Untitled Service"} {svc.isDeleted ? " (Deleted)" : ""}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+            {templateCopiedNotice && (
+              <div className="flex items-center gap-2 text-xs font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 p-2.5 rounded-xl mt-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span>{templateCopiedNotice}</span>
+              </div>
+            )}
+          </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Title */}

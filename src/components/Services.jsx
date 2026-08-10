@@ -111,25 +111,27 @@ export default function Services() {
         servicesCol,
         (snapshot) => {
           if (!snapshot.empty) {
-            const dataArray = snapshot.docs.map((docSnap) => {
-              const data = docSnap.data();
-              const expectedOrder = getTargetOrder(data, docSnap.id);
-              
-              // Auto-sync existing Firestore docs if order is missing or different
-              if (data.order !== expectedOrder) {
-                try {
-                  updateDoc(doc(db, "services", docSnap.id), { order: expectedOrder });
-                } catch (e) {
-                  // Silent catch for permission or read-only modes
+            const dataArray = snapshot.docs
+              .map((docSnap) => {
+                const data = docSnap.data();
+                const expectedOrder = getTargetOrder(data, docSnap.id);
+                
+                // Auto-sync existing Firestore docs if order is missing or different
+                if (data.order !== expectedOrder) {
+                  try {
+                    updateDoc(doc(db, "services", docSnap.id), { order: expectedOrder });
+                  } catch (e) {
+                    // Silent catch for permission or read-only modes
+                  }
                 }
-              }
 
-              return {
-                id: docSnap.id,
-                order: expectedOrder,
-                ...data,
-              };
-            });
+                return {
+                  id: docSnap.id,
+                  order: expectedOrder,
+                  ...data,
+                };
+              })
+              .filter((svc) => svc.isDeleted !== true);
 
             // Sort strictly by order ascending
             dataArray.sort((a, b) => (a.order || 99) - (b.order || 99));
