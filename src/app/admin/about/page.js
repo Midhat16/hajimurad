@@ -3,30 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Save, Info, CheckCircle2, AlertCircle, UserCheck } from "lucide-react";
+import { Save, Info, CheckCircle2, AlertCircle, UserCheck, Building2, Award } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const DEFAULT_FULL_MESSAGE = `Right from the very childhood, whenever I happened to pass near some welfare institution, I was inspired by an intense desire to pray to God to enable me to build such an institution as may prove memorable till eternity. I am grateful to Almighty Allah from the core of my heart for the fulfillment of my desire i.e., the completion of a welfare eye hospital.
-
-I do not find words to thank Almighty Allah, who enabled me to find and purchase the best possible piece of land for the construction of the hospital. I visited different places and saw many pieces of land but none could satisfy my aesthetic sense. While going and coming from Lahore and crossing the canal bridge, I prayed to Almighty Allah to enable me to purchase it.
-
-One day, while I was sitting in my factory, suddenly a property dealer rang me up to inform that a suitable piece of land, adjacent to the canal, was available for purchase. I left all business affairs and rang up Late Haji Manzoor Hussain, a close friend of mine, to accompany me to the property dealer.
-
-Accompanying him, I contacted the owner of the land. The deal was settled there with some advance. This is how the seed for the construction of the hospital was sown. Then I called a meeting of my brothers, members of my family and friends, and placed before them the plan for the construction of the hospital. I told them that I wanted to build a centrally air conditioned Eye Hospital, equipped with the latest surgical instruments and other equipment for the treatment of eye disease. The basic object of this hospital would be to treat the poor patients. It would be a hospital where the poor patients will not only be operated upon and treated free but medicine will also be provided to them free of all cost. It would be a hospital where no preference would be shown to any patient whatever be his social status. It would be a hospital where no employee would receive any bribe or tip from the patients. In this hospital even the trustees and their relatives would receive the same treatment as an ordinary patient, on one's turn and absolutely no preference would be shown to them. In this hospital meticulous arrangement would be made for maintaining cleanliness round the clock.
-
-All the people gathered there, not only appreciated the plan whole heartedly but also promised and assured me of their full and complete co-operation and help.
-
-On Feb, 28, 1980 the foundation stone of the hospital was laid by Maryam Bibi, the respectable mother of Haji Murad Ali. Thereafter, the trustees worked day and night to complete the building and by the grace of Almighty Allah the Opening Ceremony of the hospital was performed by Maryam Bibi (May her soul rest in eternal peace) on 1st September, 1982.
-
-All the members of family and trustees extended their whole hearted co-operation in the construction of the building of the hospital. However, my special thanks are due to Mr. Muhammad Saleem and Mr. Muhammad Naseem who were always in the forefront to complete this noble task. After the Opening Ceremony of the hospital Haji Muhammad Amin Shaikh, the ex-president of the Chamber of Commerce and Industries Gujranwala, was appointed General Secretary of the hospital who not only contributed generously on the financial side but also took active and keen interest in the administration of the hospital. Later on, when the construction of residential flats for the doctors became necessary, a large number of friends including Sh. Muhammad Younas, Haji Muhammad Amin, Haji Muhammad Saeed and Seth Siddique Bahrain Wale played a prominent role to accomplish this project.
-
-By the grace of God, the hospital began to treat a large number of patients from the very first day. This number went on increasing day by day. It is a matter of great satisfaction for me that God Almighty has fulfilled my cherished dream and the hospital is performing the function that it was constructed for.
-
-I am fully satisfied with the working of the hospital. The whole staff is hardworking, honest and experienced. These qualities of the staff have enhanced the reputation of the hospital. Every patient who comes for the treatment leaves the hospital satisfied and contented. This working and reputation of the hospital is proving to be the greatest spiritual treasure for me and the trustees of the hospital. I pray from the core of my heart that this hospital may progress and prosper forever and more and more patients should get benefit from it.
-
-I do not find words to express my deepest sense of gratitude and thanks to Almighty Allah for granting me the strength and courage to complete this gigantic task for the service of the suffering humanity.
-
-While concluding, I would love to record my deepest sense of appreciation and gratitude for all those who joined hands in this noble cause and extended their co-operation for the completion of this hospital.`;
+import ImagePicker from "@/components/admin/ImagePicker";
 
 export default function AdminAboutPage() {
   const [formData, setFormData] = useState({
@@ -36,18 +15,36 @@ export default function AdminAboutPage() {
     values: "",
   });
 
-  const [chairmanData, setChairmanData] = useState({
+  const [lateChairmanData, setLateChairmanData] = useState({
     name: "Haji Murad Ali (Late)",
-    designation: "Chairman, Haji Murad Trust Eye Hospital",
-    message: DEFAULT_FULL_MESSAGE,
+    designation: "Founder & Late Chairman, Haji Murad Trust Eye Hospital",
+    message: "",
     imageUrl: "/images/chairman.jpg",
+  });
+
+  const [chairmanData, setChairmanData] = useState({
+    name: "Dr. Zafar Iqbal",
+    designation: "Chairman, Haji Murad Trust Eye Hospital",
+    message: "",
+    imageUrl: "/images/doctor-male-1.jpg",
+  });
+
+  const [adminData, setAdminData] = useState({
+    name: "Hospital Administrator",
+    designation: "Administrator, Haji Murad Trust Eye Hospital",
+    message: "",
+    imageUrl: "/images/admin-profile.jpg",
   });
 
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingLateChairman, setIsSavingLateChairman] = useState(false);
   const [isSavingChairman, setIsSavingChairman] = useState(false);
+  const [isSavingAdmin, setIsSavingAdmin] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [savedLateChairmanSuccess, setSavedLateChairmanSuccess] = useState(false);
   const [savedChairmanSuccess, setSavedChairmanSuccess] = useState(false);
+  const [savedAdminSuccess, setSavedAdminSuccess] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -75,15 +72,39 @@ export default function AdminAboutPage() {
           });
         }
 
-        // 2. Fetch Chairman Message content
+        // 2. Fetch Late Chairman Message content
+        const lateSnap = await getDoc(doc(db, "siteContent", "lateChairmanMessage"));
+        if (lateSnap.exists()) {
+          const lData = lateSnap.data();
+          setLateChairmanData({
+            name: lData.name || "Haji Murad Ali (Late)",
+            designation: lData.designation || "Founder & Late Chairman, Haji Murad Trust Eye Hospital",
+            message: lData.message || "",
+            imageUrl: lData.imageUrl || "/images/chairman.jpg",
+          });
+        }
+
+        // 3. Fetch Current Chairman Message content
         const chairmanSnap = await getDoc(doc(db, "siteContent", "chairmanMessage"));
         if (chairmanSnap.exists()) {
           const cData = chairmanSnap.data();
           setChairmanData({
-            name: cData.name || "Haji Murad Ali (Late)",
+            name: cData.name || "Dr. Zafar Iqbal",
             designation: cData.designation || "Chairman, Haji Murad Trust Eye Hospital",
-            message: cData.message || DEFAULT_FULL_MESSAGE,
-            imageUrl: cData.imageUrl || "/images/chairman.jpg",
+            message: cData.message || "",
+            imageUrl: cData.imageUrl || "/images/doctor-male-1.jpg",
+          });
+        }
+
+        // 4. Fetch Admin Message content
+        const adminSnap = await getDoc(doc(db, "siteContent", "adminsMessage"));
+        if (adminSnap.exists()) {
+          const aData = adminSnap.data();
+          setAdminData({
+            name: aData.name || "Hospital Administrator",
+            designation: aData.designation || "Administrator, Haji Murad Trust Eye Hospital",
+            message: aData.message || "",
+            imageUrl: aData.imageUrl || "/images/admin-profile.jpg",
           });
         }
       } catch (err) {
@@ -100,9 +121,19 @@ export default function AdminAboutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleLateChairmanChange = (e) => {
+    const { name, value } = e.target;
+    setLateChairmanData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleChairmanChange = (e) => {
     const { name, value } = e.target;
     setChairmanData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAdminChange = (e) => {
+    const { name, value } = e.target;
+    setAdminData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmitAbout = async (e) => {
@@ -126,6 +157,30 @@ export default function AdminAboutPage() {
       setError("Failed to save About changes.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSubmitLateChairman = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsSavingLateChairman(true);
+    try {
+      await setDoc(
+        doc(db, "siteContent", "lateChairmanMessage"),
+        {
+          ...lateChairmanData,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      setSavedLateChairmanSuccess(true);
+      setTimeout(() => setSavedLateChairmanSuccess(false), 4000);
+    } catch (err) {
+      console.error("Failed to save Late Chairman Message:", err);
+      setError("Failed to save Late Chairman Message changes.");
+    } finally {
+      setIsSavingLateChairman(false);
     }
   };
 
@@ -153,11 +208,35 @@ export default function AdminAboutPage() {
     }
   };
 
+  const handleSubmitAdmin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsSavingAdmin(true);
+    try {
+      await setDoc(
+        doc(db, "siteContent", "adminsMessage"),
+        {
+          ...adminData,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      setSavedAdminSuccess(true);
+      setTimeout(() => setSavedAdminSuccess(false), 4000);
+    } catch (err) {
+      console.error("Failed to save Admin Message:", err);
+      setError("Failed to save Admin Message changes.");
+    } finally {
+      setIsSavingAdmin(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[var(--ink)]">Loading Content Management...</p>
+        <p className="text-xs font-bold text-[#2B1F1A]">Loading Content Management...</p>
       </div>
     );
   }
@@ -170,11 +249,11 @@ export default function AdminAboutPage() {
           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
             Site Content Editor
           </span>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
-            About & Chairman Message Settings
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
+            About & Leadership Messages Settings
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
-            Manage hospital legacy, mission statement, and the official Chairman's Message page.
+            Manage hospital legacy, mission statement, Late Chairman, Current Chairman, and Admin Messages.
           </p>
         </div>
       </div>
@@ -194,7 +273,7 @@ export default function AdminAboutPage() {
               <Info className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-[var(--ink)]">
+              <h2 className="text-base font-extrabold text-[#2B1F1A]">
                 About Hospital Main Content
               </h2>
               <p className="text-[11px] text-slate-500 font-medium">
@@ -221,7 +300,7 @@ export default function AdminAboutPage() {
         <form onSubmit={handleSubmitAbout} className="space-y-6">
           {/* Title */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Headline Title *
             </label>
             <input
@@ -230,13 +309,13 @@ export default function AdminAboutPage() {
               value={formData.title}
               onChange={handleChange}
               required
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Story */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Hospital Legacy & History Story
             </label>
             <textarea
@@ -244,13 +323,13 @@ export default function AdminAboutPage() {
               value={formData.story}
               onChange={handleChange}
               rows={4}
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
             />
           </div>
 
           {/* Mission */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Hospital Mission Statement
             </label>
             <textarea
@@ -258,13 +337,13 @@ export default function AdminAboutPage() {
               value={formData.mission}
               onChange={handleChange}
               rows={3}
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
             />
           </div>
 
           {/* Values */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Core Values (Comma Separated)
             </label>
             <input
@@ -272,7 +351,7 @@ export default function AdminAboutPage() {
               name="values"
               value={formData.values}
               onChange={handleChange}
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
@@ -289,19 +368,123 @@ export default function AdminAboutPage() {
         </form>
       </div>
 
-      {/* 2. SECTION: Chairman's Message Editor */}
+      {/* 2. SECTION: Late Chairman's Message Editor */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+              <Award className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-extrabold text-[#2B1F1A]">
+                Late Chairman's Message Settings
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Edit Founder & Late Chairman name, designation, photo, and official statement.
+              </p>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {savedLateChairmanSuccess && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                Saved Live!
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <form onSubmit={handleSubmitLateChairman} className="space-y-6">
+          {/* Photo Upload / Selection */}
+          <div className="bg-[var(--fog)] p-4 rounded-2xl border border-[var(--line)]">
+            <ImagePicker
+              value={lateChairmanData.imageUrl}
+              onChange={(url) => setLateChairmanData((prev) => ({ ...prev, imageUrl: url }))}
+              label="Late Chairman Photo / Picture"
+              cropSquare={false}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                Late Chairman Name *
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={lateChairmanData.name}
+                onChange={handleLateChairmanChange}
+                required
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+              />
+            </div>
+
+            {/* Designation */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                Designation *
+              </label>
+              <input
+                type="text"
+                name="designation"
+                value={lateChairmanData.designation}
+                onChange={handleLateChairmanChange}
+                required
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Message Body */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+              Late Chairman Message Body (Urdu / English) *
+            </label>
+            <textarea
+              name="message"
+              value={lateChairmanData.message}
+              onChange={handleLateChairmanChange}
+              required
+              rows={12}
+              placeholder="Enter official statement from late chairman..."
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-y leading-relaxed"
+            />
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSavingLateChairman}
+              className="flex items-center gap-2 bg-amber-700 hover:bg-amber-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              {isSavingLateChairman ? "Saving Message..." : "Save Late Chairman's Message"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* 3. SECTION: Current Chairman's Message Editor */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
               <UserCheck className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-[var(--ink)]">
-                Chairman's Message Settings
+              <h2 className="text-base font-extrabold text-[#2B1F1A]">
+                Current Chairman's Message Settings
               </h2>
               <p className="text-[11px] text-slate-500 font-medium">
-                Edit Chairman name, designation, and official statement shown on /about/chairman-message.
+                Edit Current Chairman name, designation, photo, and official statement.
               </p>
             </div>
           </div>
@@ -322,10 +505,20 @@ export default function AdminAboutPage() {
         </div>
 
         <form onSubmit={handleSubmitChairman} className="space-y-6">
+          {/* Photo Upload / Selection */}
+          <div className="bg-[var(--fog)] p-4 rounded-2xl border border-[var(--line)]">
+            <ImagePicker
+              value={chairmanData.imageUrl}
+              onChange={(url) => setChairmanData((prev) => ({ ...prev, imageUrl: url }))}
+              label="Chairman Photo / Picture"
+              cropSquare={false}
+            />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                 Chairman Name *
               </label>
               <input
@@ -334,13 +527,13 @@ export default function AdminAboutPage() {
                 value={chairmanData.name}
                 onChange={handleChairmanChange}
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
 
             {/* Designation */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                 Designation *
               </label>
               <input
@@ -349,15 +542,15 @@ export default function AdminAboutPage() {
                 value={chairmanData.designation}
                 onChange={handleChairmanChange}
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
 
           {/* Message Body */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
-              Chairman Official Message Body *
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+              Chairman Message Body (Urdu / English) *
             </label>
             <textarea
               name="message"
@@ -365,8 +558,8 @@ export default function AdminAboutPage() {
               onChange={handleChairmanChange}
               required
               rows={14}
-              placeholder="Enter official statement from the chairman..."
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-y leading-relaxed"
+              placeholder="Enter official statement from current chairman..."
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-y leading-relaxed"
             />
           </div>
 
@@ -374,10 +567,114 @@ export default function AdminAboutPage() {
             <button
               type="submit"
               disabled={isSavingChairman}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 bg-indigo-700 hover:bg-indigo-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {isSavingChairman ? "Saving Message..." : "Save Chairman's Message"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* 4. SECTION: Admin's Message Editor */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-extrabold text-[#2B1F1A]">
+                Admin's Message Settings
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Edit Administrator name, designation, photo, and official statement.
+              </p>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {savedAdminSuccess && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                Saved Live!
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <form onSubmit={handleSubmitAdmin} className="space-y-6">
+          {/* Photo Upload / Selection */}
+          <div className="bg-[var(--fog)] p-4 rounded-2xl border border-[var(--line)]">
+            <ImagePicker
+              value={adminData.imageUrl}
+              onChange={(url) => setAdminData((prev) => ({ ...prev, imageUrl: url }))}
+              label="Administrator Photo / Picture"
+              cropSquare={false}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                Administrator Name *
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={adminData.name}
+                onChange={handleAdminChange}
+                required
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+              />
+            </div>
+
+            {/* Designation */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                Designation *
+              </label>
+              <input
+                type="text"
+                name="designation"
+                value={adminData.designation}
+                onChange={handleAdminChange}
+                required
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Message Body */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+              Admin Official Message Body (Urdu / English) *
+            </label>
+            <textarea
+              name="message"
+              value={adminData.message}
+              onChange={handleAdminChange}
+              required
+              rows={12}
+              placeholder="Enter official statement from hospital administrator..."
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-y leading-relaxed"
+            />
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={isSavingAdmin}
+              className="flex items-center gap-2 bg-teal-700 hover:bg-teal-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              {isSavingAdmin ? "Saving Admin Message..." : "Save Admin's Message"}
             </button>
           </div>
         </form>

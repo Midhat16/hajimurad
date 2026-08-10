@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[var(--ink)]">Loading Administrative Dashboard...</p>
+        <p className="text-xs font-bold text-[#2B1F1A]">Loading Administrative Dashboard...</p>
       </div>
     );
   }
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+        <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
           Hospital Administrative Dashboard
         </h1>
         <p className="text-xs text-[var(--slate)] font-semibold mt-1">
@@ -182,11 +182,11 @@ export default function AdminDashboardPage() {
                   <div className={`w-10 h-10 rounded-2xl ${card.bgColor} border ${card.borderColor} flex items-center justify-center`}>
                     <Icon className={`w-5 h-5 ${card.iconColor}`} />
                   </div>
-                  <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-[var(--ink)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-[#2B1F1A] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </div>
 
                 <div>
-                  <span className="text-3xl font-black text-[var(--ink)]">
+                  <span className="text-3xl font-black text-[#2B1F1A]">
                     {card.count}
                   </span>
                   <p className="text-xs font-bold text-[var(--slate)] uppercase tracking-wider mt-1">
@@ -208,11 +208,11 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-[var(--iris)]" />
-                <h3 className="text-base font-extrabold text-[var(--ink)]">Recent Appointments</h3>
+                <h3 className="text-base font-extrabold text-[#2B1F1A]">Recent Appointments</h3>
               </div>
               <Link
                 href="/admin/appointments"
-                className="text-xs font-bold text-[var(--iris)] hover:text-[var(--ink)] flex items-center gap-1"
+                className="text-xs font-bold text-[var(--iris)] hover:text-[#2B1F1A] flex items-center gap-1"
               >
                 View All &rarr;
               </Link>
@@ -228,7 +228,7 @@ export default function AdminDashboardPage() {
                     className="p-3.5 rounded-2xl bg-[var(--fog)] border border-[var(--line)]/60 flex items-center justify-between text-xs"
                   >
                     <div>
-                      <h4 className="font-bold text-[var(--ink)]">{appt.name}</h4>
+                      <h4 className="font-bold text-[#2B1F1A]">{appt.name}</h4>
                       <p className="text-[11px] text-slate-500 font-medium">{appt.service} ({appt.doctor})</p>
                     </div>
                     <span
@@ -255,11 +255,11 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-[var(--iris)]" />
-                <h3 className="text-base font-extrabold text-[var(--ink)]">Recent Contact Messages</h3>
+                <h3 className="text-base font-extrabold text-[#2B1F1A]">Recent Contact Messages</h3>
               </div>
               <Link
                 href="/admin/messages"
-                className="text-xs font-bold text-[var(--iris)] hover:text-[var(--ink)] flex items-center gap-1"
+                className="text-xs font-bold text-[var(--iris)] hover:text-[#2B1F1A] flex items-center gap-1"
               >
                 View All &rarr;
               </Link>
@@ -275,7 +275,7 @@ export default function AdminDashboardPage() {
                     className="p-3.5 rounded-2xl bg-[var(--fog)] border border-[var(--line)]/60 flex items-center justify-between text-xs"
                   >
                     <div className="min-w-0 pr-2">
-                      <h4 className="font-bold text-[var(--ink)] truncate">{msg.name}</h4>
+                      <h4 className="font-bold text-[#2B1F1A] truncate">{msg.name}</h4>
                       <p className="text-[11px] text-slate-500 truncate font-medium">{msg.message}</p>
                     </div>
                     {msg.read ? (

@@ -5,7 +5,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export const DEFAULT_HOSPITAL_PROFILE = {
-  hospitalName: "Haji Murad Trust Eye Hospital",
+  hospitalName: "Haji Murad Eye Hospital Trust",
   logoUrl: "/images/logo.png",
 };
 

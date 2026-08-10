@@ -8,44 +8,44 @@ import { Sparkles, ChevronLeft, ChevronRight, Activity } from "lucide-react";
 const GALLERY_IMAGES = [
   {
     id: 1,
-    src: "/images/haji-murad-main-campus.jpg",
+    src: "/images/haji-murad-main-campus.webp",
     alt: "Haji Murad Trust Eye Hospital Main Campus Building",
     caption: "Haji Murad Trust Eye Hospital Campus",
     tag: "Hospital Campus",
   },
   {
     id: 2,
-    src: "/images/hero-1.jpg",
-    alt: "Advanced Ophthalmic Eye Examination & Diagnostics",
-    caption: "High Precision Eye Examination",
-    tag: "Retina Diagnostics",
+    src: "/images/gallery-visual-field.jpg",
+    alt: "Visual field Testing",
+    caption: "Visual field Testing",
+    tag: "Diagnostics",
   },
   {
     id: 3,
-    src: "/images/hero-2.jpg",
-    alt: "Specialist Ophthalmic Consultation & Slit Lamp Exam",
-    caption: "Specialist Slit-Lamp Consultation",
+    src: "/images/gallery-biometry.jpg",
+    alt: "Biometry performing",
+    caption: "Biometry performing",
     tag: "Doctor Clinic",
   },
   {
     id: 4,
-    src: "/images/hero-3.jpg",
-    alt: "Femtosecond Laser Eye Surgery Precision",
-    caption: "Blade-Free Laser Eye Surgery Suite",
-    tag: "Laser Surgery",
+    src: "/images/gallery-oct.jpg",
+    alt: "OCT Performing",
+    caption: "OCT Performing",
+    tag: "Diagnostics",
   },
   {
     id: 5,
-    src: "/images/clinic-exam.jpg",
-    alt: "Human Iris & Vision Examination Suite",
-    caption: "Advanced Iris & Retina Diagnostics",
-    tag: "Refractive Care",
+    src: "/images/gallery-yag-1.jpg",
+    alt: "YAG Capsulotomy",
+    caption: "YAG Capsulotomy",
+    tag: "Laser Procedure",
   },
   {
     id: 6,
-    src: "/images/operation-theater.jpg",
-    alt: "Ophthalmology Surgical Suite",
-    caption: "Carl Zeiss Micro-Incision Surgery Theater",
+    src: "/images/gallery-yag-2.jpg",
+    alt: "YAG Capsulotomy",
+    caption: "YAG Capsulotomy",
     tag: "Operation Theater",
   },
 ];
@@ -88,7 +88,7 @@ export default function EyeGallery() {
 
   return (
     <div
-      className="relative w-full h-[320px] sm:h-[380px] lg:h-[420px] flex flex-col items-center justify-center select-none"
+      className="relative w-full max-w-[360px] min-h-[360px] flex flex-col items-center justify-center select-none mx-auto"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -110,8 +110,8 @@ export default function EyeGallery() {
       />
 
       {/* MAIN CONTAINER: IDLE CROSSFADE / EXPANDED ORBITAL GALLERY */}
-      <div className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 flex items-center justify-center">
-        
+      <div className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 aspect-square flex items-center justify-center flex-shrink-0 mx-auto">
+
         {/* DESKTOP HOVER: ORBITAL CIRCULAR RING OF THUMBNAILS */}
         {!isMobile && isHovered ? (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -146,11 +146,10 @@ export default function EyeGallery() {
                     e.stopPropagation();
                     setActiveIndex(idx);
                   }}
-                  className={`absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 cursor-pointer transition-shadow shadow-md ${
-                    isSelected
+                  className={`absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 cursor-pointer transition-shadow shadow-md ${isSelected
                       ? "bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] ring-4 ring-[var(--iris)]/30 shadow-lg"
                       : "bg-white border-2 border-[var(--line)] hover:border-[var(--iris)]"
-                  }`}
+                    }`}
                 >
                   <div className="w-full h-full rounded-full overflow-hidden relative">
                     <Image
@@ -170,7 +169,7 @@ export default function EyeGallery() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] shadow-xl z-20 overflow-hidden relative"
+              className="w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] shadow-xl z-20 overflow-hidden relative flex-shrink-0 aspect-square"
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -193,8 +192,8 @@ export default function EyeGallery() {
             </motion.div>
           </div>
         ) : (
-          /* IDLE / MOBILE VIEW: MAIN SINGLE ROTATING PHOTO FRAME */
-          <div className="relative w-full h-full rounded-full p-1.5 bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] shadow-xl overflow-hidden group cursor-pointer">
+          /* IDLE / MOBILE VIEW: MAIN SINGLE ROTATING PHOTO FRAME (PERFECT 1:1 CIRCLE) */
+          <div className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 aspect-square rounded-full p-1.5 bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] shadow-xl overflow-hidden group cursor-pointer flex-shrink-0 mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeImage.id}
@@ -235,7 +234,7 @@ export default function EyeGallery() {
           <span className="text-[9px] font-bold text-[var(--iris)] uppercase tracking-widest block truncate">
             {activeImage.tag}
           </span>
-          <span className="text-xs font-bold text-[var(--ink)] block truncate leading-snug">
+          <span className="text-xs font-bold text-[#2B1F1A] block truncate leading-snug">
             {activeImage.caption}
           </span>
         </div>
@@ -245,7 +244,7 @@ export default function EyeGallery() {
       <div className="mt-3 flex items-center gap-3 z-30">
         <button
           onClick={handlePrev}
-          className="p-1 rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-xs transition-colors cursor-pointer"
+          className="p-1 rounded-full border border-[var(--line)] bg-white text-[#2B1F1A] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-xs transition-colors cursor-pointer"
           aria-label="Previous photo"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
@@ -256,11 +255,10 @@ export default function EyeGallery() {
             <button
               key={idx}
               onClick={() => setActiveIndex(idx)}
-              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                idx === activeIndex
+              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === activeIndex
                   ? "w-5 bg-[var(--ink)]"
                   : "w-2 bg-[var(--line)] hover:bg-[var(--iris)]"
-              }`}
+                }`}
               aria-label={`Go to photo ${idx + 1}`}
             />
           ))}
@@ -268,7 +266,7 @@ export default function EyeGallery() {
 
         <button
           onClick={handleNext}
-          className="p-1 rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-xs transition-colors cursor-pointer"
+          className="p-1 rounded-full border border-[var(--line)] bg-white text-[#2B1F1A] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-xs transition-colors cursor-pointer"
           aria-label="Next photo"
         >
           <ChevronRight className="w-3.5 h-3.5" />

@@ -254,7 +254,7 @@ export default function DoctorDirectChatPage() {
                 <ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[var(--ink)]">
+                <h3 className="text-sm font-extrabold text-[#2B1F1A]">
                   Hospital Administration Channel
                 </h3>
                 <p className="text-xs text-[var(--slate)] font-semibold">
@@ -274,14 +274,14 @@ export default function DoctorDirectChatPage() {
             {loadingMsgs ? (
               <div className="py-20 text-center space-y-3">
                 <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-xs font-bold text-[var(--ink)]">Loading Secure Chat Thread...</p>
+                <p className="text-xs font-bold text-[#2B1F1A]">Loading Secure Chat Thread...</p>
               </div>
             ) : messages.length === 0 ? (
               <div className="py-16 text-center space-y-3 max-w-sm mx-auto">
                 <div className="w-12 h-12 rounded-3xl bg-[var(--fog)] text-[var(--iris)] flex items-center justify-center mx-auto">
                   <MessageSquare className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-extrabold text-[var(--ink)]">No Messages Yet</h4>
+                <h4 className="text-sm font-extrabold text-[#2B1F1A]">No Messages Yet</h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
                   Start a conversation with Admin below. Your thread is private to your account only.
                 </p>

@@ -50,7 +50,7 @@ export default function FilePicker({
 
   return (
     <div className="space-y-3">
-      <label className="text-xs font-bold text-[var(--ink)] block">
+      <label className="text-xs font-bold text-[#2B1F1A] block">
         {label}
       </label>
 
@@ -68,7 +68,7 @@ export default function FilePicker({
         {uploading ? (
           <div className="flex flex-col items-center py-3 text-center">
             <div className="w-8 h-8 border-3 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-2" />
-            <p className="text-xs font-bold text-[var(--ink)]">Reading file from PC...</p>
+            <p className="text-xs font-bold text-[#2B1F1A]">Reading file from PC...</p>
           </div>
         ) : value ? (
           <div className="space-y-3">
@@ -82,7 +82,7 @@ export default function FilePicker({
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">File Selected Successfully</span>
                   </div>
-                  <p className="text-[11px] font-semibold text-[var(--ink)] truncate mt-0.5">
+                  <p className="text-[11px] font-semibold text-[#2B1F1A] truncate mt-0.5">
                     {fileName || (isBase64 ? "Local PC File Attached" : value)}
                   </p>
                   {fileSize && (
@@ -108,7 +108,7 @@ export default function FilePicker({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 text-xs font-bold text-[var(--ink)] hover:text-[var(--iris)] bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-bold text-[#2B1F1A] hover:text-[var(--iris)] bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
                 >
                   Change File
                 </button>
@@ -134,7 +134,7 @@ export default function FilePicker({
                 <UploadCloud className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-bold text-[var(--ink)]">Select File from your Computer / Device</p>
+                <p className="text-xs font-bold text-[#2B1F1A]">Select File from your Computer / Device</p>
                 <p className="text-[11px] text-slate-400 font-medium">PDF, DOC, DOCX, Images supported</p>
               </div>
             </div>

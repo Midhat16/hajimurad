@@ -1,50 +1,109 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, ShieldCheck, Star, Sparkles, Zap, Smile, Eye } from "lucide-react";
+import { ShieldCheck, HeartHandshake, Eye, Award, Clock, Activity } from "lucide-react";
 import EyeGallery from "./EyeGallery";
 
 const HERO_BANNER_IMAGES = [
   {
-    src: "/images/haji-murad-main-campus.jpg",
-    alt: "Haji Murad Trust Eye Hospital Campus Building",
+    src: "/images/hero-building-exterior.jpg",
+    alt: "Haji Murad Eye Hospital Trust Main Building Exterior and Front Entrance",
+    position: "center center",
+  },
+  {
+    src: "/images/hero-opd-examination.jpg",
+    alt: "Senior Female Eye Specialist Conducting OPD Vision Examination",
+    position: "center top",
+  },
+  {
+    src: "/images/hero-operating-theater.jpg",
+    alt: "Advanced ZEISS Ophthalmic Surgery Microscope in Operating Theater",
+    position: "center center",
   },
   {
     src: "/images/hero-1.jpg",
-    alt: "Advanced Ophthalmic Diagnostics & Retina Scan",
+    alt: "Haji Murad Eye Hospital Operating Theater & Advanced Ophthalmic Surgery Equipment",
+    position: "center center",
   },
-  {
-    src: "/images/hero-2.jpg",
-    alt: "Expert Doctor Eye Examination & Slit Lamp Care",
-  },
-  {
-    src: "/images/hero-3.jpg",
-    alt: "State of the Art Laser Eye Surgery Theater",
-  },
-];
-
-const MARQUEE_ITEMS = [
-  { icon: Sparkles, text: "Blade-Free Wavefront LASIK", badge: "Refractive" },
-  { icon: ShieldCheck, text: "Carl Zeiss HD OCT Scanner", badge: "Diagnostics" },
-  { icon: Activity, text: "Micro-Incision Cataract IOL", badge: "Surgery" },
-  { icon: Star, text: "Selective Laser SLT Therapy", badge: "Glaucoma" },
-  { icon: Eye, text: "24/7 Retinal Emergency Unit", badge: "Emergency" },
-  { icon: Smile, text: "Pediatric Strabismus Clinic", badge: "Pediatric" },
-  { icon: Zap, text: "Femtosecond Laser Precision", badge: "Advanced" },
 ];
 
 export default function Hero() {
   const [bgIndex, setBgIndex] = useState(0);
+  const galleryRef = useRef(null);
 
-  // Rotate hero background images every 3 seconds with smooth fade
+  // Background Auto-Slide Interval (3 Seconds per slide)
   useEffect(() => {
     const timer = setInterval(() => {
       setBgIndex((prev) => (prev + 1) % HERO_BANNER_IMAGES.length);
     }, 3000);
     return () => clearInterval(timer);
   }, []);
+
+  // Continuous 60fps Floating Gallery Controller for Desktop Viewports
+  useEffect(() => {
+    let animFrameId = null;
+
+    const updateGalleryPosition = () => {
+      if (typeof window === "undefined" || !galleryRef.current) return;
+
+      const el = galleryRef.current;
+
+      // Mobile / Tablet screens (< 1024px): sit inline inside Hero grid
+      if (window.innerWidth < 1024) {
+        el.style.position = "relative";
+        el.style.top = "0px";
+        el.style.right = "0px";
+        el.style.zIndex = "20";
+        return;
+      }
+
+      // Desktop floating logic
+      const footerEl = document.querySelector("footer");
+      const baseTop = 112; // 112px below top -> stays cleanly below the sticky Header (z-50)
+      const galleryHeight = 360;
+
+      let computedTop = baseTop;
+
+      if (footerEl) {
+        const footerRect = footerEl.getBoundingClientRect();
+        // Dynamically cap top position so bottom edge NEVER touches the footer!
+        const maxTopAllowed = footerRect.top - galleryHeight - 30;
+        computedTop = Math.min(baseTop, maxTopAllowed);
+      }
+
+      // Keep position fixed continuously on desktop -> NO layout toggling jump!
+      el.style.position = "fixed";
+      el.style.top = `${computedTop}px`;
+      el.style.right = window.innerWidth >= 1280 ? "3.5rem" : "1.5rem";
+      el.style.zIndex = "30"; // z-30 guarantees it renders BELOW Header (z-50)
+    };
+
+    const onScrollOrResize = () => {
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      animFrameId = requestAnimationFrame(updateGalleryPosition);
+    };
+
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
+    updateGalleryPosition();
+
+    return () => {
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    };
+  }, []);
+
+  const marqueeItems = [
+    { icon: Activity, text: "24/7 Emergency Eye Care", badge: "Urgent Care" },
+    { icon: Eye, text: "Advanced Femto LASIK & Cataract", badge: "Specialized" },
+    { icon: Clock, text: "OPD: Mon-Sat 9AM-8PM", badge: "Timing" },
+    { icon: ShieldCheck, text: "Certified Ophthalmic Surgeons", badge: "Trust" },
+    { icon: Award, text: "44+ Years Vision Excellence", badge: "Legacy" },
+    { icon: HeartHandshake, text: "Free Welfare Vision Camps", badge: "Community" },
+  ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,10 +125,12 @@ export default function Hero() {
     },
   };
 
+  const currentImage = HERO_BANNER_IMAGES[bgIndex];
+
   return (
-    <section className="relative pt-24 pb-10 lg:pt-28 lg:pb-12 flex flex-col justify-center bg-[var(--ink)] overflow-hidden min-h-[85vh]">
-      
-      {/* Animated Hero Banner Background Images (3 Seconds Fade Animation) */}
+    <section id="hero-banner-section" className="relative pt-24 pb-10 lg:pt-28 lg:pb-12 flex flex-col justify-center bg-[var(--ink)] min-h-[85vh]">
+
+      {/* Animated Hero Banner Background Images */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <AnimatePresence mode="sync">
           <motion.div
@@ -81,39 +142,35 @@ export default function Hero() {
             className="absolute inset-0"
           >
             <Image
-              src={HERO_BANNER_IMAGES[bgIndex].src}
-              alt={HERO_BANNER_IMAGES[bgIndex].alt}
+              src={currentImage.src}
+              alt={currentImage.alt}
               fill
-              priority
+              priority={bgIndex === 0}
               quality={90}
               sizes="100vw"
-              className="object-cover object-center scale-105 transition-transform duration-[4000ms] ease-out"
+              style={{
+                objectFit: "cover",
+                objectPosition: currentImage.position,
+              }}
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* Gradient Overlay for high text readability */}
-        <div 
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{
-            background: "linear-gradient(120deg, rgba(20, 14, 12, 0.75) 0%, rgba(20, 14, 12, 0.55) 50%, rgba(20, 14, 12, 0.40) 100%)"
-          }}
-        />
-        {/* Soft Light UV Radial Glow */}
-        <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#8B5CF6]/10 via-transparent to-transparent pointer-events-none" />
+        {/* Multi-stage subtle dark vignette scrim overlay for clear background photos */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0C1322]/60 via-[#0C1322]/35 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0C1322]/40 via-transparent to-[#0C1322]/30" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
-          {/* Left: Headline Only */}
+          {/* Left: Main Headline & Subtitle */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="lg:col-span-7 text-center lg:text-left flex flex-col items-center lg:items-start space-y-4"
+            className="lg:col-span-7 text-center lg:text-left flex flex-col items-center lg:items-start space-y-4 pr-0 lg:pr-4"
           >
-            {/* Main Bold Headline */}
             <motion.h1
               variants={itemVariants}
               className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md"
@@ -125,27 +182,22 @@ export default function Hero() {
             </motion.h1>
           </motion.div>
 
-          {/* Right: Interactive Real Eye/Hospital Photo Gallery */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              type: "spring",
-              stiffness: 70,
-              damping: 15,
-              delay: 0.2,
-            }}
-            className="lg:col-span-5 w-full flex items-center justify-center lg:justify-end lg:pl-4 lg:translate-x-16 xl:translate-x-24 relative"
-          >
-            <EyeGallery />
-          </motion.div>
+          {/* Right: Reserved EyeGallery Slot */}
+          <div className="lg:col-span-5 w-full min-h-[360px] flex items-center justify-center lg:justify-end relative z-20">
+            <div
+              ref={galleryRef}
+              className="w-full max-w-[360px] aspect-square flex items-center justify-center"
+            >
+              <EyeGallery />
+            </div>
+          </div>
 
         </div>
 
-        {/* Infinite Right-to-Left Scrolling Marquee Banner */}
-        <div className="mt-6 pt-4 border-t border-white/15 overflow-hidden relative marquee-gradient-mask">
+        {/* Infinite Right-to-Left Scrolling Marquee Banner with Clear Top Margin (mt-8) */}
+        <div className="mt-8 pt-4 border-t border-white/15 overflow-hidden relative marquee-gradient-mask">
           <div className="flex w-max animate-marquee gap-3">
-            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => {
+            {[...marqueeItems, ...marqueeItems].map((item, idx) => {
               const IconComp = item.icon;
               return (
                 <div
@@ -159,7 +211,7 @@ export default function Hero() {
                     <span className="text-[9px] font-bold text-[var(--iris)] uppercase tracking-widest leading-none">
                       {item.badge}
                     </span>
-                    <span className="text-[11px] font-bold text-[var(--ink)] whitespace-nowrap mt-0.5">
+                    <span className="text-[11px] font-bold text-[#2B1F1A] whitespace-nowrap mt-0.5">
                       {item.text}
                     </span>
                   </div>

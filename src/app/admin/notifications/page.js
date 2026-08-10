@@ -358,7 +358,7 @@ export default function AdminNotificationsPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/dashboard"
-            className="p-2.5 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all shadow-xs"
+            className="p-2.5 rounded-xl bg-white border border-[var(--line)] text-[#2B1F1A] hover:bg-[var(--fog)] transition-all shadow-xs"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -373,7 +373,7 @@ export default function AdminNotificationsPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+            <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
               Admin Notifications Center
             </h1>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -423,12 +423,12 @@ export default function AdminNotificationsPage() {
       {loading ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)]">
           <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)]">Loading Saved Notifications Stream...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Loading Saved Notifications Stream...</p>
         </div>
       ) : filteredNotifications.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] space-y-3">
           <Bell className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="text-base font-extrabold text-[var(--ink)]">No Notifications Found</h3>
+          <h3 className="text-base font-extrabold text-[#2B1F1A]">No Notifications Found</h3>
           <p className="text-xs font-semibold text-[var(--slate)] max-w-sm mx-auto">
             No saved notifications currently match the selected filter.
           </p>
@@ -436,7 +436,7 @@ export default function AdminNotificationsPage() {
       ) : (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-extrabold text-[var(--ink)] uppercase tracking-wider">
+            <h2 className="text-sm font-extrabold text-[#2B1F1A] uppercase tracking-wider">
               Complete History Stream ({filteredNotifications.length})
             </h2>
             <span className="text-xs font-bold text-[var(--iris)] bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
@@ -501,7 +501,7 @@ export default function AdminNotificationsPage() {
                               : "Patient Message Inquiry"}
                         </span>
 
-                        <h4 className="text-sm font-extrabold text-[var(--ink)] truncate">
+                        <h4 className="text-sm font-extrabold text-[#2B1F1A] truncate">
                           {item.title}
                         </h4>
                       </div>

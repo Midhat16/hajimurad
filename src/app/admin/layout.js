@@ -32,7 +32,7 @@ function AdminContentGuard({ children }) {
     return (
       <div className="min-h-screen bg-[var(--fog)] flex flex-col justify-center items-center">
         <div className="w-12 h-12 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-xs font-bold text-[var(--ink)] uppercase tracking-widest">
+        <p className="text-xs font-bold text-[#2B1F1A] uppercase tracking-widest">
           Authenticating Admin Portal...
         </p>
       </div>
@@ -54,7 +54,7 @@ function AdminContentGuard({ children }) {
         <header className="bg-white border-b border-[var(--line)] px-3 sm:px-8 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-40 min-w-0">
           <div className="flex items-center gap-2 pl-11 md:pl-0 min-w-0">
             <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--iris)] flex-shrink-0" />
-            <h2 className="text-xs sm:text-sm font-extrabold text-[var(--ink)] tracking-tight uppercase truncate">
+            <h2 className="text-xs sm:text-sm font-extrabold text-[#2B1F1A] tracking-tight uppercase truncate">
               Management Portal
             </h2>
           </div>
@@ -66,7 +66,7 @@ function AdminContentGuard({ children }) {
                 A
               </div>
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-[var(--ink)]">
+                <span className="text-xs font-bold text-[#2B1F1A]">
                   {user?.email || "Admin"}
                 </span>
                 <span className="text-[10px] text-[var(--iris)] font-semibold">

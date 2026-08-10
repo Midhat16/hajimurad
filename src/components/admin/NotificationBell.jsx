@@ -212,7 +212,7 @@ export default function NotificationBell() {
       <div className="relative">
         <Link
           href="/admin/notifications"
-          className="relative p-2.5 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all cursor-pointer shadow-xs flex items-center justify-center"
+          className="relative p-2.5 rounded-xl bg-white border border-[var(--line)] text-[#2B1F1A] hover:bg-[var(--fog)] transition-all cursor-pointer shadow-xs flex items-center justify-center"
           title="Open Notifications Center"
         >
           <Bell className="w-5 h-5" />
@@ -260,7 +260,7 @@ export default function NotificationBell() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h5 className="text-xs font-black text-[var(--ink)] truncate">
+                <h5 className="text-xs font-black text-[#2B1F1A] truncate">
                   {t.title}
                 </h5>
                 <p className="text-xs font-semibold text-slate-700 mt-0.5 leading-snug">
@@ -269,7 +269,7 @@ export default function NotificationBell() {
                 <Link
                   href={t.href}
                   onClick={() => handleToastClick(t)}
-                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[var(--ink)] underline hover:text-[var(--iris)]"
+                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[#2B1F1A] underline hover:text-[var(--iris)]"
                 >
                   View Details &rarr;
                 </Link>

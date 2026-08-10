@@ -16,11 +16,13 @@ import {
   MapPin,
   Info
 } from "lucide-react";
-import confetti from "canvas-confetti";
 import { collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { sortDoctors } from "@/lib/doctorUtils";
 import { notifyOnAppointmentBooked } from "@/lib/notificationService";
+import { triggerEmailApi } from "@/lib/clientEmailHelper";
 import DatePicker from "react-datepicker";
+import { generateAndOpenAppointmentPDF } from "@/lib/pdfUtil";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -113,6 +115,7 @@ export default function Appointment() {
     guardianPhone: "",
     guardianAddress: "",
     service: "",
+    selectedFeatures: [],
     doctor: "",
     date: "",
     time: "",
@@ -168,7 +171,7 @@ export default function Appointment() {
           id: docSnap.id,
           ...docSnap.data(),
         }));
-        setDoctorsList(items);
+        setDoctorsList(sortDoctors(items));
       },
       (err) => {
         console.warn("Doctors subscription notice for Appointment:", err.message);
@@ -185,6 +188,82 @@ export default function Appointment() {
   const activeDoctorObj = doctorsList.find(
     (d) => d.name === formData.doctor || d.id === formData.doctor
   );
+
+  const selectedServiceObj = servicesList.find(
+    (s) => (s.title || s.name) === formData.service || s.id === formData.service
+  );
+
+  const minBookingDays = selectedServiceObj && selectedServiceObj.minBookingDays !== undefined && selectedServiceObj.minBookingDays !== null
+    ? Math.max(0, Number(selectedServiceObj.minBookingDays))
+    : 0;
+
+  const rawMaxBookingDays = selectedServiceObj && selectedServiceObj.maxBookingDays !== undefined && selectedServiceObj.maxBookingDays !== null && selectedServiceObj.maxBookingDays !== ""
+    ? Number(selectedServiceObj.maxBookingDays)
+    : null;
+
+  const getSelectableDateRange = () => {
+    const getNormalizedToday = () => {
+      const t = new Date();
+      t.setHours(0, 0, 0, 0);
+      return t;
+    };
+
+    const docWorkingDays = activeDoctorObj?.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    const isValidWorkingDay = (d) => {
+      const dayName = d.toLocaleDateString("en-US", { weekday: "long" });
+      if (dayName === "Sunday") return false;
+      return docWorkingDays.includes(dayName);
+    };
+
+    const today = getNormalizedToday();
+    let current = new Date(today);
+    current.setDate(current.getDate() + minBookingDays);
+
+    while (!isValidWorkingDay(current)) {
+      current.setDate(current.getDate() + 1);
+    }
+    const minSelectableDate = new Date(current);
+
+    let maxSelectableDate = null;
+    if (rawMaxBookingDays && rawMaxBookingDays > 0) {
+      let validCount = 0;
+      let maxRunner = new Date(minSelectableDate);
+      let lastValid = new Date(minSelectableDate);
+
+      while (validCount < rawMaxBookingDays && maxRunner.getFullYear() <= today.getFullYear() + 2) {
+        if (isValidWorkingDay(maxRunner)) {
+          validCount++;
+          lastValid = new Date(maxRunner);
+        }
+        if (validCount < rawMaxBookingDays) {
+          maxRunner.setDate(maxRunner.getDate() + 1);
+        }
+      }
+      lastValid.setHours(23, 59, 59, 999);
+      maxSelectableDate = lastValid;
+    }
+
+    return { minSelectableDate, maxSelectableDate };
+  };
+
+  const { minSelectableDate, maxSelectableDate } = getSelectableDateRange();
+
+  useEffect(() => {
+    if (formData.date) {
+      const selectedDateObj = new Date(formData.date + "T00:00:00");
+      selectedDateObj.setHours(0, 0, 0, 0);
+      if (!isNaN(selectedDateObj.getTime())) {
+        if (selectedDateObj < minSelectableDate || (maxSelectableDate && selectedDateObj > maxSelectableDate)) {
+          setFormData((prev) => ({ ...prev, date: "" }));
+          const serviceName = formData.service === "not_sure" ? "General OPD" : (formData.service || "Selected service");
+          setNoticeMessage(
+            `Date reset: ${serviceName} is bookable starting from ${minSelectableDate.toLocaleDateString("en-GB")}.`
+          );
+        }
+      }
+    }
+  }, [formData.service]);
 
   if (formData.doctor) {
     console.log("🔍 DIAGNOSTIC -> Selected Doctor in Form:", formData.doctor);
@@ -204,11 +283,11 @@ export default function Appointment() {
       tempErrors.patientCnic = "CNIC format must be XXXXX-XXXXXXX-X (13 digits)";
     }
 
-    const phoneClean = formData.phone.replace(/[\s\-\(\)]/g, "");
+    const phoneClean = formData.phone.replace(/\D/g, "");
     if (!formData.phone.trim()) {
       tempErrors.phone = "Phone number is required";
-    } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(phoneClean)) {
-      tempErrors.phone = "Please enter a valid phone number (03XX-XXXXXXX)";
+    } else if (phoneClean.length !== 11) {
+      tempErrors.phone = "Phone number must be exactly 11 digits (e.g. 03XX-XXXXXXX)";
     }
 
     // Guardian details required if "Someone Else"
@@ -216,11 +295,11 @@ export default function Appointment() {
       if (!formData.guardianName.trim()) {
         tempErrors.guardianName = "Guardian Full Name is required";
       }
-      const gPhoneClean = formData.guardianPhone.replace(/[\s\-\(\)]/g, "");
+      const gPhoneClean = formData.guardianPhone.replace(/\D/g, "");
       if (!formData.guardianPhone.trim()) {
         tempErrors.guardianPhone = "Guardian Phone number is required";
-      } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(gPhoneClean)) {
-        tempErrors.guardianPhone = "Please enter a valid phone number (03XX-XXXXXXX)";
+      } else if (gPhoneClean.length !== 11) {
+        tempErrors.guardianPhone = "Guardian Phone number must be exactly 11 digits (e.g. 03XX-XXXXXXX)";
       }
 
       if (formData.guardianCnic.trim() && formData.guardianCnic.length < 15) {
@@ -230,6 +309,14 @@ export default function Appointment() {
 
     if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       tempErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.dob) {
+      tempErrors.dob = "Date of Birth is required";
+    }
+
+    if (!formData.gender) {
+      tempErrors.gender = "Gender is required";
     }
 
     if (!formData.date) {
@@ -245,8 +332,16 @@ export default function Appointment() {
     (s) => (s.title || s.name) === formData.service
   );
 
+  const availableServiceFeatures = selectedServiceObject?.features || [];
+
   // Filter doctors based on assigned doctorIds if specified in service
   const filteredDoctors = doctorsList.filter((docItem) => {
+    if (
+      formData.doctor &&
+      (docItem.name === formData.doctor || docItem.id === formData.doctor)
+    ) {
+      return true;
+    }
     if (
       selectedServiceObject &&
       selectedServiceObject.doctorIds &&
@@ -260,6 +355,16 @@ export default function Appointment() {
 
   const handleChange = (e) => {
     let { name, value } = e.target;
+    if (name === "service") {
+      setFormData((prev) => ({
+        ...prev,
+        service: value,
+        selectedFeatures: [],
+      }));
+      if (errors.service) setErrors((prev) => ({ ...prev, service: "" }));
+      if (noticeMessage) setNoticeMessage("");
+      return;
+    }
     if (name === "dob") {
       const calculatedAge = calculateAgeFromDOB(value);
       setFormData((prev) => ({
@@ -269,20 +374,36 @@ export default function Appointment() {
       }));
       return;
     }
+    if (name === "phone" || name === "guardianPhone") {
+      const digits = value.replace(/\D/g, "").slice(0, 11);
+      if (digits.length > 4) {
+        value = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+      } else {
+        value = digits;
+      }
+    }
     if (name === "patientCnic" || name === "guardianCnic") {
       value = formatCNIC(value);
     }
-    setFormData((prev) => {
-      const updated = { ...prev, [name]: value };
-      if (name === "service") {
-        updated.doctor = "";
-      }
-      return updated;
-    });
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
     if (noticeMessage) setNoticeMessage("");
+  };
+
+  const handleFeatureToggle = (featureTitle) => {
+    setFormData((prev) => {
+      const current = prev.selectedFeatures || [];
+      const exists = current.includes(featureTitle);
+      const updated = exists
+        ? current.filter((f) => f !== featureTitle)
+        : [...current, featureTitle];
+      return {
+        ...prev,
+        selectedFeatures: updated,
+      };
+    });
   };
 
   const handleDoctorChange = (e) => {
@@ -332,6 +453,21 @@ export default function Appointment() {
   };
 
   const filterAvailableDates = (date) => {
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+
+    if (checkDate < minSelectableDate) {
+      return false;
+    }
+
+    if (maxSelectableDate) {
+      const maxCutoff = new Date(maxSelectableDate);
+      maxCutoff.setHours(23, 59, 59, 999);
+      if (checkDate > maxCutoff) {
+        return false;
+      }
+    }
+
     const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
     if (dayName === "Sunday") return false;
     if (!formData.doctor || formData.doctor === "not_sure") return true;
@@ -352,7 +488,7 @@ export default function Appointment() {
 
       const doctorIdToSave = selectedDocObj ? selectedDocObj.id : "";
       const doctorNameToSave = formData.doctor === "not_sure"
-        ? "Not Sure / Let Admin Decide"
+        ? "Not Sure / Let Front Desk Decide"
         : (selectedDocObj?.name || formData.doctor || "General OPD");
 
       const apptDoc = {
@@ -370,39 +506,51 @@ export default function Appointment() {
         guardianCnic: appointmentFor === "Someone Else" ? formData.guardianCnic : "",
         guardianPhone: appointmentFor === "Someone Else" ? formData.guardianPhone.trim() : "",
         guardianAddress: appointmentFor === "Someone Else" ? formData.guardianAddress.trim() : "",
-        service: formData.service,
+        service: formData.service === "not_sure" ? "Not Sure / Let Front Desk Decide" : formData.service,
+        selectedFeatures: formData.selectedFeatures || [],
         doctor: doctorNameToSave,
         doctorId: doctorIdToSave,
         date: formData.date,
         time: formData.time,
         status: "pending",
+        actionToken: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36),
         createdAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "appointments"), apptDoc);
+      const generatedId = docRef?.id ? docRef.id.slice(0, 8).toUpperCase() : "HM-2026";
+      const finalApptData = {
+        ...apptDoc,
+        id: docRef?.id || "HM-2026-0001",
+        firestoreId: docRef?.id || "HM-2026-0001",
+        appointmentId: `HM-${generatedId}`,
+        actionToken: apptDoc.actionToken,
+      };
+
+      // Automatically generate PDF and open in a new browser tab
+      generateAndOpenAppointmentPDF(finalApptData);
 
       // Trigger automatic notifications for Doctor & Admin
       await notifyOnAppointmentBooked(apptDoc, docRef.id);
 
+      // Trigger automatic dual emails to User & Admin via SMTP
+      triggerEmailApi({
+        type: "BOOKING_RECEIVED",
+        data: finalApptData,
+      }).catch((err) => console.warn("Booking email trigger notice:", err));
+
       setIsSubmitting(false);
       setIsSuccess(true);
-      
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#2E86FF", "#5EEAD4", "#38BDF8", "#60A5FA", "#FFFFFF"]
-      });
     } catch (error) {
       console.warn("Firestore Appointment addDoc warning:", error);
+      const fallbackAppt = {
+        ...formData,
+        id: "HM-2026-DEMO",
+        appointmentId: "HM-2026-DEMO",
+      };
+      generateAndOpenAppointmentPDF(fallbackAppt);
       setIsSubmitting(false);
       setIsSuccess(true);
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#2E86FF", "#5EEAD4", "#38BDF8", "#60A5FA", "#FFFFFF"]
-      });
     }
   };
 
@@ -412,13 +560,13 @@ export default function Appointment() {
       <div className="absolute bottom-1/4 left-0 w-[400px] h-[400px] bg-slate-100/40 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
           <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
             Appointment Desk
           </span>
-          <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
+          <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2B1F1A] tracking-tight leading-tight">
             Schedule Your Visit
           </h2>
           <p className="mt-2.5 text-sm sm:text-base text-[var(--slate)]">
@@ -428,7 +576,7 @@ export default function Appointment() {
 
         {/* Booking Card */}
         <div className="glass-card bg-white rounded-[32px] border border-[var(--line)] shadow-lg overflow-hidden relative">
-          
+
           {/* Top colored indicator bar */}
           <div className="h-1.5 w-full bg-gradient-to-r from-[var(--ink)] to-[var(--iris)]" />
 
@@ -455,11 +603,10 @@ export default function Appointment() {
                           setAppointmentFor("Self");
                           setErrors((prev) => ({ ...prev, guardianPhone: "" }));
                         }}
-                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                          appointmentFor === "Self"
+                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${appointmentFor === "Self"
                             ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
                             : "text-[var(--slate)] hover:bg-white/60"
-                        }`}
+                          }`}
                       >
                         <User className="w-4 h-4" />
                         <span>Appointment for Self</span>
@@ -467,11 +614,10 @@ export default function Appointment() {
                       <button
                         type="button"
                         onClick={() => setAppointmentFor("Someone Else")}
-                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                          appointmentFor === "Someone Else"
+                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${appointmentFor === "Someone Else"
                             ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
                             : "text-[var(--slate)] hover:bg-white/60"
-                        }`}
+                          }`}
                       >
                         <Users className="w-4 h-4" />
                         <span>Appointment for Someone Else</span>
@@ -488,7 +634,7 @@ export default function Appointment() {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                    
+
                     {/* ================= PORTION 1: PATIENT INFORMATION ================= */}
                     <div className="md:col-span-2 pt-1 pb-1 border-b border-[var(--line)] flex items-center justify-between">
                       <span className="text-[11px] font-extrabold tracking-wider text-[var(--iris)] uppercase flex items-center gap-1.5">
@@ -498,7 +644,7 @@ export default function Appointment() {
 
                     {/* Patient Full Name */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Patient Full Name *</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Patient Full Name *</label>
                       <div className="relative">
                         <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                         <input
@@ -508,9 +654,8 @@ export default function Appointment() {
                           onChange={handleChange}
                           placeholder="Enter patient full name"
                           required
-                          className={`w-full bg-[var(--fog)] border ${
-                            errors.name ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                          className={`w-full bg-[var(--fog)] border ${errors.name ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                         />
                       </div>
                       {errors.name && <p className="text-xs text-red-500 font-semibold">{errors.name}</p>}
@@ -518,7 +663,7 @@ export default function Appointment() {
 
                     {/* Patient Phone Number */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Patient Phone Number *</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Patient Phone Number *</label>
                       <div className="relative">
                         <Phone className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                         <input
@@ -527,10 +672,10 @@ export default function Appointment() {
                           value={formData.phone}
                           onChange={handleChange}
                           placeholder="03xx-xxxxxxx"
+                          maxLength={12}
                           required
-                          className={`w-full bg-[var(--fog)] border ${
-                            errors.phone ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                          className={`w-full bg-[var(--fog)] border ${errors.phone ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                         />
                       </div>
                       {errors.phone && <p className="text-xs text-red-500 font-semibold">{errors.phone}</p>}
@@ -538,7 +683,7 @@ export default function Appointment() {
 
                     {/* Patient Address */}
                     <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Patient Residential Address</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Patient Residential Address</label>
                       <div className="relative">
                         <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                         <input
@@ -547,7 +692,7 @@ export default function Appointment() {
                           value={formData.patientAddress}
                           onChange={handleChange}
                           placeholder="Street, City, House No. / Area"
-                          className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                          className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                         />
                       </div>
                     </div>
@@ -556,8 +701,8 @@ export default function Appointment() {
                     <div className="grid grid-cols-2 gap-3">
                       {/* Date of Birth Calendar */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
-                          Date of Birth {formData.age ? `(${formData.age} Yrs)` : ""}
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                          Date of Birth * {formData.age ? `(${formData.age} Yrs)` : ""}
                         </label>
                         <div className="relative">
                           <Calendar className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -567,33 +712,43 @@ export default function Appointment() {
                             max={new Date().toISOString().split("T")[0]}
                             value={formData.dob}
                             onChange={handleChange}
-                            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-10 pr-2 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                            required
+                            className={`w-full bg-[var(--fog)] border ${errors.dob
+                                ? "border-red-300 focus:ring-red-200"
+                                : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                              } rounded-xl pl-10 pr-2 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                           />
                         </div>
+                        {errors.dob && <p className="text-xs text-red-500 font-semibold">{errors.dob}</p>}
                       </div>
 
                       {/* Gender */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Gender</label>
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Gender</label>
                         <div className="relative">
                           <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
                           <select
                             name="gender"
                             value={formData.gender}
                             onChange={handleChange}
-                            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-10 pr-2 py-3.5 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none"
+                            required
+                            className={`w-full bg-[var(--fog)] border ${errors.gender
+                                ? "border-red-300 focus:ring-red-200"
+                                : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                              } rounded-xl pl-10 pr-2 py-3.5 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                           >
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                           </select>
                         </div>
+                        {errors.gender && <p className="text-xs text-red-500 font-semibold">{errors.gender}</p>}
                       </div>
                     </div>
 
                     {/* Patient CNIC / B-Form Number */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Patient CNIC / B-Form No.</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Patient CNIC / B-Form No.</label>
                       <div className="relative">
                         <CreditCard className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                         <input
@@ -603,9 +758,8 @@ export default function Appointment() {
                           onChange={handleChange}
                           maxLength={15}
                           placeholder="xxxxx-xxxxxxx-x"
-                          className={`w-full bg-[var(--fog)] border ${
-                            errors.patientCnic ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
+                          className={`w-full bg-[var(--fog)] border ${errors.patientCnic ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                         />
                       </div>
                       {errors.patientCnic && <p className="text-xs text-red-500 font-semibold">{errors.patientCnic}</p>}
@@ -613,7 +767,7 @@ export default function Appointment() {
 
                     {/* Email Address */}
                     <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Email Address (Optional)</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Email Address</label>
                       <div className="relative">
                         <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                         <input
@@ -622,9 +776,8 @@ export default function Appointment() {
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="name@example.com"
-                          className={`w-full bg-[var(--fog)] border ${
-                            errors.email ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                          className={`w-full bg-[var(--fog)] border ${errors.email ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                         />
                       </div>
                       {errors.email && <p className="text-xs text-red-500 font-semibold">{errors.email}</p>}
@@ -641,7 +794,7 @@ export default function Appointment() {
 
                         {/* Guardian Name */}
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Guardian Full Name *</label>
+                          <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Guardian Full Name *</label>
                           <div className="relative">
                             <Users className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                             <input
@@ -651,9 +804,8 @@ export default function Appointment() {
                               onChange={handleChange}
                               placeholder="Enter guardian name"
                               required
-                              className={`w-full bg-[var(--fog)] border ${
-                                errors.guardianName ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                              } rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                              className={`w-full bg-[var(--fog)] border ${errors.guardianName ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                                } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                             />
                           </div>
                           {errors.guardianName && <p className="text-xs text-red-500 font-semibold">{errors.guardianName}</p>}
@@ -661,7 +813,7 @@ export default function Appointment() {
 
                         {/* Guardian Phone Number (REQUIRED) */}
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Guardian Phone Number *</label>
+                          <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Guardian Phone Number *</label>
                           <div className="relative">
                             <Phone className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                             <input
@@ -670,10 +822,10 @@ export default function Appointment() {
                               value={formData.guardianPhone}
                               onChange={handleChange}
                               placeholder="03xx-xxxxxxx"
+                              maxLength={12}
                               required
-                              className={`w-full bg-[var(--fog)] border ${
-                                errors.guardianPhone ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                              } rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                              className={`w-full bg-[var(--fog)] border ${errors.guardianPhone ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                                } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                             />
                           </div>
                           {errors.guardianPhone && <p className="text-xs text-red-500 font-semibold">{errors.guardianPhone}</p>}
@@ -681,7 +833,7 @@ export default function Appointment() {
 
                         {/* Guardian Address */}
                         <div className="space-y-1.5 md:col-span-2">
-                          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Guardian Residential Address</label>
+                          <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Guardian Residential Address</label>
                           <div className="relative">
                             <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                             <input
@@ -690,21 +842,21 @@ export default function Appointment() {
                               value={formData.guardianAddress}
                               onChange={handleChange}
                               placeholder="Guardian address (Street, City, Area)"
-                              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                             />
                           </div>
                         </div>
 
                         {/* Guardian Relation */}
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Guardian Relation</label>
+                          <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Guardian Relation</label>
                           <div className="relative">
                             <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                             <select
                               name="guardianRelation"
                               value={formData.guardianRelation}
                               onChange={handleChange}
-                              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3.5 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none"
+                              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3.5 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none"
                             >
                               <option value="Father">Father</option>
                               <option value="Husband">Husband</option>
@@ -718,7 +870,7 @@ export default function Appointment() {
 
                         {/* Guardian CNIC Number */}
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Guardian CNIC Number</label>
+                          <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Guardian CNIC Number</label>
                           <div className="relative">
                             <CreditCard className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                             <input
@@ -728,9 +880,8 @@ export default function Appointment() {
                               onChange={handleChange}
                               maxLength={15}
                               placeholder="xxxxx-xxxxxxx-x"
-                              className={`w-full bg-[var(--fog)] border ${
-                                errors.guardianCnic ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                              } rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
+                              className={`w-full bg-[var(--fog)] border ${errors.guardianCnic ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                                } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                             />
                           </div>
                           {errors.guardianCnic && <p className="text-xs text-red-500 font-semibold">{errors.guardianCnic}</p>}
@@ -747,18 +898,20 @@ export default function Appointment() {
 
                     {/* Preferred Department/Service */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Eye Treatment / Service</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Eye Treatment / Service</label>
                       <div className="relative">
                         <Stethoscope className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                         <select
                           name="service"
                           value={formData.service}
                           onChange={handleChange}
-                          className={`w-full bg-[var(--fog)] border ${
-                            errors.service ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-12 pr-4 py-3.5 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                          className={`w-full bg-[var(--fog)] border ${errors.service ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-12 pr-4 py-3.5 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                         >
                           <option value="">Select Treatment</option>
+                          <option value="not_sure" className="font-bold text-[var(--iris)]">
+                            Not Sure / Let Front Desk Decide
+                          </option>
                           {servicesList.map((s) => (
                             <option key={s.id || s.title} value={s.title || s.name}>
                               {s.title || s.name}
@@ -766,25 +919,74 @@ export default function Appointment() {
                           ))}
                         </select>
                       </div>
+                      {formData.service && formData.service !== "not_sure" && (
+                        <div className="mt-1.5 p-2 rounded-xl bg-blue-50/90 border border-blue-200 text-blue-900 text-[11px] font-semibold flex items-center justify-between gap-2 shadow-xs">
+                          <span className="flex items-center gap-1 font-bold">
+                            <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            Earliest Bookable Date:
+                          </span>
+                          <span className="font-black text-blue-700">
+                            {minSelectableDate.toLocaleDateString("en-GB")}
+                            {maxSelectableDate
+                              ? ` — ${maxSelectableDate.toLocaleDateString("en-GB")} (${rawMaxBookingDays} total days)`
+                              : " onwards"}
+                          </span>
+                        </div>
+                      )}
                       {errors.service && <p className="text-xs text-red-500 font-semibold">{errors.service}</p>}
                     </div>
 
+                    {/* Specific Service Features Multi-Select Section */}
+                    {availableServiceFeatures && availableServiceFeatures.length > 0 && (
+                      <div className="md:col-span-2 bg-[var(--fog)] border border-[var(--line)] rounded-2xl p-3.5 sm:p-4 space-y-2.5 my-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-extrabold text-[var(--iris)] uppercase tracking-wider flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-[var(--iris)]" /> Select Specific Treatment(s)
+                          </label>
+                          <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-[var(--line)]">
+                            Optional / Multi-select
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                          {availableServiceFeatures.map((feat, fIdx) => {
+                            const isChecked = (formData.selectedFeatures || []).includes(feat);
+                            return (
+                              <label
+                                key={fIdx}
+                                className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all ${isChecked
+                                    ? "bg-white border-[var(--iris)] text-[var(--iris)] shadow-xs ring-2 ring-[var(--iris)]/20"
+                                    : "bg-white/70 border-[var(--line)] text-[#2B1F1A] hover:bg-white hover:border-slate-300"
+                                  }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => handleFeatureToggle(feat)}
+                                  className="mt-0.5 rounded border-slate-300 text-[var(--iris)] focus:ring-[var(--iris)] cursor-pointer w-4 h-4"
+                                />
+                                <span className="leading-snug">{feat}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Preferred Doctor with NOT SURE Option */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Preferred Doctor</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Preferred Doctor</label>
                       <div className="relative">
                         <Stethoscope className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
                         <select
                           name="doctor"
                           value={formData.doctor}
                           onChange={handleDoctorChange}
-                          className={`w-full bg-[var(--fog)] border ${
-                            errors.doctor ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-12 pr-4 py-3.5 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                          className={`w-full bg-[var(--fog)] border ${errors.doctor ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-12 pr-4 py-3.5 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                         >
                           <option value="">Select Doctor</option>
                           <option value="not_sure" className="font-bold text-[var(--iris)]">
-                            Not Sure / Let Admin Decide
+                            Not Sure / Let Front Desk Decide
                           </option>
                           {filteredDoctors.map((d) => (
                             <option key={d.id || d.name} value={d.name}>
@@ -798,10 +1000,10 @@ export default function Appointment() {
 
                     {/* Date and Time slots */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-2">
-                      
+
                       {/* Date Picker (Required, Sunday disabled) */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                           Appointment Date * (Mon - Sat)
                         </label>
                         <div className="relative">
@@ -822,13 +1024,13 @@ export default function Appointment() {
                               if (noticeMessage) setNoticeMessage("");
                             }}
                             filterDate={filterAvailableDates}
-                            minDate={new Date()}
+                            minDate={minSelectableDate}
+                            maxDate={maxSelectableDate || undefined}
                             dateFormat="yyyy-MM-dd"
-                            placeholderText="Select available date"
+                            placeholderText="Date Slot"
                             required
-                            className={`w-full bg-[var(--fog)] border ${
-                              errors.date ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                            } rounded-xl pl-10 pr-2 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                            className={`w-full bg-[var(--fog)] border ${errors.date ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                              } rounded-xl pl-10 pr-2 py-3 text-xs sm:text-sm text-black font-semibold placeholder:text-black placeholder:font-medium focus:outline-none focus:ring-4 transition-all`}
                           />
                         </div>
                         {errors.date && <p className="text-xs text-red-500 font-semibold">{errors.date}</p>}
@@ -836,7 +1038,7 @@ export default function Appointment() {
 
                       {/* Time slot Picker (Optional) */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                           Time Slot (Optional)
                         </label>
                         <div className="relative">
@@ -845,9 +1047,8 @@ export default function Appointment() {
                             name="time"
                             value={formData.time}
                             onChange={handleChange}
-                            className={`w-full bg-[var(--fog)] border ${
-                              errors.time ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                            } rounded-xl pl-10 pr-2 py-3.5 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                            className={`w-full bg-[var(--fog)] border ${errors.time ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                              } rounded-xl pl-10 pr-2 py-3.5 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                           >
                             <option value="">Select Available Slot</option>
                             {availableTimeSlots.map((slot) => (
@@ -898,14 +1099,14 @@ export default function Appointment() {
                   <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mx-auto border-2 border-teal-100 shadow-md">
                     <CheckCircle2 className="w-12 h-12 text-teal-500" />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <h3 className="text-2xl font-extrabold text-slate-800">Appointment Request Sent!</h3>
                     <p className="text-sm font-semibold text-teal-600 bg-teal-50 inline-block px-3 py-1 rounded-full border border-teal-100">
                       ID: OPTI-{Math.floor(100000 + Math.random() * 900000)}
                     </p>
                     <p className="text-slate-600 text-sm leading-relaxed pt-2">
-                      Thank you, <strong className="text-slate-800">{formData.name}</strong>. Your appointment request for <strong>{formData.service || "Eye Consultation"}</strong> with <strong>{formData.doctor === "not_sure" ? "Assigned Specialist (Admin Decision)" : formData.doctor}</strong> on <strong>{formData.date} ({formData.time})</strong> has been logged.
+                      Thank you, <strong className="text-slate-800">{formData.name}</strong>. Your appointment request for <strong>{formData.service || "Eye Consultation"}</strong> with <strong>{formData.doctor === "not_sure" ? "Assigned Specialist (Front Desk Decision)" : formData.doctor}</strong> on <strong>{formData.date} ({formData.time})</strong> has been logged.
                     </p>
                   </div>
 

@@ -407,7 +407,7 @@ export default function AdminMessagesPage() {
               Communication Center
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
             Hospital Inbox & Messaging
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -448,7 +448,7 @@ export default function AdminMessagesPage() {
           {/* Left Sidebar: Per-Doctor Threads List */}
           <div className="lg:col-span-4 border-r border-[var(--line)] bg-[#FAFDFB] flex flex-col">
             <div className="p-4 border-b border-[var(--line)] bg-[var(--fog)]">
-              <h3 className="text-xs font-extrabold text-[var(--ink)] uppercase tracking-wider">
+              <h3 className="text-xs font-extrabold text-[#2B1F1A] uppercase tracking-wider">
                 Doctor Inbox Threads ({doctorsList.length})
               </h3>
               <p className="text-[11px] text-[var(--slate)] font-semibold mt-0.5">
@@ -496,7 +496,7 @@ export default function AdminMessagesPage() {
                           className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold flex-shrink-0 ${
                             isSelected
                               ? "bg-[var(--iris)] text-white"
-                              : "bg-[var(--fog)] text-[var(--ink)]"
+                              : "bg-[var(--fog)] text-[#2B1F1A]"
                           }`}
                         >
                           <Stethoscope className="w-5 h-5" />
@@ -539,7 +539,7 @@ export default function AdminMessagesPage() {
                       <User className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-extrabold text-[var(--ink)]">
+                      <h3 className="text-sm font-extrabold text-[#2B1F1A]">
                         {selectedDoctorObj.name || "Dr. Specialist"}
                       </h3>
                       <p className="text-xs font-semibold text-[var(--slate)]">
@@ -559,7 +559,7 @@ export default function AdminMessagesPage() {
                   {activeDoctorThread.length === 0 ? (
                     <div className="py-20 text-center space-y-3 max-w-sm mx-auto">
                       <MessageSquare className="w-10 h-10 text-slate-300 mx-auto" />
-                      <h4 className="text-sm font-extrabold text-[var(--ink)]">No Messages Yet</h4>
+                      <h4 className="text-sm font-extrabold text-[#2B1F1A]">No Messages Yet</h4>
                       <p className="text-xs text-slate-500 font-medium">
                         There are no direct messages between you and {selectedDoctorObj.name} yet. Type a message below to start chatting.
                       </p>
@@ -648,7 +648,7 @@ export default function AdminMessagesPage() {
         <div className="bg-white rounded-3xl border border-[var(--line)] shadow-lg p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-base font-extrabold text-[var(--ink)]">
+              <h2 className="text-base font-extrabold text-[#2B1F1A]">
                 Website Patient Inquiries ({patientInquiries.length})
               </h2>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -669,7 +669,7 @@ export default function AdminMessagesPage() {
           </div>
 
           {loading ? (
-            <div className="py-12 text-center text-xs font-bold text-[var(--ink)]">
+            <div className="py-12 text-center text-xs font-bold text-[#2B1F1A]">
               Loading Patient Inquiries...
             </div>
           ) : patientInquiries.length === 0 ? (
@@ -711,7 +711,7 @@ export default function AdminMessagesPage() {
 
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-extrabold text-[var(--ink)]">
+                            <h4 className="text-xs font-extrabold text-[#2B1F1A]">
                               {msg.name || "Patient"}
                             </h4>
 
@@ -761,7 +761,7 @@ export default function AdminMessagesPage() {
 
                     {/* Patient inquiry message text */}
                     <div className="bg-white/80 p-4 rounded-2xl border border-slate-100 shadow-xs">
-                      <p className="text-xs font-semibold text-slate-800 leading-relaxed uppercase tracking-tight font-mono text-[11px] text-[var(--ink)] mb-1">
+                      <p className="text-xs font-semibold text-slate-800 leading-relaxed uppercase tracking-tight font-mono text-[11px] text-[#2B1F1A] mb-1">
                         INQUIRY MESSAGE:
                       </p>
                       <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -880,7 +880,7 @@ export default function AdminMessagesPage() {
               <div className="p-6 overflow-y-auto space-y-4 flex-1">
                 {/* Original inquiry recap box */}
                 <div className="bg-[#FAFDFB] p-4 rounded-2xl border border-[var(--line)] space-y-1">
-                  <div className="flex items-center justify-between text-[11px] font-extrabold text-[var(--ink)]">
+                  <div className="flex items-center justify-between text-[11px] font-extrabold text-[#2B1F1A]">
                     <span>PATIENT: {replyingInquiry.name || "Unknown"}</span>
                     <span className="text-slate-400 font-normal">{formatTime(replyingInquiry.createdAt)}</span>
                   </div>
@@ -891,14 +891,14 @@ export default function AdminMessagesPage() {
 
                 {/* Quick Templates Bar */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-extrabold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-[11px] font-extrabold text-[#2B1F1A] uppercase tracking-wider block">
                     Quick Reply Templates:
                   </label>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => applyTemplate("cataract")}
-                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[var(--ink)] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[#2B1F1A] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                       Cataract & Surgery Charges
@@ -906,7 +906,7 @@ export default function AdminMessagesPage() {
                     <button
                       type="button"
                       onClick={() => applyTemplate("appointment")}
-                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[var(--ink)] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[#2B1F1A] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <FileText className="w-3.5 h-3.5 text-sky-500" />
                       Appointment Booking
@@ -914,7 +914,7 @@ export default function AdminMessagesPage() {
                     <button
                       type="button"
                       onClick={() => applyTemplate("general")}
-                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[var(--ink)] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--fog)] hover:bg-[var(--iris)] hover:text-white text-[#2B1F1A] text-xs font-bold border border-[var(--line)] transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Check className="w-3.5 h-3.5 text-emerald-500" />
                       General Reply
@@ -924,7 +924,7 @@ export default function AdminMessagesPage() {
 
                 {/* Subject Line */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-[11px] font-extrabold text-[#2B1F1A] uppercase tracking-wider block">
                     Email Subject:
                   </label>
                   <input
@@ -938,7 +938,7 @@ export default function AdminMessagesPage() {
 
                 {/* Reply Message Body */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-extrabold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-[11px] font-extrabold text-[#2B1F1A] uppercase tracking-wider block">
                     Email Message Content:
                   </label>
                   <textarea

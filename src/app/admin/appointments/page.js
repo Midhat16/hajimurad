@@ -4,11 +4,16 @@ import React, { useState, useEffect } from "react";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { notifyOnAdminAction } from "@/lib/notificationService";
+import { triggerEmailApi } from "@/lib/clientEmailHelper";
 import { Calendar, Clock, User, Mail, Phone, Stethoscope, CheckCircle2, XCircle, AlertCircle, Filter, X, MessageSquare } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { getWhatsAppAppointmentUrl } from "@/lib/whatsappHelper";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function AdminAppointmentsPage() {
+function AdminAppointmentsPage() {
+  const searchParams = useSearchParams();
+  const rescheduleId = searchParams.get("rescheduleId");
+
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // 'all', 'pending', 'confirmed', 'cancelled'
@@ -100,6 +105,20 @@ export default function AdminAppointmentsPage() {
     };
   }, []);
 
+  // Auto-open Reschedule modal if rescheduleId was passed from email link
+  useEffect(() => {
+    if (rescheduleId && appointments.length > 0 && !confirmingAppt) {
+      const target = appointments.find(
+        (a) => a.id === rescheduleId || a.appointmentId === rescheduleId
+      );
+      if (target) {
+        setConfirmingAppt(target);
+        setConfirmDate(target.date || "");
+        setConfirmTime(target.time || "");
+      }
+    }
+  }, [rescheduleId, appointments]);
+
   const openConfirmModal = (appt) => {
     setConfirmingAppt(appt);
     setConfirmDate(appt.date || "");
@@ -126,6 +145,29 @@ export default function AdminAppointmentsPage() {
       // Trigger notification for Doctor
       const actionType = isRescheduled ? "rescheduled" : "accepted";
       await notifyOnAdminAction(actionType, confirmingAppt, confirmDate, confirmTime);
+
+      // Trigger automatic status email to Patient
+      if (isRescheduled) {
+        triggerEmailApi({
+          type: "STATUS_RESCHEDULED",
+          data: {
+            ...confirmingAppt,
+            oldDate: confirmingAppt.date,
+            oldTime: confirmingAppt.time,
+            date: confirmDate,
+            time: confirmTime,
+          },
+        }).catch((err) => console.warn("Rescheduled email trigger notice:", err));
+      } else {
+        triggerEmailApi({
+          type: "STATUS_CONFIRMED",
+          data: {
+            ...confirmingAppt,
+            date: confirmDate,
+            time: confirmTime,
+          },
+        }).catch((err) => console.warn("Confirmed email trigger notice:", err));
+      }
 
       // Trigger automatic WhatsApp open for patient notification
       const waUrl = getWhatsAppAppointmentUrl(isRescheduled ? "rescheduled" : "confirmed", confirmingAppt, confirmDate, confirmTime);
@@ -156,6 +198,13 @@ export default function AdminAppointmentsPage() {
       // Trigger notification for Doctor
       if (appt) {
         await notifyOnAdminAction("rejected", appt);
+
+        // Trigger automatic cancellation email to Patient
+        triggerEmailApi({
+          type: "STATUS_CANCELLED",
+          data: appt,
+        }).catch((err) => console.warn("Cancelled email trigger notice:", err));
+
         const waUrl = getWhatsAppAppointmentUrl("cancelled", appt);
         if (waUrl && typeof window !== "undefined") {
           window.open(waUrl, "_blank");
@@ -177,7 +226,7 @@ export default function AdminAppointmentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
             Patient Appointments Desk
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -206,12 +255,12 @@ export default function AdminAppointmentsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)]">Loading Appointments...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Loading Appointments...</p>
         </div>
       ) : filteredAppointments.length === 0 ? (
         <div className="p-12 text-center bg-white rounded-3xl border border-[var(--line)]">
           <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-[var(--ink)]">No Appointments Found</h3>
+          <h3 className="text-base font-bold text-[#2B1F1A]">No Appointments Found</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
             {filter === "all"
               ? "No patient appointment requests have been logged yet."
@@ -253,11 +302,11 @@ export default function AdminAppointmentsPage() {
 
                 {/* Patient Name & Guardian info */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[var(--fog)] text-[var(--ink)] font-bold flex items-center justify-center text-sm shadow-xs flex-shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-[var(--fog)] text-[#2B1F1A] font-bold flex items-center justify-center text-sm shadow-xs flex-shrink-0">
                     {appt.name?.charAt(0) || "P"}
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[var(--ink)]">{appt.name}</h3>
+                    <h3 className="text-base font-bold text-[#2B1F1A]">{appt.name}</h3>
                     {(appt.dob || appt.age || appt.gender) && (
                       <span className="text-[11px] font-bold text-slate-500 block">
                         {appt.gender || "Patient"}{appt.age ? `, ${appt.age} Yrs` : ""}{appt.dob ? ` (DOB: ${appt.dob})` : ""}
@@ -275,19 +324,19 @@ export default function AdminAppointmentsPage() {
                 {/* Details list */}
                 <div className="space-y-2 text-xs border-t border-slate-100 pt-3">
                   {appt.patientCnic && (
-                    <div className="flex items-center gap-2 text-[var(--ink)] font-semibold font-mono text-xs bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
+                    <div className="flex items-center gap-2 text-[#2B1F1A] font-semibold font-mono text-xs bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
                       <span className="text-[10px] font-bold text-[var(--slate)] uppercase tracking-wider">Patient CNIC:</span>
                       <span>{appt.patientCnic}</span>
                     </div>
                   )}
                   {appt.guardianCnic && (
-                    <div className="flex items-center gap-2 text-[var(--ink)] font-semibold font-mono text-xs bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
+                    <div className="flex items-center gap-2 text-[#2B1F1A] font-semibold font-mono text-xs bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
                       <span className="text-[10px] font-bold text-[var(--slate)] uppercase tracking-wider">Guardian CNIC:</span>
                       <span>{appt.guardianCnic}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-slate-600 font-medium">
-                    <User className="w-4 h-4 text-[var(--ink)] flex-shrink-0" />
+                    <User className="w-4 h-4 text-[#2B1F1A] flex-shrink-0" />
                     <span>Doctor: {appt.doctor}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600 font-medium">
@@ -298,7 +347,7 @@ export default function AdminAppointmentsPage() {
                     <Phone className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                     <span>{appt.phone}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[var(--ink)] font-bold bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
+                  <div className="flex items-center gap-2 text-[#2B1F1A] font-bold bg-[var(--fog)] p-2 rounded-xl border border-[var(--line)]/60">
                     <Calendar className="w-4 h-4 text-[var(--iris)] flex-shrink-0" />
                     <span>
                       {appt.date} ({appt.time})
@@ -375,7 +424,7 @@ export default function AdminAppointmentsPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-extrabold text-[var(--ink)]">
+              <h3 className="text-lg font-extrabold text-[#2B1F1A]">
                 Confirm Appointment Slot
               </h3>
               <p className="text-xs text-slate-500 mt-1 font-medium">
@@ -385,7 +434,7 @@ export default function AdminAppointmentsPage() {
               <form onSubmit={handleConfirmSubmit} className="mt-5 space-y-4">
                 {/* Date */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                     Final Date
                   </label>
                   <input
@@ -393,13 +442,13 @@ export default function AdminAppointmentsPage() {
                     value={confirmDate}
                     onChange={(e) => setConfirmDate(e.target.value)}
                     required
-                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2.5 text-xs text-[var(--ink)] font-semibold focus:outline-none"
+                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2.5 text-xs text-[#2B1F1A] font-semibold focus:outline-none"
                   />
                 </div>
 
                 {/* Time */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                     Time Slot / Hours
                   </label>
                   <input
@@ -408,7 +457,7 @@ export default function AdminAppointmentsPage() {
                     onChange={(e) => setConfirmTime(e.target.value)}
                     placeholder="Preferred time slot"
                     required
-                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2.5 text-xs text-[var(--ink)] font-semibold focus:outline-none"
+                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2.5 text-xs text-[#2B1F1A] font-semibold focus:outline-none"
                   />
                 </div>
 
@@ -434,5 +483,13 @@ export default function AdminAppointmentsPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function AdminAppointmentsPageWrapper() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-xs font-bold text-slate-500">Loading Appointments Desk...</div>}>
+      <AdminAppointmentsPage />
+    </React.Suspense>
   );
 }

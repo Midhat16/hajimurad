@@ -160,7 +160,7 @@ export default function AdminSettingsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[var(--ink)]">Loading Site Settings...</p>
+        <p className="text-xs font-bold text-[#2B1F1A]">Loading Site Settings...</p>
       </div>
     );
   }
@@ -170,7 +170,7 @@ export default function AdminSettingsPage() {
       {/* Header */}
       <div className="border-b border-[var(--line)] pb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight flex items-center gap-2">
             <Shield className="w-6 h-6 text-[var(--iris)]" />
             Site Settings & Configuration
           </h1>
@@ -187,7 +187,7 @@ export default function AdminSettingsPage() {
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[var(--ink)]">Hospital Branding & Profile</h2>
+            <h2 className="text-base font-bold text-[#2B1F1A]">Hospital Branding & Profile</h2>
             <p className="text-xs font-semibold text-[var(--slate)]">Update hospital logo image and official name dynamically.</p>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function AdminSettingsPage() {
         <div className="space-y-6">
           {/* Hospital Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5 text-[var(--iris)]" />
               Hospital Name *
             </label>
@@ -213,7 +213,7 @@ export default function AdminSettingsPage() {
               onChange={handleProfileChange}
               placeholder=""
               required
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
@@ -263,7 +263,7 @@ export default function AdminSettingsPage() {
             <Phone className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[var(--ink)]">Site Contact Information</h2>
+            <h2 className="text-base font-bold text-[#2B1F1A]">Site Contact Information</h2>
             <p className="text-xs font-semibold text-[var(--slate)]">Manage UAN, helpline numbers, email, and physical clinic address.</p>
           </div>
         </div>
@@ -278,7 +278,7 @@ export default function AdminSettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* UAN Number */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-[var(--iris)]" />
               UAN Number *
             </label>
@@ -289,13 +289,13 @@ export default function AdminSettingsPage() {
               onChange={handleChange}
               placeholder="UAN helpline number"
               required
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Call # Number */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-rose-500" />
               Call # *
             </label>
@@ -306,13 +306,13 @@ export default function AdminSettingsPage() {
               onChange={handleChange}
               placeholder="03XX-XXXXXXX"
               required
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Email Address */}
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-[var(--iris)]" />
               Official Email Address *
             </label>
@@ -323,13 +323,13 @@ export default function AdminSettingsPage() {
               onChange={handleChange}
               placeholder=""
               required
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Physical Address */}
           <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-[var(--iris)]" />
               Clinic Physical Address *
             </label>
@@ -340,7 +340,7 @@ export default function AdminSettingsPage() {
               rows={3}
               placeholder=""
               required
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
             />
           </div>
         </div>

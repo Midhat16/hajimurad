@@ -68,12 +68,12 @@ export default function SuccessStoriesPage() {
         {loading ? (
           <div className="bg-white rounded-3xl p-16 text-center border border-[var(--line)] shadow-sm max-w-md mx-auto">
             <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-xs font-extrabold text-[var(--ink)] uppercase tracking-wider">Loading Success Stories...</p>
+            <p className="text-xs font-extrabold text-[#2B1F1A] uppercase tracking-wider">Loading Success Stories...</p>
           </div>
         ) : stories.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] shadow-sm space-y-3 max-w-lg mx-auto">
             <HeartHandshake className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="text-lg font-extrabold text-[var(--ink)]">No Stories Published Yet</h3>
+            <h3 className="text-lg font-extrabold text-[#2B1F1A]">No Stories Published Yet</h3>
             <p className="text-xs text-slate-500 font-medium">
               Patient success stories will appear here as soon as they are added by the hospital team.
             </p>
@@ -111,7 +111,7 @@ export default function SuccessStoriesPage() {
                           Patient Recovery
                         </span>
                       </div>
-                      <h3 className="text-lg sm:text-xl font-extrabold text-[var(--ink)] tracking-tight leading-snug">
+                      <h3 className="text-lg sm:text-xl font-extrabold text-[#2B1F1A] tracking-tight leading-snug">
                         {item.title || "Restored Vision Journey"}
                       </h3>
                       {item.patientName && (

@@ -142,12 +142,12 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
         <div className="flex items-center gap-3">
           <Link
             href="/admin/doctors"
-            className="p-2 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all"
+            className="p-2 rounded-xl bg-white border border-[var(--line)] text-[#2B1F1A] hover:bg-[var(--fog)] transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+            <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
               {title}
             </h1>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -170,7 +170,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Full Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Doctor Full Name *
             </label>
             <input
@@ -180,13 +180,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               onChange={handleChange}
               placeholder=""
               required
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Role */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Hospital Role / Designation
             </label>
             <input
@@ -195,13 +195,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.role}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Specialty */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Specialty Sub-Field
             </label>
             <input
@@ -210,13 +210,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.specialty}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Education */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Medical Education / Degree
             </label>
             <input
@@ -225,13 +225,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.education}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Fellowship */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Fellowship Training
             </label>
             <input
@@ -240,13 +240,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.fellowship}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* PMDC Number */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               PMDC Registration No.
             </label>
             <input
@@ -255,7 +255,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.pmdcNo}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
@@ -263,7 +263,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
           {/* Structured Schedule Configuration Section */}
           <div className="md:col-span-2 p-5 rounded-2xl bg-[var(--fog)]/80 border border-[var(--line)] space-y-4">
             <div>
-              <h3 className="text-xs font-extrabold text-[var(--ink)] uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-xs font-extrabold text-[#2B1F1A] uppercase tracking-wider flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[var(--iris)]" /> Doctor Working Days & Hours (Required)
               </h3>
               <p className="text-xs text-[var(--slate)] mt-0.5 font-medium">
@@ -274,7 +274,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Working Days Checkboxes */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                   Working Days * (Select Days)
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -304,7 +304,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
               {/* Working Hours Pickers */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                   Working Hours * (Start & End Time)
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -316,7 +316,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                       value={formData.workingHours?.start || "09:00"}
                       onChange={handleHoursChange}
                       required
-                      className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-4 transition-all"
+                      className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold text-[#2B1F1A] focus:outline-none focus:ring-4 transition-all"
                     />
                   </div>
                   <div>
@@ -327,7 +327,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                       value={formData.workingHours?.end || "15:00"}
                       onChange={handleHoursChange}
                       required
-                      className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-4 transition-all"
+                      className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold text-[#2B1F1A] focus:outline-none focus:ring-4 transition-all"
                     />
                   </div>
                 </div>
@@ -337,7 +337,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
           {/* Metrics */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Track Record / Metrics Badge
             </label>
             <input
@@ -346,20 +346,20 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               value={formData.metrics}
               onChange={handleChange}
               placeholder=""
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
 
           {/* Card Gradient Theme */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Card Avatar Gradient Accent
             </label>
             <select
               name="gradient"
               value={formData.gradient}
               onChange={handleChange}
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             >
               {GRADIENT_OPTIONS.map((g) => (
                 <option key={g.value} value={g.value}>
@@ -371,7 +371,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
           {/* Initials */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Fallback Initials (2 letters)
             </label>
             <input
@@ -381,7 +381,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               onChange={handleChange}
               maxLength={3}
               placeholder=""
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
           </div>
         </div>
@@ -389,16 +389,16 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
         {/* Account Credentials Section (Private for Doctor Login) */}
         <div className="p-5 rounded-2xl bg-[var(--fog)]/60 border border-[var(--line)] space-y-4">
           <div>
-            <h3 className="text-sm font-extrabold text-[var(--ink)] flex items-center gap-2">
+            <h3 className="text-sm font-extrabold text-[#2B1F1A] flex items-center gap-2">
               <Lock className="w-4 h-4 text-[var(--iris)]" /> Doctor Account Credentials
             </h3>
             <p className="text-xs text-[var(--slate)] mt-0.5 font-semibold">
-              Ye sirf doctor login ke liye hain, public site par kabhi nahi dikhengi.
+              For doctor portal login authentication only. Kept strictly private and never shown publicly.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                 Login Email
               </label>
               <input
@@ -408,11 +408,11 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                 onChange={handleChange}
                 autoComplete="off"
                 placeholder="doctor@example.com"
-                className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                 Login Password
               </label>
               <input
@@ -422,7 +422,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                 onChange={handleChange}
                 autoComplete="new-password"
                 placeholder="Password"
-                className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
@@ -430,7 +430,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
         {/* Bio */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+          <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
             Doctor Bio & Overview
           </label>
           <textarea
@@ -439,7 +439,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
             onChange={handleChange}
             rows={4}
             placeholder=""
-            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
           />
         </div>
 

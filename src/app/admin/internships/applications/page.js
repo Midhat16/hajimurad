@@ -98,7 +98,7 @@ export default function AdminInternshipApplicationsPage() {
             href="/admin/internships"
             className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 text-[var(--ink)]" />
+            <ArrowLeft className="w-4 h-4 text-[#2B1F1A]" />
           </Link>
 
           <div>
@@ -112,7 +112,7 @@ export default function AdminInternshipApplicationsPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+            <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
               Candidate Applications ({applications.length})
             </h1>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -147,12 +147,12 @@ export default function AdminInternshipApplicationsPage() {
       {loading ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)]">
           <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)] uppercase">Loading Applications...</p>
+          <p className="text-xs font-bold text-[#2B1F1A] uppercase">Loading Applications...</p>
         </div>
       ) : filteredApps.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] space-y-3">
           <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="text-base font-extrabold text-[var(--ink)]">No Applications Found</h3>
+          <h3 className="text-base font-extrabold text-[#2B1F1A]">No Applications Found</h3>
           <p className="text-xs font-semibold text-[var(--slate)]">
             There are no submitted candidate applications matching this filter.
           </p>
@@ -189,7 +189,7 @@ export default function AdminInternshipApplicationsPage() {
                       <span className="text-[10px] font-black uppercase tracking-wider bg-[var(--fog)] text-[var(--iris)] px-2 py-0.5 rounded-md border border-[var(--line)]">
                         {item.department || "General"}
                       </span>
-                      <h4 className="text-sm font-extrabold text-[var(--ink)]">
+                      <h4 className="text-sm font-extrabold text-[#2B1F1A]">
                         {item.applicantName}
                       </h4>
                       <span className="text-xs font-bold text-slate-500">
@@ -268,7 +268,7 @@ export default function AdminInternshipApplicationsPage() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
                   Internship Candidate Profile
                 </span>
-                <h3 className="text-xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+                <h3 className="text-xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
                   {selectedApp.applicantName}
                 </h3>
               </div>
@@ -283,7 +283,7 @@ export default function AdminInternshipApplicationsPage() {
             {/* Target Program Info */}
             <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-[var(--line)]/60 space-y-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Applied For Program</span>
-              <span className="text-sm font-extrabold text-[var(--ink)] block">{selectedApp.internshipTitle || "Internship"}</span>
+              <span className="text-sm font-extrabold text-[#2B1F1A] block">{selectedApp.internshipTitle || "Internship"}</span>
               <span className="text-xs font-bold text-[var(--iris)] block">{selectedApp.department || "General Department"}</span>
             </div>
 
@@ -291,7 +291,7 @@ export default function AdminInternshipApplicationsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">Candidate Name</span>
-                <span className="font-extrabold text-[var(--ink)]">{selectedApp.applicantName}</span>
+                <span className="font-extrabold text-[#2B1F1A]">{selectedApp.applicantName}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">Phone / WhatsApp</span>
@@ -299,7 +299,7 @@ export default function AdminInternshipApplicationsPage() {
               </div>
               <div className="sm:col-span-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">Email Address</span>
-                <span className="font-extrabold text-[var(--ink)] truncate block">{selectedApp.email}</span>
+                <span className="font-extrabold text-[#2B1F1A] truncate block">{selectedApp.email}</span>
               </div>
             </div>
 

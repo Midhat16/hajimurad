@@ -28,6 +28,7 @@ import {
   Newspaper,
   Image as ImageIcon,
   HeartHandshake,
+  CalendarDays,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -43,6 +44,7 @@ const NAV_ITEMS = [
   { label: "Annual Reports", href: "/admin/media/annual-reports", icon: FileText },
   { label: "Newsletters", href: "/admin/media/newsletters", icon: Newspaper },
   { label: "Success Stories", href: "/admin/media/success-stories", icon: HeartHandshake },
+  { label: "Upcoming Events", href: "/admin/media/events", icon: CalendarDays },
   { label: "Why Choose Us", href: "/admin/why-choose-us", icon: Sparkles },
   { label: "About Content", href: "/admin/about", icon: Info },
   { label: "Messages", href: "/admin/messages", icon: MessageSquare },

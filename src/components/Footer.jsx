@@ -141,10 +141,10 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-[var(--ink)] text-white border-t border-white/10 pt-12 pb-6 lg:pt-14 lg:pb-6 text-left relative z-10 select-none">
+    <footer className="bg-[#F7F3EA] text-[#1A1A1A] border-t border-[#2B1F1A]/10 pt-12 pb-6 lg:pt-14 lg:pb-6 text-left relative z-10 select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 pb-10 border-b border-white/10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 pb-10 border-b border-[#2B1F1A]/10">
           {/* Logo & Slogan Column */}
           <div className="lg:col-span-4 space-y-5">
             <Link href="/" className="flex items-center gap-3">
@@ -156,7 +156,7 @@ export default function Footer() {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold tracking-tight text-white leading-tight">
+                <span className="text-xl font-bold tracking-tight text-[#1A1A1A] leading-tight">
                   {brand.mainFirst}{" "}
                   {brand.mainHighlight && (
                     <span className="text-[var(--iris)]">{brand.mainHighlight}</span>
@@ -170,7 +170,7 @@ export default function Footer() {
               </div>
             </Link>
 
-            <p className="text-sm text-white/70 leading-relaxed font-medium max-w-sm">
+            <p className="text-sm text-[#4A4A4A] leading-relaxed font-medium max-w-sm">
               We coordinate premier surgical expertise with advanced diagnostics to restore visual clarity. Safeguarding your vision is our lifelong hospital focus.
             </p>
 
@@ -180,7 +180,7 @@ export default function Footer() {
                 {
                   icon: FacebookIcon,
                   label: "Facebook",
-                  href: "https://www.facebook.com/profile.php?id=61592548296831",
+                  href: "https://www.facebook.com/HMEHTrust",
                 },
                 {
                   icon: InstagramIcon,
@@ -213,7 +213,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Visit our ${social.label} page`}
-                    className="w-10 h-10 rounded-full bg-white text-[var(--ink)] hover:bg-[var(--iris)] hover:text-white flex items-center justify-center shadow-md cursor-pointer transition-colors"
+                    className="w-10 h-10 rounded-full bg-[var(--ink)] text-white hover:bg-[var(--iris)] flex items-center justify-center shadow-md cursor-pointer transition-colors"
                   >
                     <IconComponent className="w-4 h-4" />
                   </motion.a>
@@ -224,7 +224,7 @@ export default function Footer() {
 
           {/* Quick Links Column */}
           <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-xs font-bold text-white uppercase tracking-widest">
+            <h4 className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-widest">
               Quick Links
             </h4>
             <ul className="space-y-2.5">
@@ -239,7 +239,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-xs sm:text-sm font-semibold text-white/70 hover:text-[var(--iris)] transition-colors"
+                    className="text-xs sm:text-sm font-semibold text-[#4A4A4A] hover:text-[var(--ink)] transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -250,8 +250,8 @@ export default function Footer() {
 
           {/* Services Column - Dynamic Firestore List */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-bold text-white uppercase tracking-widest">
-              <Link href="/services" className="hover:text-[var(--iris)] transition-colors">
+            <h4 className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-widest">
+              <Link href="/services" className="hover:text-[var(--ink)] transition-colors">
                 Ophthalmic Services
               </Link>
             </h4>
@@ -259,8 +259,8 @@ export default function Footer() {
               {services.map((serv) => (
                 <li key={serv.id || serv.title}>
                   <Link
-                    href="/services"
-                    className="text-xs sm:text-sm font-semibold text-white/70 hover:text-[var(--iris)] transition-colors block truncate"
+                    href={`/services?id=${encodeURIComponent(serv.id || serv.title)}`}
+                    className="text-xs sm:text-sm font-semibold text-[#4A4A4A] hover:text-[var(--ink)] transition-colors block truncate"
                   >
                     {serv.title || serv.name}
                   </Link>
@@ -271,15 +271,15 @@ export default function Footer() {
 
           {/* Contact Details Column - Dynamic Firestore Info */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-bold text-white uppercase tracking-widest">
+            <h4 className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-widest">
               Immediate Help
             </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-white/70 font-medium">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-[#4A4A4A] font-medium">
               <li>
                 UAN:{" "}
                 <a
                   href={`tel:${(contactInfo.uanNumber || contactInfo.mainDeskNumber)?.replace(/\s+/g, "")}`}
-                  className="text-white font-extrabold hover:text-[var(--iris)] transition-colors"
+                  className="text-[#1A1A1A] font-extrabold hover:text-[var(--ink)] transition-colors"
                 >
                   {contactInfo.uanNumber || contactInfo.mainDeskNumber}
                 </a>
@@ -288,7 +288,7 @@ export default function Footer() {
                 Call #:{" "}
                 <a
                   href={`tel:${(contactInfo.callNumber || contactInfo.emergencyNumber)?.replace(/\s+/g, "")}`}
-                  className="text-rose-400 font-extrabold hover:underline"
+                  className="text-rose-600 font-extrabold hover:underline"
                 >
                   {contactInfo.callNumber || contactInfo.emergencyNumber}
                 </a>
@@ -297,7 +297,7 @@ export default function Footer() {
                 Email:{" "}
                 <a
                   href={`mailto:${contactInfo.email}`}
-                  className="text-white font-extrabold hover:text-[var(--iris)] transition-colors"
+                  className="text-[#1A1A1A] font-extrabold hover:text-[var(--ink)] transition-colors"
                 >
                   info@HMEHT.com
                 </a>
@@ -310,14 +310,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom copyright */}
-        <div className="pt-6 flex items-center justify-center text-center text-xs sm:text-sm text-white/70 font-medium">
+        <div className="pt-6 flex items-center justify-center text-center text-xs sm:text-sm text-[#4A4A4A] font-medium">
           <p className="text-center">
             Copyright © {new Date().getFullYear()} {profile.hospitalName} | Developed By:{" "}
             <a
               href="https://bizdevit.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white hover:text-[var(--iris)] font-bold hover:underline transition-colors"
+              className="text-[#1A1A1A] hover:text-[var(--ink)] font-bold hover:underline transition-colors"
             >
               Biz Dev IT
             </a>

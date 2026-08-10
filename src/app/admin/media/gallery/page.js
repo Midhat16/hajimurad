@@ -118,7 +118,7 @@ export default function AdminGalleryPage() {
           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
             Media Management
           </span>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
             Photo Gallery Manager
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -149,12 +149,12 @@ export default function AdminGalleryPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)]">Loading Gallery Manager...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Loading Gallery Manager...</p>
         </div>
       ) : images.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] shadow-sm space-y-4 max-w-lg mx-auto">
           <ImageIcon className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="text-lg font-extrabold text-[var(--ink)]">No Gallery Photos Added Yet</h3>
+          <h3 className="text-lg font-extrabold text-[#2B1F1A]">No Gallery Photos Added Yet</h3>
           <p className="text-xs text-slate-500 font-medium">
             Click "Add New Photo" to upload your first hospital event or facility image using ImgBB.
           </p>
@@ -212,7 +212,7 @@ export default function AdminGalleryPage() {
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <h3 className="text-xl font-extrabold text-[var(--ink)]">Add Photo to Gallery</h3>
+                  <h3 className="text-xl font-extrabold text-[#2B1F1A]">Add Photo to Gallery</h3>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">
                     Upload photo and specify category and display order.
                   </p>
@@ -243,7 +243,7 @@ export default function AdminGalleryPage() {
                 {/* Category & Order */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+                    <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
                       Category
                     </label>
                     <select
@@ -260,7 +260,7 @@ export default function AdminGalleryPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+                    <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
                       Display Order
                     </label>
                     <input
@@ -275,7 +275,7 @@ export default function AdminGalleryPage() {
 
                 {category === "Other" && (
                   <div>
-                    <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+                    <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
                       Custom Category Name *
                     </label>
                     <input

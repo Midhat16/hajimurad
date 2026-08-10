@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import { UploadCloud, Image as ImageIcon, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function ImagePicker({ value, onChange, label = "Doctor Photo / Image" }) {
+export default function ImagePicker({ value, onChange, label = "Doctor Photo / Image", cropSquare = true }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
@@ -27,8 +27,31 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
         const img = new Image();
         img.onload = () => {
           try {
+            if (!cropSquare) {
+              // Return original aspect ratio compressed JPEG
+              const canvas = document.createElement("canvas");
+              const maxDim = 700;
+              let width = img.naturalWidth;
+              let height = img.naturalHeight;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.70));
+              return;
+            }
+
             const canvas = document.createElement("canvas");
-            const targetSize = 600;
+            const targetSize = 500;
             canvas.width = targetSize;
             canvas.height = targetSize;
             const ctx = canvas.getContext("2d");
@@ -49,7 +72,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
             }
 
             ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, targetSize, targetSize);
-            const croppedDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+            const croppedDataUrl = canvas.toDataURL("image/jpeg", 0.72);
             resolve(croppedDataUrl);
           } catch (err) {
             resolve(e.target.result);
@@ -116,7 +139,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
 
   return (
     <div className="space-y-2">
-      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
         {label}
       </label>
 
@@ -152,7 +175,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-xs font-bold text-[var(--ink)] hover:text-[var(--iris)] transition-colors cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200"
+                className="text-xs font-bold text-[#2B1F1A] hover:text-[var(--iris)] transition-colors cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200"
               >
                 Change Image
               </button>
@@ -171,7 +194,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
           {uploading ? (
             <div className="flex flex-col items-center py-4 text-center">
               <div className="w-9 h-9 border-3 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-              <p className="text-xs font-bold text-[var(--ink)]">Processing & Uploading Picture...</p>
+              <p className="text-xs font-bold text-[#2B1F1A]">Processing & Uploading Picture...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center text-center space-y-3">
@@ -180,7 +203,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
               </div>
 
               <div>
-                <p className="text-xs font-bold text-[var(--ink)]">{label || "Select Photograph / Image"}</p>
+                <p className="text-xs font-bold text-[#2B1F1A]">{label || "Select Photograph / Image"}</p>
                 <p className="text-[11px] text-slate-400 mt-0.5">JPG, PNG, WEBP supported</p>
               </div>
 

@@ -17,11 +17,13 @@ import {
   MapPin,
   Info
 } from "lucide-react";
-import confetti from "canvas-confetti";
 import { collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { sortDoctors } from "@/lib/doctorUtils";
 import { notifyOnAppointmentBooked } from "@/lib/notificationService";
+import { triggerEmailApi } from "@/lib/clientEmailHelper";
 import DatePicker from "react-datepicker";
+import { generateAndOpenAppointmentPDF, openAppointmentPDFInNewTab } from "@/lib/pdfUtil";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -97,7 +99,7 @@ const generateSlotsForDoctor = (doctorObj) => {
   return slots;
 };
 
-export default function AppointmentModal() {
+export default function AppointmentModal({ preSelectedService: propPreSelectedService, isOpen: propIsOpen, onClose }) {
   const [isOpen, setIsOpen] = useState(false);
   const [appointmentFor, setAppointmentFor] = useState("Self"); // "Self" | "Someone Else"
   const [formData, setFormData] = useState({
@@ -115,6 +117,7 @@ export default function AppointmentModal() {
     guardianPhone: "",
     guardianAddress: "",
     service: "",
+    selectedFeatures: [],
     doctor: "",
     date: "",
     time: "",
@@ -124,17 +127,70 @@ export default function AppointmentModal() {
   const [noticeMessage, setNoticeMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [lastSubmittedAppt, setLastSubmittedAppt] = useState(null);
 
   const [servicesList, setServicesList] = useState([]);
   const [doctorsList, setDoctorsList] = useState([]);
+  const [eventContext, setEventContext] = useState({
+    isEvent: false,
+    eventTitle: "",
+    eventDate: "",
+    eventTime: "",
+    assignedDoctors: [],
+  });
 
   useEffect(() => {
-    // Listen for custom events to open appointment modal and pre-select doctor
-    const handleOpenModal = (e) => {
-      const docName = e?.detail?.doctorName || "";
+    if (propIsOpen !== undefined) {
+      setIsOpen(propIsOpen);
+    }
+    if (propPreSelectedService) {
+      const sName = propPreSelectedService.title || propPreSelectedService.name || "";
       setFormData((prev) => ({
         ...prev,
-        doctor: docName || prev.doctor,
+        service: sName,
+        selectedFeatures: [],
+      }));
+    }
+  }, [propIsOpen, propPreSelectedService]);
+
+  useEffect(() => {
+    // Listen for custom events to open appointment modal and pre-select doctor or service
+    const handleOpenModal = (e) => {
+      const isEvt = !!(e?.detail?.isEvent || (e?.detail?.assignedDoctors && e.detail.assignedDoctors.length > 0));
+      const evtTitle = e?.detail?.eventTitle || e?.detail?.serviceName || "";
+      const evtDocs = e?.detail?.assignedDoctors || [];
+      const evtDate = e?.detail?.eventDate || "";
+      const evtTime = e?.detail?.eventTime || "";
+
+      if (isEvt) {
+        setEventContext({
+          isEvent: true,
+          eventTitle: evtTitle,
+          eventDate: evtDate,
+          eventTime: evtTime,
+          assignedDoctors: evtDocs,
+        });
+      } else {
+        setEventContext({
+          isEvent: false,
+          eventTitle: "",
+          eventDate: "",
+          eventTime: "",
+          assignedDoctors: [],
+        });
+      }
+
+      const docName = e?.detail?.doctorName || "";
+      const serviceObj = e?.detail?.preSelectedService || e?.detail?.serviceObj || null;
+      const serviceName = evtTitle || (serviceObj ? (serviceObj.title || serviceObj.name) : (e?.detail?.serviceName || ""));
+
+      setFormData((prev) => ({
+        ...prev,
+        doctor: docName || (evtDocs.length === 1 ? evtDocs[0] : prev.doctor),
+        service: serviceName || prev.service,
+        date: evtDate || prev.date,
+        time: evtTime || prev.time,
+        selectedFeatures: [],
       }));
       setIsSuccess(false);
       setIsOpen(true);
@@ -164,7 +220,7 @@ export default function AppointmentModal() {
           id: docSnap.id,
           ...docSnap.data(),
         }));
-        setDoctorsList(items);
+        setDoctorsList(sortDoctors(items));
       },
       (err) => console.warn("Doctors subscription notice:", err.message)
     );
@@ -180,6 +236,82 @@ export default function AppointmentModal() {
   const activeDoctorObj = doctorsList.find(
     (d) => d.name === formData.doctor || d.id === formData.doctor
   );
+
+  const selectedServiceObj = servicesList.find(
+    (s) => (s.title || s.name) === formData.service || s.id === formData.service
+  );
+
+  const minBookingDays = selectedServiceObj && selectedServiceObj.minBookingDays !== undefined && selectedServiceObj.minBookingDays !== null
+    ? Math.max(0, Number(selectedServiceObj.minBookingDays))
+    : 0;
+
+  const rawMaxBookingDays = selectedServiceObj && selectedServiceObj.maxBookingDays !== undefined && selectedServiceObj.maxBookingDays !== null && selectedServiceObj.maxBookingDays !== ""
+    ? Number(selectedServiceObj.maxBookingDays)
+    : null;
+
+  const getSelectableDateRange = () => {
+    const getNormalizedToday = () => {
+      const t = new Date();
+      t.setHours(0, 0, 0, 0);
+      return t;
+    };
+
+    const docWorkingDays = activeDoctorObj?.workingDays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    const isValidWorkingDay = (d) => {
+      const dayName = d.toLocaleDateString("en-US", { weekday: "long" });
+      if (dayName === "Sunday") return false;
+      return docWorkingDays.includes(dayName);
+    };
+
+    const today = getNormalizedToday();
+    let current = new Date(today);
+    current.setDate(current.getDate() + minBookingDays);
+
+    while (!isValidWorkingDay(current)) {
+      current.setDate(current.getDate() + 1);
+    }
+    const minSelectableDate = new Date(current);
+
+    let maxSelectableDate = null;
+    if (rawMaxBookingDays && rawMaxBookingDays > 0) {
+      let validCount = 0;
+      let maxRunner = new Date(minSelectableDate);
+      let lastValid = new Date(minSelectableDate);
+
+      while (validCount < rawMaxBookingDays && maxRunner.getFullYear() <= today.getFullYear() + 2) {
+        if (isValidWorkingDay(maxRunner)) {
+          validCount++;
+          lastValid = new Date(maxRunner);
+        }
+        if (validCount < rawMaxBookingDays) {
+          maxRunner.setDate(maxRunner.getDate() + 1);
+        }
+      }
+      lastValid.setHours(23, 59, 59, 999);
+      maxSelectableDate = lastValid;
+    }
+
+    return { minSelectableDate, maxSelectableDate };
+  };
+
+  const { minSelectableDate, maxSelectableDate } = getSelectableDateRange();
+
+  useEffect(() => {
+    if (formData.date) {
+      const selectedDateObj = new Date(formData.date + "T00:00:00");
+      selectedDateObj.setHours(0, 0, 0, 0);
+      if (!isNaN(selectedDateObj.getTime())) {
+        if (selectedDateObj < minSelectableDate || (maxSelectableDate && selectedDateObj > maxSelectableDate)) {
+          setFormData((prev) => ({ ...prev, date: "" }));
+          const serviceName = formData.service === "not_sure" ? "General OPD" : (formData.service || "Selected service");
+          setNoticeMessage(
+            `Date reset: ${serviceName} is bookable starting from ${minSelectableDate.toLocaleDateString("en-GB")}.`
+          );
+        }
+      }
+    }
+  }, [formData.service]);
 
   if (formData.doctor) {
     console.log("🔍 DIAGNOSTIC -> Selected Doctor in Form:", formData.doctor);
@@ -199,11 +331,11 @@ export default function AppointmentModal() {
       tempErrors.patientCnic = "CNIC format must be XXXXX-XXXXXXX-X (13 digits)";
     }
 
-    const phoneClean = formData.phone.replace(/[\s\-\(\)]/g, "");
+    const phoneClean = formData.phone.replace(/\D/g, "");
     if (!formData.phone.trim()) {
       tempErrors.phone = "Phone number is required";
-    } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(phoneClean)) {
-      tempErrors.phone = "Please enter a valid phone number (03XX-XXXXXXX)";
+    } else if (phoneClean.length !== 11) {
+      tempErrors.phone = "Phone number must be exactly 11 digits (e.g. 03XX-XXXXXXX)";
     }
 
     // Guardian details required if "Someone Else"
@@ -211,11 +343,11 @@ export default function AppointmentModal() {
       if (!formData.guardianName.trim()) {
         tempErrors.guardianName = "Guardian Full Name is required";
       }
-      const gPhoneClean = formData.guardianPhone.replace(/[\s\-\(\)]/g, "");
+      const gPhoneClean = formData.guardianPhone.replace(/\D/g, "");
       if (!formData.guardianPhone.trim()) {
         tempErrors.guardianPhone = "Guardian Phone number is required";
-      } else if (!/^(03\d{9}|\+923\d{9}|00923\d{9}|\+?\d{10,14})$/.test(gPhoneClean)) {
-        tempErrors.guardianPhone = "Please enter a valid phone number (03XX-XXXXXXX)";
+      } else if (gPhoneClean.length !== 11) {
+        tempErrors.guardianPhone = "Guardian Phone number must be exactly 11 digits (e.g. 03XX-XXXXXXX)";
       }
 
       if (formData.guardianCnic.trim() && formData.guardianCnic.length < 15) {
@@ -225,6 +357,14 @@ export default function AppointmentModal() {
 
     if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       tempErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.dob) {
+      tempErrors.dob = "Date of Birth is required";
+    }
+
+    if (!formData.gender) {
+      tempErrors.gender = "Gender is required";
     }
 
     if (!formData.date) {
@@ -239,7 +379,15 @@ export default function AppointmentModal() {
     (s) => (s.title || s.name) === formData.service
   );
 
+  const availableServiceFeatures = selectedServiceObject?.features || [];
+
   const filteredDoctors = doctorsList.filter((docItem) => {
+    if (
+      formData.doctor &&
+      (docItem.name === formData.doctor || docItem.id === formData.doctor)
+    ) {
+      return true;
+    }
     if (
       selectedServiceObject &&
       selectedServiceObject.doctorIds &&
@@ -253,6 +401,16 @@ export default function AppointmentModal() {
 
   const handleChange = (e) => {
     let { name, value } = e.target;
+    if (name === "service") {
+      setFormData((prev) => ({
+        ...prev,
+        service: value,
+        selectedFeatures: [],
+      }));
+      if (errors.service) setErrors((prev) => ({ ...prev, service: "" }));
+      if (noticeMessage) setNoticeMessage("");
+      return;
+    }
     if (name === "dob") {
       const calculatedAge = calculateAgeFromDOB(value);
       setFormData((prev) => ({
@@ -262,20 +420,36 @@ export default function AppointmentModal() {
       }));
       return;
     }
+    if (name === "phone" || name === "guardianPhone") {
+      const digits = value.replace(/\D/g, "").slice(0, 11);
+      if (digits.length > 4) {
+        value = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+      } else {
+        value = digits;
+      }
+    }
     if (name === "patientCnic" || name === "guardianCnic") {
       value = formatCNIC(value);
     }
-    setFormData((prev) => {
-      const updated = { ...prev, [name]: value };
-      if (name === "service") {
-        updated.doctor = "";
-      }
-      return updated;
-    });
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
     if (noticeMessage) setNoticeMessage("");
+  };
+
+  const handleFeatureToggle = (featureTitle) => {
+    setFormData((prev) => {
+      const current = prev.selectedFeatures || [];
+      const exists = current.includes(featureTitle);
+      const updated = exists
+        ? current.filter((f) => f !== featureTitle)
+        : [...current, featureTitle];
+      return {
+        ...prev,
+        selectedFeatures: updated,
+      };
+    });
   };
 
   const handleDoctorChange = (e) => {
@@ -325,6 +499,21 @@ export default function AppointmentModal() {
   };
 
   const filterAvailableDates = (date) => {
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+
+    if (checkDate < minSelectableDate) {
+      return false;
+    }
+
+    if (maxSelectableDate) {
+      const maxCutoff = new Date(maxSelectableDate);
+      maxCutoff.setHours(23, 59, 59, 999);
+      if (checkDate > maxCutoff) {
+        return false;
+      }
+    }
+
     const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
     if (dayName === "Sunday") return false;
     if (!formData.doctor || formData.doctor === "not_sure") return true;
@@ -345,7 +534,7 @@ export default function AppointmentModal() {
 
       const doctorIdToSave = selectedDocObj ? selectedDocObj.id : "";
       const doctorNameToSave = formData.doctor === "not_sure"
-        ? "Not Sure / Let Admin Decide"
+        ? "Not Sure / Let Front Desk Decide"
         : (selectedDocObj?.name || formData.doctor || "General OPD");
 
       const apptDoc = {
@@ -363,44 +552,59 @@ export default function AppointmentModal() {
         guardianCnic: appointmentFor === "Someone Else" ? formData.guardianCnic : "",
         guardianPhone: appointmentFor === "Someone Else" ? formData.guardianPhone.trim() : "",
         guardianAddress: appointmentFor === "Someone Else" ? formData.guardianAddress.trim() : "",
-        service: formData.service,
+        service: formData.service === "not_sure" ? "Not Sure / Let Front Desk Decide" : formData.service,
+        selectedFeatures: formData.selectedFeatures || [],
         doctor: doctorNameToSave,
         doctorId: doctorIdToSave,
         date: formData.date,
         time: formData.time,
         status: "pending",
+        actionToken: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36),
         createdAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, "appointments"), apptDoc);
+      const generatedId = docRef?.id ? docRef.id.slice(0, 8).toUpperCase() : "HM-2026";
+      const finalApptData = {
+        ...apptDoc,
+        id: docRef?.id || "HM-2026-0001",
+        firestoreId: docRef?.id || "HM-2026-0001",
+        appointmentId: `HM-${generatedId}`,
+        actionToken: apptDoc.actionToken,
+      };
+      setLastSubmittedAppt(finalApptData);
+
+      // Automatically generate PDF and open in a new browser tab
+      openAppointmentPDFInNewTab(finalApptData);
 
       // Trigger automatic dual notifications for Doctor & Admin
       await notifyOnAppointmentBooked(apptDoc, docRef.id);
 
+      // Trigger automatic dual emails to User & Admin via SMTP
+      triggerEmailApi({
+        type: "BOOKING_RECEIVED",
+        data: finalApptData,
+      }).catch((err) => console.warn("Booking email trigger notice:", err));
+
       setIsSubmitting(false);
       setIsSuccess(true);
-
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#2E86FF", "#5EEAD4", "#38BDF8", "#60A5FA", "#FFFFFF"],
-      });
     } catch (error) {
       console.warn("Firestore Appointment addDoc warning:", error);
+      const fallbackAppt = {
+        ...formData,
+        id: "HM-2026-DEMO",
+        appointmentId: "HM-2026-DEMO",
+      };
+      setLastSubmittedAppt(fallbackAppt);
+      openAppointmentPDFInNewTab(fallbackAppt);
       setIsSubmitting(false);
       setIsSuccess(true);
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#2E86FF", "#5EEAD4", "#38BDF8", "#60A5FA", "#FFFFFF"],
-      });
     }
   };
 
   const closeModal = () => {
     setIsOpen(false);
+    if (onClose) onClose();
   };
 
   if (!isOpen) return null;
@@ -439,11 +643,11 @@ export default function AppointmentModal() {
             <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
               Appointment Desk
             </span>
-            <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold text-[var(--ink)] tracking-tight">
+            <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold text-[#2B1F1A] tracking-tight">
               Book Doctor Consultation
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-[var(--slate)] font-medium">
-              Submit your request. Our clinic coordinator will verify the slot and notify the surgeon.
+              Submit your request. Our hospital coordinator will verify the slot and notify the surgeon.
             </p>
           </div>
 
@@ -469,11 +673,10 @@ export default function AppointmentModal() {
                         setAppointmentFor("Self");
                         setErrors((prev) => ({ ...prev, guardianPhone: "" }));
                       }}
-                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        appointmentFor === "Self"
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${appointmentFor === "Self"
                           ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
                           : "text-[var(--slate)] hover:bg-white/60"
-                      }`}
+                        }`}
                     >
                       <User className="w-4 h-4" />
                       <span>Self</span>
@@ -481,11 +684,10 @@ export default function AppointmentModal() {
                     <button
                       type="button"
                       onClick={() => setAppointmentFor("Someone Else")}
-                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        appointmentFor === "Someone Else"
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${appointmentFor === "Someone Else"
                           ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
                           : "text-[var(--slate)] hover:bg-white/60"
-                      }`}
+                        }`}
                     >
                       <Users className="w-4 h-4" />
                       <span>Someone Else</span>
@@ -511,7 +713,7 @@ export default function AppointmentModal() {
 
                   {/* Patient Full Name */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                       Patient Full Name *
                     </label>
                     <div className="relative">
@@ -523,11 +725,10 @@ export default function AppointmentModal() {
                         onChange={handleChange}
                         placeholder="Enter patient full name"
                         required
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.name
+                        className={`w-full bg-[var(--fog)] border ${errors.name
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                       />
                     </div>
                     {errors.name && (
@@ -537,7 +738,7 @@ export default function AppointmentModal() {
 
                   {/* Patient Phone Number */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                       Phone Number *
                     </label>
                     <div className="relative">
@@ -548,12 +749,12 @@ export default function AppointmentModal() {
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="03xx-xxxxxxx"
+                        maxLength={12}
                         required
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.phone
+                        className={`w-full bg-[var(--fog)] border ${errors.phone
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                       />
                     </div>
                     {errors.phone && (
@@ -563,7 +764,7 @@ export default function AppointmentModal() {
 
                   {/* Patient Residential Address */}
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                       Residential Address
                     </label>
                     <div className="relative">
@@ -574,7 +775,7 @@ export default function AppointmentModal() {
                         value={formData.patientAddress}
                         onChange={handleChange}
                         placeholder="Street, City, Area"
-                        className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                        className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                       />
                     </div>
                   </div>
@@ -583,8 +784,8 @@ export default function AppointmentModal() {
                   <div className="grid grid-cols-2 gap-3">
                     {/* Date of Birth Calendar */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
-                        Date of Birth {formData.age ? `(${formData.age} Yrs)` : ""}
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                        Date of Birth * {formData.age ? `(${formData.age} Yrs)` : ""}
                       </label>
                       <div className="relative">
                         <Calendar className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -594,33 +795,47 @@ export default function AppointmentModal() {
                           max={new Date().toISOString().split("T")[0]}
                           value={formData.dob}
                           onChange={handleChange}
-                          className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-10 pr-2 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                          required
+                          className={`w-full bg-[var(--fog)] border ${errors.dob
+                              ? "border-red-300 focus:ring-red-200"
+                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-10 pr-2 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                         />
                       </div>
+                      {errors.dob && (
+                        <p className="text-[11px] text-red-500 font-semibold">{errors.dob}</p>
+                      )}
                     </div>
 
                     {/* Gender */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Gender</label>
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Gender</label>
                       <div className="relative">
                         <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
                         <select
                           name="gender"
                           value={formData.gender}
                           onChange={handleChange}
-                          className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-10 pr-2 py-3.5 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none"
+                          required
+                          className={`w-full bg-[var(--fog)] border ${errors.gender
+                              ? "border-red-300 focus:ring-red-200"
+                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-10 pr-2 py-3.5 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                         >
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
                           <option value="Other">Other</option>
                         </select>
                       </div>
+                      {errors.gender && (
+                        <p className="text-[11px] text-red-500 font-semibold">{errors.gender}</p>
+                      )}
                     </div>
                   </div>
 
                   {/* Patient CNIC / B-Form Number */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                       Patient CNIC / B-Form No.
                     </label>
                     <div className="relative">
@@ -632,11 +847,10 @@ export default function AppointmentModal() {
                         onChange={handleChange}
                         maxLength={15}
                         placeholder="xxxxx-xxxxxxx-x"
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.patientCnic
+                        className={`w-full bg-[var(--fog)] border ${errors.patientCnic
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                       />
                     </div>
                     {errors.patientCnic && (
@@ -646,8 +860,8 @@ export default function AppointmentModal() {
 
                   {/* Email Address */}
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
-                      Email Address (Optional)
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                      Email Address
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
@@ -657,11 +871,10 @@ export default function AppointmentModal() {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="name@example.com"
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.email
+                        className={`w-full bg-[var(--fog)] border ${errors.email
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                       />
                     </div>
                     {errors.email && (
@@ -680,7 +893,7 @@ export default function AppointmentModal() {
 
                       {/* Guardian Name */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                           Guardian Full Name *
                         </label>
                         <div className="relative">
@@ -692,11 +905,10 @@ export default function AppointmentModal() {
                             onChange={handleChange}
                             placeholder="Enter guardian name"
                             required
-                            className={`w-full bg-[var(--fog)] border ${
-                              errors.guardianName
+                            className={`w-full bg-[var(--fog)] border ${errors.guardianName
                                 ? "border-red-300 focus:ring-red-200"
                                 : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                              } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                           />
                         </div>
                         {errors.guardianName && (
@@ -706,7 +918,7 @@ export default function AppointmentModal() {
 
                       {/* Guardian Phone Number (REQUIRED) */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                           Guardian Phone *
                         </label>
                         <div className="relative">
@@ -717,12 +929,12 @@ export default function AppointmentModal() {
                             value={formData.guardianPhone}
                             onChange={handleChange}
                             placeholder="03xx-xxxxxxx"
+                            maxLength={12}
                             required
-                            className={`w-full bg-[var(--fog)] border ${
-                              errors.guardianPhone
+                            className={`w-full bg-[var(--fog)] border ${errors.guardianPhone
                                 ? "border-red-300 focus:ring-red-200"
                                 : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                              } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                           />
                         </div>
                         {errors.guardianPhone && (
@@ -732,7 +944,7 @@ export default function AppointmentModal() {
 
                       {/* Guardian Address */}
                       <div className="space-y-1.5 md:col-span-2">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                           Guardian Address
                         </label>
                         <div className="relative">
@@ -743,14 +955,14 @@ export default function AppointmentModal() {
                             value={formData.guardianAddress}
                             onChange={handleChange}
                             placeholder="Guardian street/city address"
-                            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                           />
                         </div>
                       </div>
 
                       {/* Guardian Relation */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                           Guardian Relation
                         </label>
                         <div className="relative">
@@ -759,7 +971,7 @@ export default function AppointmentModal() {
                             name="guardianRelation"
                             value={formData.guardianRelation}
                             onChange={handleChange}
-                            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none"
+                            className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none"
                           >
                             <option value="Father">Father</option>
                             <option value="Husband">Husband</option>
@@ -773,7 +985,7 @@ export default function AppointmentModal() {
 
                       {/* Guardian CNIC Number */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                        <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                           Guardian CNIC Number
                         </label>
                         <div className="relative">
@@ -785,11 +997,10 @@ export default function AppointmentModal() {
                             onChange={handleChange}
                             maxLength={15}
                             placeholder="xxxxx-xxxxxxx-x"
-                            className={`w-full bg-[var(--fog)] border ${
-                              errors.guardianCnic
+                            className={`w-full bg-[var(--fog)] border ${errors.guardianCnic
                                 ? "border-red-300 focus:ring-red-200"
                                 : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
+                              } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                           />
                         </div>
                         {errors.guardianCnic && (
@@ -808,7 +1019,7 @@ export default function AppointmentModal() {
 
                   {/* Eye Treatment / Service */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                       Eye Treatment / Service
                     </label>
                     <div className="relative">
@@ -817,28 +1028,88 @@ export default function AppointmentModal() {
                         name="service"
                         value={formData.service}
                         onChange={handleChange}
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.service
+                        className={`w-full bg-[var(--fog)] border ${errors.service
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                       >
-                        <option value="">Select Treatment</option>
-                        {servicesList.map((s) => (
-                          <option key={s.id || s.title} value={s.title || s.name}>
-                            {s.title || s.name}
+                        {eventContext.isEvent && eventContext.eventTitle ? (
+                          <option value={eventContext.eventTitle}>
+                            {eventContext.eventTitle}
                           </option>
-                        ))}
+                        ) : (
+                          <>
+                            <option value="">Select Treatment</option>
+                            <option value="not_sure" className="font-bold text-[var(--iris)]">
+                              Not Sure / Let Front Desk Decide
+                            </option>
+                            {servicesList.map((s) => (
+                              <option key={s.id || s.title} value={s.title || s.name}>
+                                {s.title || s.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
                       </select>
                     </div>
+                    {formData.service && formData.service !== "not_sure" && (
+                      <div className="mt-1.5 p-2 rounded-xl bg-blue-50/90 border border-blue-200 text-blue-900 text-[11px] font-semibold flex items-center justify-between gap-2 shadow-xs">
+                        <span className="flex items-center gap-1 font-bold">
+                          <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          Earliest Bookable Date:
+                        </span>
+                        <span className="font-black text-blue-700">
+                          {minSelectableDate.toLocaleDateString("en-GB")}
+                          {maxSelectableDate
+                            ? ` — ${maxSelectableDate.toLocaleDateString("en-GB")} (${rawMaxBookingDays} total days)`
+                            : " onwards"}
+                        </span>
+                      </div>
+                    )}
                     {errors.service && (
                       <p className="text-[11px] text-red-500 font-semibold">{errors.service}</p>
                     )}
                   </div>
 
+                  {/* Specific Service Features Multi-Select Section */}
+                  {availableServiceFeatures && availableServiceFeatures.length > 0 && (
+                    <div className="md:col-span-2 bg-[var(--fog)] border border-[var(--line)] rounded-2xl p-3.5 sm:p-4 space-y-2.5 my-1">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-extrabold text-[var(--iris)] uppercase tracking-wider flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-[var(--iris)]" /> Select Specific Treatment(s)
+                        </label>
+                        <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-[var(--line)]">
+                          Optional / Multi-select
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        {availableServiceFeatures.map((feat, fIdx) => {
+                          const isChecked = (formData.selectedFeatures || []).includes(feat);
+                          return (
+                            <label
+                              key={fIdx}
+                              className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all ${isChecked
+                                  ? "bg-white border-[var(--iris)] text-[var(--iris)] shadow-xs ring-2 ring-[var(--iris)]/20"
+                                  : "bg-white/70 border-[var(--line)] text-[#2B1F1A] hover:bg-white hover:border-slate-300"
+                                }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => handleFeatureToggle(feat)}
+                                className="mt-0.5 rounded border-slate-300 text-[var(--iris)] focus:ring-[var(--iris)] cursor-pointer w-4 h-4"
+                              />
+                              <span className="leading-snug">{feat}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Preferred Doctor with NOT SURE option */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                       Selected Doctor / Surgeon
                     </label>
                     <div className="relative">
@@ -847,21 +1118,30 @@ export default function AppointmentModal() {
                         name="doctor"
                         value={formData.doctor}
                         onChange={handleDoctorChange}
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.doctor
+                        className={`w-full bg-[var(--fog)] border ${errors.doctor
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                       >
                         <option value="">Select Doctor</option>
                         <option value="not_sure" className="font-bold text-[var(--iris)]">
-                          Not Sure / Let Admin Decide
+                          Not Sure / Let Front Desk Decide
                         </option>
-                        {filteredDoctors.map((d) => (
-                          <option key={d.id || d.name} value={d.name}>
-                            {d.name} {d.specialty ? `(${d.specialty})` : ""}
-                          </option>
-                        ))}
+                        {eventContext.isEvent && eventContext.assignedDoctors && eventContext.assignedDoctors.length > 0 ? (
+                          doctorsList
+                            .filter((d) => eventContext.assignedDoctors.includes(d.name) || eventContext.assignedDoctors.includes(d.id))
+                            .map((d) => (
+                              <option key={d.id || d.name} value={d.name}>
+                                {d.name} {d.specialty ? `(${d.specialty})` : ""}
+                              </option>
+                            ))
+                        ) : (
+                          filteredDoctors.map((d) => (
+                            <option key={d.id || d.name} value={d.name}>
+                              {d.name} {d.specialty ? `(${d.specialty})` : ""}
+                            </option>
+                          ))
+                        )}
                       </select>
                     </div>
                     {errors.doctor && (
@@ -871,37 +1151,46 @@ export default function AppointmentModal() {
 
                   {/* Date & Time Slot */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
-                      Preferred Date * (Mon - Sat)
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                      {eventContext.isEvent ? "Event Date (Fixed)" : "Preferred Date * (Mon - Sat)"}
                     </label>
                     <div className="relative">
                       <Calendar className="absolute left-4 top-3.5 w-4 h-4 text-slate-400 z-10 pointer-events-none" />
-                      <DatePicker
-                        selected={formData.date ? new Date(formData.date + "T00:00:00") : null}
-                        onChange={(date) => {
-                          if (!date) {
-                            setFormData((prev) => ({ ...prev, date: "" }));
-                            return;
-                          }
-                          const yyyy = date.getFullYear();
-                          const mm = String(date.getMonth() + 1).padStart(2, "0");
-                          const dd = String(date.getDate()).padStart(2, "0");
-                          const dateStr = `${yyyy}-${mm}-${dd}`;
-                          setFormData((prev) => ({ ...prev, date: dateStr }));
-                          if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
-                          if (noticeMessage) setNoticeMessage("");
-                        }}
-                        filterDate={filterAvailableDates}
-                        minDate={new Date()}
-                        dateFormat="yyyy-MM-dd"
-                        placeholderText="Select available date"
-                        required
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.date
-                            ? "border-red-300 focus:ring-red-200"
-                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all`}
-                      />
+                      {eventContext.isEvent && (eventContext.eventDate || formData.date) ? (
+                        <input
+                          type="text"
+                          readOnly
+                          value={formData.date || eventContext.eventDate}
+                          className="w-full bg-[var(--fog)] border border-[var(--iris)]/40 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--iris)] font-extrabold cursor-not-allowed select-none"
+                        />
+                      ) : (
+                        <DatePicker
+                          selected={formData.date ? new Date(formData.date + "T00:00:00") : null}
+                          onChange={(date) => {
+                            if (!date) {
+                              setFormData((prev) => ({ ...prev, date: "" }));
+                              return;
+                            }
+                            const yyyy = date.getFullYear();
+                            const mm = String(date.getMonth() + 1).padStart(2, "0");
+                            const dd = String(date.getDate()).padStart(2, "0");
+                            const dateStr = `${yyyy}-${mm}-${dd}`;
+                            setFormData((prev) => ({ ...prev, date: dateStr }));
+                            if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
+                            if (noticeMessage) setNoticeMessage("");
+                          }}
+                          filterDate={filterAvailableDates}
+                          minDate={minSelectableDate}
+                          maxDate={maxSelectableDate || undefined}
+                          dateFormat="yyyy-MM-dd"
+                          placeholderText="Date Slot"
+                          required
+                          className={`w-full bg-[var(--fog)] border ${errors.date
+                              ? "border-red-300 focus:ring-red-200"
+                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-black font-semibold placeholder:text-black placeholder:font-medium focus:outline-none focus:ring-4 transition-all`}
+                        />
+                      )}
                     </div>
                     {errors.date && (
                       <p className="text-[11px] text-red-500 font-semibold">{errors.date}</p>
@@ -909,8 +1198,8 @@ export default function AppointmentModal() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
-                      Preferred Slot (Optional)
+                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                      {eventContext.isEvent ? "Event Time Slot" : "Preferred Slot (Optional)"}
                     </label>
                     <div className="relative">
                       <Clock className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
@@ -918,18 +1207,25 @@ export default function AppointmentModal() {
                         name="time"
                         value={formData.time}
                         onChange={handleChange}
-                        className={`w-full bg-[var(--fog)] border ${
-                          errors.time
+                        className={`w-full bg-[var(--fog)] border ${errors.time
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                        } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
+                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                       >
-                        <option value="">Time Slot</option>
-                        {availableTimeSlots.map((slot) => (
-                          <option key={slot} value={slot}>
-                            {slot}
+                        {eventContext.isEvent && eventContext.eventTime ? (
+                          <option value={eventContext.eventTime}>
+                            {eventContext.eventTime}
                           </option>
-                        ))}
+                        ) : (
+                          <>
+                            <option value="">Time Slot</option>
+                            {availableTimeSlots.map((slot) => (
+                              <option key={slot} value={slot}>
+                                {slot}
+                              </option>
+                            ))}
+                          </>
+                        )}
                       </select>
                     </div>
                     {errors.time && (
@@ -979,16 +1275,18 @@ export default function AppointmentModal() {
                   </h3>
                   <p className="text-xs text-slate-600 font-medium">
                     Thank you, <strong className="text-slate-800">{formData.name}</strong>. Your request for{" "}
-                    <strong>{formData.doctor === "not_sure" ? "Assigned Specialist (Admin Decision)" : formData.doctor}</strong> on <strong>{formData.date} ({formData.time})</strong> has been logged.
+                    <strong>{formData.doctor === "not_sure" ? "Assigned Specialist (Front Desk Decision)" : formData.doctor}</strong> on <strong>{formData.date} ({formData.time})</strong> has been logged.
                   </p>
                 </div>
 
-                <button
-                  onClick={closeModal}
-                  className="bg-[var(--ink)] text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-xs hover:bg-[var(--iris-dark)] transition-colors cursor-pointer"
-                >
-                  Done & Close Window
-                </button>
+                <div className="pt-3 flex items-center justify-center">
+                  <button
+                    onClick={closeModal}
+                    className="bg-[var(--ink)] text-white hover:bg-[#1A1310] text-xs font-bold px-6 py-3 rounded-xl transition-all cursor-pointer shadow-sm"
+                  >
+                    Close Window
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

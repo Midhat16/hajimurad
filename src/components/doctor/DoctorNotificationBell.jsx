@@ -177,12 +177,12 @@ export default function DoctorNotificationBell() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h5 className="text-xs font-black text-[var(--ink)] truncate">{t.title}</h5>
+                <h5 className="text-xs font-black text-[#2B1F1A] truncate">{t.title}</h5>
                 <p className="text-xs font-semibold text-slate-700 mt-0.5 leading-snug">{t.subtitle}</p>
                 <Link
                   href={t.href}
                   onClick={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}
-                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[var(--ink)] underline hover:text-[var(--iris)]"
+                  className="mt-1.5 inline-block text-[11px] font-extrabold text-[#2B1F1A] underline hover:text-[var(--iris)]"
                 >
                   View Details &rarr;
                 </Link>

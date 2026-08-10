@@ -446,7 +446,7 @@ export default function DoctorNotificationsPage() {
                 </span>
               )}
             </div>
-            <h2 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+            <h2 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
               Saved Notifications Stream
             </h2>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -491,12 +491,12 @@ export default function DoctorNotificationsPage() {
         {loading ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)]">
             <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-bold text-[var(--ink)]">Loading Notifications...</p>
+            <p className="text-xs font-bold text-[#2B1F1A]">Loading Notifications...</p>
           </div>
         ) : filteredNotifs.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] space-y-3">
             <Bell className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="text-base font-extrabold text-[var(--ink)]">No Notifications Found</h3>
+            <h3 className="text-base font-extrabold text-[#2B1F1A]">No Notifications Found</h3>
             <p className="text-xs font-semibold text-[var(--slate)]">
               There are no saved notifications matching this filter.
             </p>
@@ -546,7 +546,7 @@ export default function DoctorNotificationsPage() {
                         <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-white border border-slate-200">
                           {st}
                         </span>
-                        <h4 className="text-sm font-extrabold text-[var(--ink)]">
+                        <h4 className="text-sm font-extrabold text-[#2B1F1A]">
                           {item.title}
                         </h4>
                         <span className="text-[10px] font-semibold text-[var(--iris)] underline">
@@ -626,7 +626,7 @@ export default function DoctorNotificationsPage() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
                   Appointment Details
                 </span>
-                <h3 className="text-xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+                <h3 className="text-xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
                   {detailModal.appt.name || "Patient Appointment"}
                 </h3>
               </div>
@@ -663,12 +663,12 @@ export default function DoctorNotificationsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                   <span className="text-[10px] font-bold text-slate-400 uppercase block">Patient Name</span>
-                  <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.name || "N/A"}</span>
+                  <span className="font-extrabold text-[#2B1F1A]">{detailModal.appt.name || "N/A"}</span>
                 </div>
                 {detailModal.appt.patientCnic && (
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase block">Patient CNIC</span>
-                    <span className="font-extrabold text-[var(--ink)] font-mono">{detailModal.appt.patientCnic}</span>
+                    <span className="font-extrabold text-[#2B1F1A] font-mono">{detailModal.appt.patientCnic}</span>
                   </div>
                 )}
                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
@@ -677,7 +677,7 @@ export default function DoctorNotificationsPage() {
                 </div>
                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                   <span className="text-[10px] font-bold text-slate-400 uppercase block">Email Address</span>
-                  <span className="font-extrabold text-[var(--ink)] truncate block">{detailModal.appt.email || "N/A"}</span>
+                  <span className="font-extrabold text-[#2B1F1A] truncate block">{detailModal.appt.email || "N/A"}</span>
                 </div>
               </div>
             </div>
@@ -691,16 +691,16 @@ export default function DoctorNotificationsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase block">Guardian Name</span>
-                    <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.guardianName || "N/A"}</span>
+                    <span className="font-extrabold text-[#2B1F1A]">{detailModal.appt.guardianName || "N/A"}</span>
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase block">Relation</span>
-                    <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.guardianRelation || "Guardian"}</span>
+                    <span className="font-extrabold text-[#2B1F1A]">{detailModal.appt.guardianRelation || "Guardian"}</span>
                   </div>
                   {detailModal.appt.guardianCnic && (
                     <div className="sm:col-span-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                       <span className="text-[10px] font-bold text-slate-400 uppercase block">Guardian CNIC</span>
-                      <span className="font-extrabold text-[var(--ink)] font-mono">{detailModal.appt.guardianCnic}</span>
+                      <span className="font-extrabold text-[#2B1F1A] font-mono">{detailModal.appt.guardianCnic}</span>
                     </div>
                   )}
                 </div>
@@ -715,11 +715,11 @@ export default function DoctorNotificationsPage() {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60">
                   <span className="text-[10px] font-bold text-[var(--slate)] uppercase block">Date</span>
-                  <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.date || "N/A"}</span>
+                  <span className="font-extrabold text-[#2B1F1A]">{detailModal.appt.date || "N/A"}</span>
                 </div>
                 <div className="bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60">
                   <span className="text-[10px] font-bold text-[var(--slate)] uppercase block">Time Slot</span>
-                  <span className="font-extrabold text-[var(--ink)]">{detailModal.appt.time || "N/A"}</span>
+                  <span className="font-extrabold text-[#2B1F1A]">{detailModal.appt.time || "N/A"}</span>
                 </div>
               </div>
             </div>
@@ -786,7 +786,7 @@ export default function DoctorNotificationsPage() {
       {rescheduleModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-[var(--line)] shadow-2xl space-y-4">
-            <h3 className="text-lg font-extrabold text-[var(--ink)]">
+            <h3 className="text-lg font-extrabold text-[#2B1F1A]">
               Reschedule Appointment
             </h3>
             <p className="text-xs text-slate-600 font-semibold">
@@ -795,7 +795,7 @@ export default function DoctorNotificationsPage() {
 
             <form onSubmit={handleRescheduleSubmit} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-[var(--ink)] block mb-1">New Date</label>
+                <label className="text-xs font-bold text-[#2B1F1A] block mb-1">New Date</label>
                 <input
                   type="date"
                   required
@@ -808,7 +808,7 @@ export default function DoctorNotificationsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[var(--ink)] block mb-1">New Time Slot</label>
+                <label className="text-xs font-bold text-[#2B1F1A] block mb-1">New Time Slot</label>
                 <input
                   type="time"
                   required

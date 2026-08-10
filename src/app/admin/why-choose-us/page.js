@@ -115,7 +115,7 @@ export default function AdminWhyChooseUsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[var(--ink)]">Loading "Why Choose Us" Content...</p>
+        <p className="text-xs font-bold text-[#2B1F1A]">Loading "Why Choose Us" Content...</p>
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function AdminWhyChooseUsPage() {
       {/* Header */}
       <div className="border-b border-[var(--line)] pb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-[var(--iris)]" />
             "Why Haji Murad" Section Content
           </h1>
@@ -147,14 +147,14 @@ export default function AdminWhyChooseUsPage() {
 
         {/* Section Header Fields */}
         <div className="space-y-4 border-b border-slate-100 pb-6">
-          <h3 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
             Main Headline & Overview
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Badge Text */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                 Top Pill Badge Text *
               </label>
               <input
@@ -164,13 +164,13 @@ export default function AdminWhyChooseUsPage() {
                 onChange={handleChange}
                 placeholder=""
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
 
             {/* Main Heading */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                 Main Section Heading *
               </label>
               <input
@@ -180,13 +180,13 @@ export default function AdminWhyChooseUsPage() {
                 onChange={handleChange}
                 placeholder=""
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
 
             {/* Main Description */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+              <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                 Detailed Section Overview Paragraph *
               </label>
               <textarea
@@ -196,7 +196,7 @@ export default function AdminWhyChooseUsPage() {
                 rows={3}
                 placeholder=""
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
               />
             </div>
           </div>
@@ -204,14 +204,14 @@ export default function AdminWhyChooseUsPage() {
 
         {/* 4 Track Record Metrics */}
         <div className="space-y-4 border-b border-slate-100 pb-6">
-          <h3 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
             Track Record Statistics (Count-Up Numbers)
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Metric 1 */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1">
+              <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1">
                 <Trophy className="w-3.5 h-3.5 text-[var(--iris)]" />
                 Years Experience
               </label>
@@ -222,13 +222,13 @@ export default function AdminWhyChooseUsPage() {
                 onChange={handleChange}
                 min={0}
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[var(--ink)] font-bold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
 
             {/* Metric 2 */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1">
+              <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-[var(--iris)]" />
                 Surgeries Count
               </label>
@@ -239,13 +239,13 @@ export default function AdminWhyChooseUsPage() {
                 onChange={handleChange}
                 min={0}
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[var(--ink)] font-bold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
 
             {/* Metric 3 */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1">
+              <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1">
                 <Award className="w-3.5 h-3.5 text-[var(--iris)]" />
                 Specialists Count
               </label>
@@ -256,13 +256,13 @@ export default function AdminWhyChooseUsPage() {
                 onChange={handleChange}
                 min={0}
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[var(--ink)] font-bold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
 
             {/* Metric 4 */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider block flex items-center gap-1">
+              <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-[var(--iris)]" />
                 Success Rate (%)
               </label>
@@ -275,7 +275,7 @@ export default function AdminWhyChooseUsPage() {
                 min={0}
                 max={100}
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[var(--ink)] font-bold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
@@ -283,7 +283,7 @@ export default function AdminWhyChooseUsPage() {
 
         {/* 3 Key Feature Points */}
         <div className="space-y-4">
-          <h3 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
             3 Key Hospital Highlights
           </h3>
 
@@ -295,7 +295,7 @@ export default function AdminWhyChooseUsPage() {
                 </span>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block">
                     Point Title
                   </label>
                   <input
@@ -304,12 +304,12 @@ export default function AdminWhyChooseUsPage() {
                     onChange={(e) => handlePointChange(idx, "title", e.target.value)}
                     placeholder=""
                     required
-                    className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[var(--ink)] font-semibold focus:outline-none focus:ring-2"
+                    className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:ring-2"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block">
                     Point Description
                   </label>
                   <input
@@ -318,7 +318,7 @@ export default function AdminWhyChooseUsPage() {
                     onChange={(e) => handlePointChange(idx, "description", e.target.value)}
                     placeholder=""
                     required
-                    className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[var(--ink)] font-semibold focus:outline-none focus:ring-2"
+                    className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:ring-2"
                   />
                 </div>
               </div>

@@ -154,23 +154,23 @@ export default function DoctorLoginPage() {
       <div className="min-h-screen bg-[var(--fog)] flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-bold text-[var(--ink)]">Redirecting to Doctor Dashboard...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Redirecting to Doctor Dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--ink)] flex flex-col justify-center items-center p-4 relative overflow-hidden">
-      {/* Background Ambient Glows */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl pointer-events-none translate-x-1/2 translate-y-1/2" />
+    <div className="min-h-screen bg-white flex flex-col justify-center items-center p-4 relative overflow-hidden">
+      {/* Background Subtle Ambient Glows */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-slate-100/80 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-slate-100/80 rounded-full blur-3xl pointer-events-none translate-x-1/2 translate-y-1/2" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md bg-white rounded-3xl p-8 border border-white/20 shadow-2xl relative z-10"
+        className="w-full max-w-md bg-white rounded-3xl p-8 border border-slate-200/80 shadow-2xl relative z-10"
       >
         {/* Header Icon */}
         <div className="text-center mb-8">
@@ -180,7 +180,7 @@ export default function DoctorLoginPage() {
           <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
             Ophthalmic Specialist Portal
           </span>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] mt-3 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] mt-3 tracking-tight">
             Doctor Sign In
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-1">
@@ -204,7 +204,7 @@ export default function DoctorLoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email Field */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Doctor Email
             </label>
             <div className="relative">
@@ -215,14 +215,14 @@ export default function DoctorLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
 
           {/* Password Field */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Password
             </label>
             <div className="relative">
@@ -233,7 +233,7 @@ export default function DoctorLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
               <button
                 type="button"

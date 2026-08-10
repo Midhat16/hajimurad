@@ -4,17 +4,11 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Building2, Target, Heart, Award, CheckCircle2 } from "lucide-react";
-
-const DEFAULT_ABOUT = {
-  title: "Pioneering Vision Restoration for Over 3 Decades",
-  story: "Founded with a mission to eliminate preventable blindness, Haji Murad Eye Hospital has grown from a humble specialized outpatient clinic into a world-renowned ophthalmic center of excellence. We combine compassionate care with cutting-edge laser technologies to transform lives.",
-  mission: "To deliver international gold-standard eye surgical care, accessible vision screening, and pioneering laser treatment to every patient with surgical excellence and warmth.",
-  values: "Uncompromising Surgical Safety, Patient-Centric Compassion, Continuous Technology Innovation, Ethical Transparent Practice",
-};
+import { Building2, Target, Award, CheckCircle2 } from "lucide-react";
 
 export default function About() {
-  const [aboutData, setAboutData] = useState(DEFAULT_ABOUT);
+  const [aboutData, setAboutData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
@@ -22,28 +16,62 @@ export default function About() {
         doc(db, "siteContent", "about"),
         (docSnap) => {
           if (docSnap.exists()) {
-            const data = docSnap.data();
-            setAboutData({
-              title: data.title || DEFAULT_ABOUT.title,
-              story: data.story || DEFAULT_ABOUT.story,
-              mission: data.mission || DEFAULT_ABOUT.mission,
-              values: data.values || DEFAULT_ABOUT.values,
-            });
+            setAboutData(docSnap.data());
+          } else {
+            setAboutData(null);
           }
+          setLoading(false);
         },
         (error) => {
           console.warn("About content snapshot notice:", error.message);
+          setLoading(false);
         }
       );
 
       return () => unsub();
     } catch (err) {
       console.warn("About section error:", err);
+      setLoading(false);
     }
   }, []);
 
-  const valueList = aboutData.values
-    ? aboutData.values.split(",").map((v) => v.trim()).filter(Boolean)
+  if (loading) {
+    return (
+      <section id="about" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12 space-y-3">
+            <div className="h-4 w-32 bg-slate-200 rounded-full mx-auto animate-pulse" />
+            <div className="h-8 w-3/4 bg-slate-200 rounded-xl mx-auto animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-7 bg-white rounded-3xl p-8 border border-[var(--line)] space-y-4 animate-pulse">
+              <div className="h-6 w-48 bg-slate-200 rounded-lg" />
+              <div className="h-4 w-full bg-slate-200 rounded-lg" />
+              <div className="h-4 w-5/6 bg-slate-200 rounded-lg" />
+              <div className="h-4 w-4/6 bg-slate-200 rounded-lg" />
+            </div>
+            <div className="lg:col-span-5 bg-slate-800 rounded-3xl p-8 border border-slate-700 space-y-4 animate-pulse">
+              <div className="h-6 w-40 bg-slate-700 rounded-lg" />
+              <div className="h-4 w-full bg-slate-700 rounded-lg" />
+              <div className="h-4 w-4/5 bg-slate-700 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!aboutData) {
+    return null;
+  }
+
+  const title = aboutData.title || "";
+  const story = aboutData.story || "";
+  const mission = aboutData.mission || "";
+  const values = aboutData.values || "";
+
+  const valueList = values
+    ? values.split(",").map((v) => v.trim()).filter(Boolean)
     : [];
 
   return (
@@ -54,21 +82,23 @@ export default function About() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
-              Our Legacy & Mission
-            </span>
-            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
-              {aboutData.title}
-            </h2>
-          </motion.div>
-        </div>
+        {title && (
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
+                Our Legacy & Mission
+              </span>
+              <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2B1F1A] tracking-tight leading-tight">
+                {title}
+              </h2>
+            </motion.div>
+          </div>
+        )}
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
@@ -82,14 +112,14 @@ export default function About() {
             className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md flex flex-col justify-between"
           >
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-[var(--ink)]">
+              <div className="flex items-center gap-3 text-[#2B1F1A]">
                 <div className="w-10 h-10 rounded-2xl bg-[var(--fog)] flex items-center justify-center text-[var(--iris)]">
                   <Building2 className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold">Our Hospital Story</h3>
               </div>
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-medium">
-                {aboutData.story}
+                {story}
               </p>
             </div>
 
@@ -103,7 +133,7 @@ export default function About() {
                   {valueList.map((val, idx) => (
                     <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-[var(--fog)]/60 border border-[var(--line)]/60">
                       <CheckCircle2 className="w-4 h-4 text-[var(--iris)] flex-shrink-0" />
-                      <span className="text-xs sm:text-sm font-bold text-[var(--ink)]">{val}</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#2B1F1A]">{val}</span>
                     </div>
                   ))}
                 </div>
@@ -127,7 +157,7 @@ export default function About() {
                 <h3 className="text-lg sm:text-xl font-bold text-white">Our Mission</h3>
               </div>
               <p className="text-base sm:text-lg text-slate-200 leading-relaxed font-medium">
-                {aboutData.mission}
+                {mission}
               </p>
             </div>
 

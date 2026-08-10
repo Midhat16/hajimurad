@@ -88,7 +88,7 @@ export default function PdfPicker({
 
   return (
     <div className="space-y-3">
-      <label className="text-xs font-bold text-[var(--ink)] block">
+      <label className="text-xs font-bold text-[#2B1F1A] block">
         {label}
       </label>
 
@@ -106,7 +106,7 @@ export default function PdfPicker({
         {uploading ? (
           <div className="flex flex-col items-center py-4 text-center">
             <div className="w-9 h-9 border-3 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-xs font-bold text-[var(--ink)]">Uploading PDF Document...</p>
+            <p className="text-xs font-bold text-[#2B1F1A]">Uploading PDF Document...</p>
             {uploadedFileName && (
               <p className="text-[11px] text-slate-400 font-mono mt-1 truncate max-w-xs">
                 {uploadedFileName} ({uploadedFileSize})
@@ -125,7 +125,7 @@ export default function PdfPicker({
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">Uploaded & Ready</span>
                   </div>
-                  <p className="text-[11px] font-bold text-[var(--ink)] truncate mt-0.5" title={getDisplayName()}>
+                  <p className="text-[11px] font-bold text-[#2B1F1A] truncate mt-0.5" title={getDisplayName()}>
                     {getDisplayName()}
                   </p>
                   <p className="text-[10px] text-slate-400 font-mono truncate mt-0.5" title={value}>
@@ -149,7 +149,7 @@ export default function PdfPicker({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 text-xs font-bold text-[var(--ink)] hover:text-[var(--iris)] bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-bold text-[#2B1F1A] hover:text-[var(--iris)] bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
                 >
                   Change PDF
                 </button>
@@ -176,7 +176,7 @@ export default function PdfPicker({
                 <UploadCloud className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-bold text-[var(--ink)]">Select PDF from your PC</p>
+                <p className="text-xs font-bold text-[#2B1F1A]">Select PDF from your PC</p>
                 <p className="text-[11px] text-slate-400 font-medium">Select PDF document from your device (.pdf only)</p>
               </div>
             </div>

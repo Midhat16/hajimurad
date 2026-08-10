@@ -160,7 +160,7 @@ export default function Contact() {
             <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
               Reach Our Desk
             </span>
-            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
+            <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2B1F1A] tracking-tight leading-tight">
               Contact Us
             </h2>
             <p className="mt-3 text-base sm:text-lg text-[var(--slate)] leading-relaxed">
@@ -191,13 +191,13 @@ export default function Contact() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="text-left">
-                      <h4 className="font-bold text-[var(--ink)] text-sm sm:text-base">{info.title}</h4>
+                      <h4 className="font-bold text-[#2B1F1A] text-sm sm:text-base">{info.title}</h4>
                       {info.details.map((line, lIdx) => (
                         <p key={lIdx} className="text-xs sm:text-sm text-[var(--slate)] mt-0.5 leading-relaxed font-medium">
                           {info.isEmail ? (
                             <a
                               href={`mailto:${contactData.email || 'info@hajimuradhospital.org'}`}
-                              className="text-[var(--ink)] hover:text-[var(--iris)] font-bold hover:underline"
+                              className="text-[#2B1F1A] hover:text-[var(--iris)] font-bold hover:underline"
                             >
                               {line}
                             </a>
@@ -250,14 +250,14 @@ export default function Contact() {
 
                 {/* Name */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Your Name</label>
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Your Name</label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter name"
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all ${
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${
                       errors.name
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
@@ -270,14 +270,14 @@ export default function Contact() {
 
                 {/* Email Address (Optional) */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Email Address</label>
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Email Address</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="name@email.com"
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all ${
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${
                       errors.email
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
@@ -290,14 +290,14 @@ export default function Contact() {
 
                 {/* Phone Number */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Phone Number</label>
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Phone Number</label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="03XX-XXXXXXX"
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all ${
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${
                       errors.phone
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
@@ -310,14 +310,14 @@ export default function Contact() {
 
                 {/* Message */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">Message</label>
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Message</label>
                   <textarea
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
                     rows="4"
                     placeholder="Type your inquiry for hospital team..."
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all resize-none ${
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none ${
                       errors.message
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"

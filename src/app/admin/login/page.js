@@ -128,7 +128,7 @@ export default function AdminLoginPage() {
       <div className="min-h-screen bg-[var(--fog)] flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-bold text-[var(--ink)]">Redirecting to Admin Portal...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Redirecting to Admin Portal...</p>
         </div>
       </div>
     );
@@ -150,7 +150,7 @@ export default function AdminLoginPage() {
           <div className="w-16 h-16 rounded-2xl bg-white border border-[var(--line)] p-2.5 flex items-center justify-center shadow-md shadow-[var(--ink)]/10 mb-4 overflow-hidden">
             <img src={profile.logoUrl} alt={profile.hospitalName} className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
             {profile.hospitalName}
           </h1>
           <p className="text-xs font-bold text-[var(--iris)] uppercase tracking-widest mt-1 flex items-center gap-1">
@@ -175,7 +175,7 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Authorized Admin Email
             </label>
             <div className="relative">
@@ -186,14 +186,14 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
           </div>
 
           {/* Password input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
               Password
             </label>
             <div className="relative">
@@ -204,12 +204,12 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none focus:ring-4 transition-all"
+                className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-12 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-3.5 text-slate-400 hover:text-[var(--ink)] transition-colors cursor-pointer"
+                className="absolute right-4 top-3.5 text-slate-400 hover:text-[#2B1F1A] transition-colors cursor-pointer"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (

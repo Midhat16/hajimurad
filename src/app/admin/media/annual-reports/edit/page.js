@@ -77,7 +77,7 @@ function EditReportForm() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[var(--ink)]">Loading Report Details...</p>
+        <p className="text-xs font-bold text-[#2B1F1A]">Loading Report Details...</p>
       </div>
     );
   }
@@ -86,7 +86,7 @@ function EditReportForm() {
     <div className="max-w-3xl mx-auto space-y-6">
       <Link
         href="/admin/media/annual-reports"
-        className="inline-flex items-center gap-2 text-xs font-extrabold text-[var(--ink)] hover:text-[var(--iris)] transition-colors bg-white px-4 py-2 rounded-xl border border-[var(--line)] shadow-xs"
+        className="inline-flex items-center gap-2 text-xs font-extrabold text-[#2B1F1A] hover:text-[var(--iris)] transition-colors bg-white px-4 py-2 rounded-xl border border-[var(--line)] shadow-xs"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Annual Reports
       </Link>
@@ -96,7 +96,7 @@ function EditReportForm() {
           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
             Edit Document
           </span>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
             Edit Annual Report
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -115,7 +115,7 @@ function EditReportForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Year */}
             <div>
-              <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+              <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
                 Year / Period *
               </label>
               <input
@@ -129,7 +129,7 @@ function EditReportForm() {
 
             {/* Order */}
             <div>
-              <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+              <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
                 Display Order Position
               </label>
               <input
@@ -172,7 +172,7 @@ export default function AdminEditAnnualReportPage() {
       fallback={
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)] font-sans">Loading Page...</p>
+          <p className="text-xs font-bold text-[#2B1F1A] font-sans">Loading Page...</p>
         </div>
       }
     >

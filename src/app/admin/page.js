@@ -13,7 +13,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[var(--fog)] flex flex-col justify-center items-center">
       <div className="w-12 h-12 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-4" />
-      <p className="text-xs font-bold text-[var(--ink)] uppercase tracking-widest">
+      <p className="text-xs font-bold text-[#2B1F1A] uppercase tracking-widest">
         Redirecting to Admin Portal...
       </p>
     </div>

@@ -1,86 +1,131 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/lib/sendEmail";
+import {
+  getUserBookingReceivedEmail,
+  getAdminNewBookingEmail,
+  getConfirmedEmail,
+  getCancelledEmail,
+  getRescheduledEmail,
+} from "@/lib/emailTemplates";
 
 export async function POST(req) {
   try {
-    const { to, subject, message, patientName, inquiryId } = await req.json();
+    const body = await req.json();
+    const { type, to, subject, html, message, patientName, data } = body;
 
-    if (!to || !message) {
-      return NextResponse.json(
-        { error: "Recipient email and message content are required." },
-        { status: 400 }
-      );
-    }
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || "info@hmeht.com";
 
-    // SMTP Configuration from environment variables
-    const host = process.env.SMTP_HOST || process.env.GMAIL_HOST || "smtp.gmail.com";
-    const port = parseInt(process.env.SMTP_PORT || "587");
-    const user = process.env.SMTP_USER || process.env.GMAIL_USER || "";
-    const pass = process.env.SMTP_PASS || process.env.GMAIL_PASS || "";
-    const fromName = process.env.SMTP_FROM_NAME || "Haji Murad Eye Hospital";
-    const fromEmail = process.env.SMTP_FROM_EMAIL || user || "info@hajimuradhospital.org";
+    // -------------------------------------------------------------
+    // ACTION TYPE 1: BOOKING_RECEIVED (Fires 2 emails: Patient + Admin)
+    // -------------------------------------------------------------
+    if (type === "BOOKING_RECEIVED" || type === "NEW_BOOKING") {
+      const bookingData = data || body;
+      const patientEmail = bookingData.email || to;
 
-    // If SMTP credentials are not configured, simulate success with a friendly message
-    if (!user || !pass) {
-      console.warn("SMTP credentials not set in environment variables. Email response simulated.");
+      const results = { userEmail: null, adminEmail: null };
+
+      // 1. Send Email A to Patient
+      if (patientEmail) {
+        const userTemplate = getUserBookingReceivedEmail(bookingData);
+        results.userEmail = await sendEmail({
+          to: patientEmail,
+          subject: userTemplate.subject,
+          html: userTemplate.html,
+        });
+      }
+
+      // 2. Send Email B to Admin
+      if (adminEmail) {
+        const adminTemplate = getAdminNewBookingEmail(bookingData);
+        results.adminEmail = await sendEmail({
+          to: adminEmail,
+          subject: adminTemplate.subject,
+          html: adminTemplate.html,
+        });
+      }
+
       return NextResponse.json({
         success: true,
-        simulated: true,
-        message: "Email reply logged & recorded! To enable real email delivery, configure SMTP_USER & SMTP_PASS in .env.local.",
+        message: "Booking emails processed.",
+        results,
       });
     }
 
-    // Create Transporter
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: {
-        user,
-        pass,
-      },
-    });
+    // -------------------------------------------------------------
+    // ACTION TYPE 2: STATUS_CONFIRMED
+    // -------------------------------------------------------------
+    if (type === "STATUS_CONFIRMED") {
+      const bookingData = data || body;
+      const recipient = bookingData.email || to;
+      if (!recipient) {
+        return NextResponse.json({ error: "Missing recipient email" }, { status: 400 });
+      }
+      const template = getConfirmedEmail(bookingData);
+      const res = await sendEmail({
+        to: recipient,
+        subject: template.subject,
+        html: template.html,
+      });
+      return NextResponse.json(res);
+    }
 
-    const htmlContent = `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-radius: 12px; background-color: #ffffff;">
-        <div style="background-color: #2B1F1A; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
-          <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">Haji Murad Eye Hospital</h2>
-          <p style="color: #5EEAD4; margin: 5px 0 0 0; font-size: 13px;">Official Inquiry Response</p>
-        </div>
+    // -------------------------------------------------------------
+    // ACTION TYPE 3: STATUS_CANCELLED
+    // -------------------------------------------------------------
+    if (type === "STATUS_CANCELLED") {
+      const bookingData = data || body;
+      const recipient = bookingData.email || to;
+      if (!recipient) {
+        return NextResponse.json({ error: "Missing recipient email" }, { status: 400 });
+      }
+      const template = getCancelledEmail(bookingData);
+      const res = await sendEmail({
+        to: recipient,
+        subject: template.subject,
+        html: template.html,
+      });
+      return NextResponse.json(res);
+    }
 
-        <div style="padding: 24px; color: #334155; line-height: 1.6;">
-          <p style="font-size: 14px; font-weight: 600; color: #2B1F1A;">Dear ${patientName || "Patient"},</p>
-          <div style="font-size: 14px; color: #1e293b; background-color: #f8fafc; padding: 16px; border-left: 4px solid #C4232C; margin: 16px 0; border-radius: 4px; whitespace-wrap: pre-line;">
-            ${message.replace(/\n/g, "<br/>")}
-          </div>
-          <p style="font-size: 13px; color: #64748b; margin-top: 24px;">
-            If you have further questions, feel free to reply to this email or contact us at our helpline.
-          </p>
-        </div>
+    // -------------------------------------------------------------
+    // ACTION TYPE 4: STATUS_RESCHEDULED
+    // -------------------------------------------------------------
+    if (type === "STATUS_RESCHEDULED") {
+      const bookingData = data || body;
+      const recipient = bookingData.email || to;
+      if (!recipient) {
+        return NextResponse.json({ error: "Missing recipient email" }, { status: 400 });
+      }
+      const template = getRescheduledEmail(bookingData);
+      const res = await sendEmail({
+        to: recipient,
+        subject: template.subject,
+        html: template.html,
+      });
+      return NextResponse.json(res);
+    }
 
-        <div style="background-color: #f1f5f9; padding: 16px; border-radius: 0 0 8px 8px; text-align: center; font-size: 12px; color: #64748b;">
-          <p style="margin: 0; font-weight: 600;">Haji Murad Eye Hospital & Research Center</p>
-          <p style="margin: 4px 0 0 0;">Upper Chanab Canal Bank G.T Road Gujranwala | UAN: 111 333 456</p>
-        </div>
-      </div>
-    `;
+    // -------------------------------------------------------------
+    // ACTION TYPE 5: Direct Custom Email (Subject & HTML / Message)
+    // -------------------------------------------------------------
+    if (to && (html || message || subject)) {
+      const finalHtml = html || `<p>${message}</p>`;
+      const res = await sendEmail({
+        to,
+        subject: subject || "Notification from Haji Murad Eye Hospital",
+        html: finalHtml,
+      });
+      return NextResponse.json(res);
+    }
 
-    await transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
-      to,
-      subject: subject || "Reply to your inquiry - Haji Murad Eye Hospital",
-      text: message,
-      html: htmlContent,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: `Email successfully sent to ${to}!`,
-    });
-  } catch (error) {
-    console.error("Email send error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to send email reply." },
+      { error: "Invalid email request payload or missing parameters." },
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error("[API /api/send-email] Error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to process email request." },
       { status: 500 }
     );
   }

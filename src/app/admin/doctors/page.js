@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { collection, onSnapshot, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { sortDoctors } from "@/lib/doctorUtils";
 import { Plus, Edit3, Trash2, Stethoscope, GraduationCap, Award, AlertTriangle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -78,7 +79,7 @@ export default function AdminDoctorsListPage() {
           id: docSnap.id,
           ...docSnap.data(),
         }));
-        setDoctors(list);
+        setDoctors(sortDoctors(list));
         setLoading(false);
       },
       (error) => {
@@ -109,7 +110,7 @@ export default function AdminDoctorsListPage() {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
             Doctors & Specialists
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -129,12 +130,12 @@ export default function AdminDoctorsListPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)]">Loading Doctors...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Loading Doctors...</p>
         </div>
       ) : doctors.length === 0 ? (
         <div className="p-12 text-center bg-white rounded-3xl border border-[var(--line)]">
           <Stethoscope className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-[var(--ink)]">No Doctors Added Yet</h3>
+          <h3 className="text-base font-bold text-[#2B1F1A]">No Doctors Added Yet</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
             Click "Add New Doctor" to create your first specialist card.
           </p>
@@ -165,7 +166,7 @@ export default function AdminDoctorsListPage() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-bold text-[var(--ink)] truncate">
+                    <h3 className="text-base font-bold text-[#2B1F1A] truncate">
                       {doc.name}
                     </h3>
                     <p className="text-[11px] font-bold text-[var(--iris)] tracking-wider truncate">
@@ -249,7 +250,7 @@ export default function AdminDoctorsListPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-extrabold text-[var(--ink)]">
+              <h3 className="text-lg font-extrabold text-[#2B1F1A]">
                 Confirm Delete Doctor
               </h3>
               <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">

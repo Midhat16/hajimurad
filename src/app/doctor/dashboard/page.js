@@ -16,6 +16,7 @@ import { db } from "@/lib/firebase";
 import DoctorNotificationBell from "@/components/doctor/DoctorNotificationBell";
 import { getWhatsAppAppointmentUrl } from "@/lib/whatsappHelper";
 import { notifyOnDoctorAction } from "@/lib/notificationService";
+import { triggerEmailApi } from "@/lib/clientEmailHelper";
 import {
   Stethoscope,
   Calendar,
@@ -236,6 +237,12 @@ export default function DoctorDashboard() {
       const logId = await logActivity("accepted", appt, "Accepted appointment booking");
       await notifyOnDoctorAction("accepted", appt, doctorProfile?.name || "Doctor", "", "", logId || "");
 
+      // Trigger automatic confirmation email to Patient
+      triggerEmailApi({
+        type: "STATUS_CONFIRMED",
+        data: appt,
+      }).catch((err) => console.warn("Confirmed email notice:", err));
+
       // Trigger automatic WhatsApp open for patient notification
       const waUrl = getWhatsAppAppointmentUrl("confirmed", appt);
       if (waUrl && typeof window !== "undefined") {
@@ -261,6 +268,12 @@ export default function DoctorDashboard() {
       });
       const logId = await logActivity("rejected", appt, "Rejected appointment booking");
       await notifyOnDoctorAction("rejected", appt, doctorProfile?.name || "Doctor", "", "", logId || "");
+
+      // Trigger automatic cancellation email to Patient
+      triggerEmailApi({
+        type: "STATUS_CANCELLED",
+        data: appt,
+      }).catch((err) => console.warn("Cancelled email notice:", err));
 
       // Trigger automatic WhatsApp open for patient notification
       const waUrl = getWhatsAppAppointmentUrl("cancelled", appt);
@@ -305,6 +318,18 @@ export default function DoctorDashboard() {
         newTime,
         logId || ""
       );
+
+      // Trigger automatic rescheduled email to Patient
+      triggerEmailApi({
+        type: "STATUS_RESCHEDULED",
+        data: {
+          ...appt,
+          oldDate: appt.date,
+          oldTime: appt.time,
+          date: newDate,
+          time: newTime,
+        },
+      }).catch((err) => console.warn("Rescheduled email notice:", err));
 
       // Trigger automatic WhatsApp open for patient notification
       const waUrl = getWhatsAppAppointmentUrl("rescheduled", appt, newDate, newTime);
@@ -460,9 +485,9 @@ export default function DoctorDashboard() {
           <div className="bg-white p-5 rounded-2xl border border-[var(--line)] shadow-xs flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-[var(--slate)] uppercase tracking-wider">Total Assigned</p>
-              <p className="text-2xl font-black text-[var(--ink)] mt-1">{appointments.length}</p>
+              <p className="text-2xl font-black text-[#2B1F1A] mt-1">{appointments.length}</p>
             </div>
-            <div className="w-11 h-11 rounded-xl bg-[var(--fog)] text-[var(--ink)] flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-[var(--fog)] text-[#2B1F1A] flex items-center justify-center">
               <Calendar className="w-5 h-5" />
             </div>
           </div>
@@ -500,7 +525,7 @@ export default function DoctorDashboard() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search patient, phone, service..."
-              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl pl-10 pr-4 py-2 text-xs font-semibold text-[var(--ink)] focus:outline-none transition-all"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl pl-10 pr-4 py-2 text-xs font-semibold text-[#2B1F1A] focus:outline-none transition-all"
             />
           </div>
 
@@ -510,11 +535,10 @@ export default function DoctorDashboard() {
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold capitalize transition-all cursor-pointer ${
-                  statusFilter === st
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold capitalize transition-all cursor-pointer ${statusFilter === st
                     ? "bg-[var(--ink)] text-white shadow-xs"
                     : "bg-[var(--fog)] text-[var(--slate)] hover:bg-[var(--fog)]"
-                }`}
+                  }`}
               >
                 {st}
               </button>
@@ -526,14 +550,14 @@ export default function DoctorDashboard() {
         {loadingAppts ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)]">
             <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-bold text-[var(--ink)]">Loading Assigned Appointments...</p>
+            <p className="text-xs font-bold text-[#2B1F1A]">Loading Assigned Appointments...</p>
           </div>
         ) : filteredAppointments.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] space-y-3">
             <div className="w-14 h-14 bg-[var(--fog)] text-[var(--iris)] rounded-2xl flex items-center justify-center mx-auto">
               <CalendarDays className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-extrabold text-[var(--ink)]">No Appointments Found</h3>
+            <h3 className="text-base font-extrabold text-[#2B1F1A]">No Appointments Found</h3>
             <p className="text-xs font-medium text-[var(--slate)] max-w-sm mx-auto">
               No patient appointment requests currently match your active filters or doctor assignment.
             </p>
@@ -553,11 +577,11 @@ export default function DoctorDashboard() {
                   {/* Card Header: Patient & Status Badge */}
                   <div className="flex items-start justify-between gap-3 border-b border-[var(--fog)] pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-[var(--fog)] text-[var(--ink)] font-extrabold flex items-center justify-center text-sm shadow-inner">
+                      <div className="w-10 h-10 rounded-2xl bg-[var(--fog)] text-[#2B1F1A] font-extrabold flex items-center justify-center text-sm shadow-inner">
                         {appt.name?.charAt(0) || "P"}
                       </div>
                       <div>
-                        <h3 className="text-base font-extrabold text-[var(--ink)] tracking-tight">
+                        <h3 className="text-base font-extrabold text-[#2B1F1A] tracking-tight">
                           {appt.name || "Patient"}
                         </h3>
                         {(appt.dob || appt.age || appt.gender) && (
@@ -578,13 +602,12 @@ export default function DoctorDashboard() {
 
                     {/* Status Pill */}
                     <span
-                      className={`px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider border ${
-                        status === "confirmed"
+                      className={`px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider border ${status === "confirmed"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                           : status === "cancelled"
-                          ? "bg-rose-50 text-rose-700 border-rose-200"
-                          : "bg-amber-50 text-amber-700 border-amber-200"
-                      }`}
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
+                        }`}
                     >
                       {status}
                     </span>
@@ -593,13 +616,13 @@ export default function DoctorDashboard() {
                   {/* Patient Info Grid */}
                   <div className="grid grid-cols-2 gap-3 text-xs font-semibold text-[var(--slate)]">
                     {appt.patientCnic && (
-                      <div className="col-span-2 flex items-center gap-2 bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60 font-mono text-xs font-semibold text-[var(--ink)]">
+                      <div className="col-span-2 flex items-center gap-2 bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60 font-mono text-xs font-semibold text-[#2B1F1A]">
                         <span className="text-[10px] font-bold text-[var(--slate)] uppercase tracking-wider">Patient CNIC:</span>
                         <span>{appt.patientCnic}</span>
                       </div>
                     )}
                     {appt.guardianCnic && (
-                      <div className="col-span-2 flex items-center gap-2 bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60 font-mono text-xs font-semibold text-[var(--ink)]">
+                      <div className="col-span-2 flex items-center gap-2 bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60 font-mono text-xs font-semibold text-[#2B1F1A]">
                         <span className="text-[10px] font-bold text-[var(--slate)] uppercase tracking-wider">Guardian CNIC:</span>
                         <span>{appt.guardianCnic}</span>
                       </div>
@@ -616,12 +639,12 @@ export default function DoctorDashboard() {
                     </div>
 
                     <div className="flex items-center gap-2 bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--fog)]">
-                      <Calendar className="w-4 h-4 text-[var(--ink)] flex-shrink-0" />
+                      <Calendar className="w-4 h-4 text-[#2B1F1A] flex-shrink-0" />
                       <span className="truncate">{appt.date || "Date Unset"}</span>
                     </div>
 
                     <div className="flex items-center gap-2 bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--fog)]">
-                      <Clock className="w-4 h-4 text-[var(--ink)] flex-shrink-0" />
+                      <Clock className="w-4 h-4 text-[#2B1F1A] flex-shrink-0" />
                       <span className="truncate">{appt.time || "Time Unset"}</span>
                     </div>
                   </div>
@@ -698,7 +721,7 @@ export default function DoctorDashboard() {
               <div className="flex items-center justify-between border-b border-[var(--fog)] pb-4">
                 <div className="flex items-center gap-2">
                   <RefreshCw className="w-5 h-5 text-[var(--iris)]" />
-                  <h3 className="text-lg font-extrabold text-[var(--ink)]">
+                  <h3 className="text-lg font-extrabold text-[#2B1F1A]">
                     Reschedule Appointment
                   </h3>
                 </div>
@@ -714,13 +737,13 @@ export default function DoctorDashboard() {
 
               <p className="text-xs font-semibold text-[var(--slate)]">
                 Rescheduling appointment for{" "}
-                <strong className="text-[var(--ink)]">{rescheduleModal.appt?.name}</strong> (
+                <strong className="text-[#2B1F1A]">{rescheduleModal.appt?.name}</strong> (
                 {rescheduleModal.appt?.service}).
               </p>
 
               <form onSubmit={handleRescheduleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                     New Date
                   </label>
                   <input
@@ -730,12 +753,12 @@ export default function DoctorDashboard() {
                       setRescheduleModal((prev) => ({ ...prev, newDate: e.target.value }))
                     }
                     required
-                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none transition-all"
+                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none transition-all"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
                     New Time Slot
                   </label>
                   <input
@@ -745,7 +768,7 @@ export default function DoctorDashboard() {
                       setRescheduleModal((prev) => ({ ...prev, newTime: e.target.value }))
                     }
                     required
-                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] font-semibold focus:outline-none transition-all"
+                    className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none transition-all"
                   />
                 </div>
 

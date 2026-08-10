@@ -172,7 +172,7 @@ export default function DoctorActivityClient() {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/doctors"
-            className="p-2.5 rounded-xl bg-white border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--fog)] transition-all shadow-xs"
+            className="p-2.5 rounded-xl bg-white border border-[var(--line)] text-[#2B1F1A] hover:bg-[var(--fog)] transition-all shadow-xs"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -180,7 +180,7 @@ export default function DoctorActivityClient() {
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--iris)]">
               Doctor Activity & Audit Log
             </span>
-            <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+            <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
               Activity History — {doctor?.name || "Doctor"}
             </h1>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -197,7 +197,7 @@ export default function DoctorActivityClient() {
             <p className="text-[10px] sm:text-xs font-bold text-[var(--slate)] uppercase tracking-wider">
               Received Appts
             </p>
-            <p className="text-xl sm:text-2xl font-black text-[var(--ink)] mt-1">{totalReceived}</p>
+            <p className="text-xl sm:text-2xl font-black text-[#2B1F1A] mt-1">{totalReceived}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
             <Inbox className="w-5 h-5" />
@@ -245,12 +245,12 @@ export default function DoctorActivityClient() {
       {loading ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)]">
           <div className="w-8 h-8 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)]">Loading Activity Audit Trail...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Loading Activity Audit Trail...</p>
         </div>
       ) : combinedItems.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] space-y-3">
           <Stethoscope className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="text-base font-extrabold text-[var(--ink)]">No Activity Recorded Yet</h3>
+          <h3 className="text-base font-extrabold text-[#2B1F1A]">No Activity Recorded Yet</h3>
           <p className="text-xs font-semibold text-[var(--slate)] max-w-sm mx-auto">
             This doctor has not received any appointments or logged actions yet.
           </p>
@@ -258,7 +258,7 @@ export default function DoctorActivityClient() {
       ) : (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-extrabold text-[var(--ink)] uppercase tracking-wider">
+            <h2 className="text-sm font-extrabold text-[#2B1F1A] uppercase tracking-wider">
               Complete Activity Audit Stream ({combinedItems.length})
             </h2>
             <span className="text-xs font-bold text-[var(--iris)] bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)]">
@@ -323,7 +323,7 @@ export default function DoctorActivityClient() {
                               ? "bg-rose-100 text-rose-800"
                               : isRescheduled
                               ? "bg-blue-100 text-blue-800"
-                              : "bg-[var(--ink)]/10 text-[var(--ink)]"
+                              : "bg-[var(--ink)]/10 text-[#2B1F1A]"
                           }`}
                         >
                           {isReceived
@@ -331,7 +331,7 @@ export default function DoctorActivityClient() {
                             : `Appointment ${act.toUpperCase()}`}
                         </span>
 
-                        <span className="text-xs font-extrabold text-[var(--ink)]">
+                        <span className="text-xs font-extrabold text-[#2B1F1A]">
                           Patient: <strong className="text-[var(--iris)]">{item.patientName}</strong>
                         </span>
                       </div>
@@ -340,7 +340,7 @@ export default function DoctorActivityClient() {
                         {isReceived ? (
                           <>
                             Patient <strong>{item.patientName}</strong> booked an appointment for{" "}
-                            <span className="text-[var(--ink)] font-extrabold">{item.service}</span>.
+                            <span className="text-[#2B1F1A] font-extrabold">{item.service}</span>.
                           </>
                         ) : (
                           <>

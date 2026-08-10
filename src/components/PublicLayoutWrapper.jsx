@@ -2,9 +2,13 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import AppointmentModal from "@/components/AppointmentModal";
+
+const AppointmentModal = dynamic(() => import("@/components/AppointmentModal"), {
+  ssr: false,
+});
 
 export default function PublicLayoutWrapper({ children }) {
   const pathname = usePathname();

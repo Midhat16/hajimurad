@@ -64,7 +64,7 @@ export default function AdminNewslettersPage() {
           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
             Media Management
           </span>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
             Newsletters & Bulletins
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -83,12 +83,12 @@ export default function AdminNewslettersPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)]">Loading Newsletters...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Loading Newsletters...</p>
         </div>
       ) : newsletters.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] shadow-sm space-y-4 max-w-lg mx-auto">
           <Newspaper className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="text-lg font-extrabold text-[var(--ink)]">No Newsletters Added Yet</h3>
+          <h3 className="text-lg font-extrabold text-[#2B1F1A]">No Newsletters Added Yet</h3>
           <p className="text-xs text-slate-500 font-medium">
             Click "Add Newsletter" to publish your first hospital newsletter bulletin.
           </p>
@@ -115,7 +115,7 @@ export default function AdminNewslettersPage() {
               <tbody className="divide-y divide-slate-100">
                 {newsletters.map((nl) => (
                   <tr key={nl.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 px-6 font-extrabold text-[var(--ink)]">
+                    <td className="py-4 px-6 font-extrabold text-[#2B1F1A]">
                       <div>
                         <span>{nl.title}</span>
                         {nl.description && (

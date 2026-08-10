@@ -203,7 +203,7 @@ function ActionDetailClient() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+        <p className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
           Loading Action Details...
         </p>
       </div>
@@ -214,7 +214,7 @@ function ActionDetailClient() {
     return (
       <div className="max-w-3xl mx-auto py-12 px-4 text-center">
         <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-3" />
-        <h3 className="text-lg font-bold text-[var(--ink)]">
+        <h3 className="text-lg font-bold text-[#2B1F1A]">
           Activity Log Record Not Found
         </h3>
         <p className="text-xs text-slate-500 mt-1 mb-6">
@@ -297,7 +297,7 @@ function ActionDetailClient() {
               </span>
             </div>
 
-            <h1 className="text-base sm:text-lg font-black text-[var(--ink)] leading-snug">
+            <h1 className="text-base sm:text-lg font-black text-[#2B1F1A] leading-snug">
               This appointment of{" "}
               <span className="text-[var(--iris)] underline decoration-dotted">
                 {logData.patientName || apptData?.name || "Patient"}
@@ -327,7 +327,7 @@ function ActionDetailClient() {
       {apptData ? (
         <div className="bg-white rounded-3xl border border-[var(--line)] p-6 sm:p-8 shadow-xs space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <h3 className="text-sm font-extrabold text-[var(--ink)] uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-sm font-extrabold text-[#2B1F1A] uppercase tracking-wider flex items-center gap-2">
               <FileText className="w-4 h-4 text-[var(--iris)]" /> Complete Appointment
               Information
             </h3>
@@ -351,7 +351,7 @@ function ActionDetailClient() {
               <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-[var(--iris)]" /> Patient Name
               </span>
-              <p className="text-sm font-extrabold text-[var(--ink)]">
+              <p className="text-sm font-extrabold text-[#2B1F1A]">
                 {apptData.name || "N/A"}
               </p>
             </div>
@@ -360,7 +360,7 @@ function ActionDetailClient() {
               <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-[var(--iris)]" /> Phone / Contact
               </span>
-              <p className="text-sm font-extrabold text-[var(--ink)]">
+              <p className="text-sm font-extrabold text-[#2B1F1A]">
                 {apptData.phone || "N/A"}
               </p>
             </div>
@@ -369,7 +369,7 @@ function ActionDetailClient() {
               <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[var(--iris)]" /> Requested Date
               </span>
-              <p className="text-sm font-extrabold text-[var(--ink)]">
+              <p className="text-sm font-extrabold text-[#2B1F1A]">
                 {apptData.date || "N/A"}
               </p>
             </div>
@@ -378,7 +378,7 @@ function ActionDetailClient() {
               <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-[var(--iris)]" /> Requested Time
               </span>
-              <p className="text-sm font-extrabold text-[var(--ink)]">
+              <p className="text-sm font-extrabold text-[#2B1F1A]">
                 {apptData.time || "N/A"}
               </p>
             </div>
@@ -387,7 +387,7 @@ function ActionDetailClient() {
               <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
                 <Stethoscope className="w-3.5 h-3.5 text-[var(--iris)]" /> Doctor Assigned
               </span>
-              <p className="text-sm font-extrabold text-[var(--ink)]">
+              <p className="text-sm font-extrabold text-[#2B1F1A]">
                 {apptData.doctor || "General Hospital"}
               </p>
             </div>
@@ -396,7 +396,7 @@ function ActionDetailClient() {
               <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[var(--iris)]" /> Specialty / Service
               </span>
-              <p className="text-sm font-extrabold text-[var(--ink)]">
+              <p className="text-sm font-extrabold text-[#2B1F1A]">
                 {apptData.service || "Eye Care"}
               </p>
             </div>
@@ -456,7 +456,7 @@ function ActionDetailClient() {
       {showRescheduleModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5">
-            <h3 className="text-base font-extrabold text-[var(--ink)] flex items-center gap-2">
+            <h3 className="text-base font-extrabold text-[#2B1F1A] flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-amber-600" /> Reschedule Appointment
             </h3>
 
@@ -470,7 +470,7 @@ function ActionDetailClient() {
                   value={rescheduleDate}
                   onChange={(e) => setRescheduleDate(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--line)] text-xs font-semibold text-[var(--ink)] focus:outline-none focus:border-[var(--iris)]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--line)] text-xs font-semibold text-[#2B1F1A] focus:outline-none focus:border-[var(--iris)]"
                 />
               </div>
 
@@ -484,7 +484,7 @@ function ActionDetailClient() {
                   onChange={(e) => setRescheduleTime(e.target.value)}
                   placeholder="Preferred appointment time"
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--line)] text-xs font-semibold text-[var(--ink)] focus:outline-none focus:border-[var(--iris)]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--line)] text-xs font-semibold text-[#2B1F1A] focus:outline-none focus:border-[var(--iris)]"
                 />
               </div>
 
@@ -518,7 +518,7 @@ export default function ActionDetailPage() {
       fallback={
         <div className="min-h-[60vh] flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+          <p className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
             Loading Action Detail Page...
           </p>
         </div>

@@ -129,7 +129,7 @@ export default function Testimonials() {
   const hasAgeOrDate = Boolean(currentItem?.age || currentItem?.date);
 
   return (
-    <section className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
+    <section className="py-14 lg:py-16 bg-[var(--fog)] relative">
       {/* Background soft glowing blur */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-slate-100/40 rounded-full blur-3xl pointer-events-none" />
 
@@ -140,7 +140,7 @@ export default function Testimonials() {
           <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-[var(--fog)] px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
             Patient Stories
           </span>
-          <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--ink)] tracking-tight leading-tight">
+          <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2B1F1A] tracking-tight leading-tight">
             Restored Sight, Transformed Lives
           </h2>
           <p className="mt-2.5 text-sm sm:text-base text-[var(--slate)]">
@@ -190,7 +190,7 @@ export default function Testimonials() {
                       currentItem?.initials || getInitials(patientName)
                     )}
                   </div>
-                  <h3 className="mt-3 text-base font-bold text-[var(--ink)] text-center leading-tight">
+                  <h3 className="mt-3 text-base font-bold text-[#2B1F1A] text-center leading-tight">
                     {patientName}
                   </h3>
 
@@ -218,7 +218,7 @@ export default function Testimonials() {
                     </div>
                   )}
                   {storyText && (
-                    <p className="text-[var(--ink)] text-sm sm:text-base leading-relaxed font-semibold italic">
+                    <p className="text-[#2B1F1A] text-sm sm:text-base leading-relaxed font-semibold italic">
                       "{storyText}"
                     </p>
                   )}
@@ -236,7 +236,7 @@ export default function Testimonials() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={slidePrev}
-                className="p-3 rounded-full border border-[var(--line)] bg-white text-[var(--ink)] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-sm transition-colors cursor-pointer"
+                className="p-3 rounded-full border border-[var(--line)] bg-white text-[#2B1F1A] hover:text-[var(--iris)] hover:border-[var(--iris)] shadow-sm transition-colors cursor-pointer"
                 aria-label="Previous testimonial"
               >
                 <ChevronLeft className="w-5 h-5" />

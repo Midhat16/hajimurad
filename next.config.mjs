@@ -2,8 +2,8 @@
 const nextConfig = {
   reactCompiler: true,
 
-  // Static export
-  output: 'export',
+  // Static export (Commented out to support dynamic API routes like /api/send-email)
+  // output: 'export',
 
   // Optional: Agar image optimization use nahi karni
   images: {

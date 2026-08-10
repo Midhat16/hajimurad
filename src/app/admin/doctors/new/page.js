@@ -18,6 +18,7 @@ export default function NewDoctorPage() {
       // 1. Add public doctor document to "doctors" collection
       const docRef = await addDoc(collection(db, "doctors"), {
         ...publicData,
+        order: Date.now(),
         createdAt: serverTimestamp(),
       });
 

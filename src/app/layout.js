@@ -25,9 +25,9 @@ export const metadata = {
   keywords: "Eye Hospital, LASIK, Cataract Surgery, Retina Treatment, Glaucoma Care, Eye Care Clinic, Ophthalmic Surgeons",
   robots: "index, follow",
   icons: {
-    icon: "/images/logo.png",
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: "/images/favicon-logo.jpg",
+    shortcut: "/images/favicon-logo.jpg",
+    apple: "/images/favicon-logo.jpg",
   },
 };
 

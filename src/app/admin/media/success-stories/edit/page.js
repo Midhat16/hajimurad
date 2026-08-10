@@ -82,7 +82,7 @@ function EditSuccessStoryForm() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-xs font-bold text-[var(--ink)]">Loading Story Details...</p>
+        <p className="text-xs font-bold text-[#2B1F1A]">Loading Story Details...</p>
       </div>
     );
   }
@@ -91,7 +91,7 @@ function EditSuccessStoryForm() {
     <div className="max-w-3xl mx-auto space-y-6">
       <Link
         href="/admin/media/success-stories"
-        className="inline-flex items-center gap-2 text-xs font-extrabold text-[var(--ink)] hover:text-[var(--iris)] transition-colors bg-white px-4 py-2 rounded-xl border border-[var(--line)] shadow-xs"
+        className="inline-flex items-center gap-2 text-xs font-extrabold text-[#2B1F1A] hover:text-[var(--iris)] transition-colors bg-white px-4 py-2 rounded-xl border border-[var(--line)] shadow-xs"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Success Stories
       </Link>
@@ -101,7 +101,7 @@ function EditSuccessStoryForm() {
           <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
             Edit Testimonial
           </span>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight mt-1">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight mt-1">
             Edit Success Story
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -120,7 +120,7 @@ function EditSuccessStoryForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Patient Name */}
             <div>
-              <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+              <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
                 Patient Name
               </label>
               <input
@@ -133,7 +133,7 @@ function EditSuccessStoryForm() {
 
             {/* Display Order */}
             <div>
-              <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+              <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
                 Display Order Position
               </label>
               <input
@@ -148,7 +148,7 @@ function EditSuccessStoryForm() {
 
           {/* Story Title */}
           <div>
-            <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+            <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
               Story Headline Title *
             </label>
             <input
@@ -169,7 +169,7 @@ function EditSuccessStoryForm() {
 
           {/* Story Body */}
           <div>
-            <label className="text-xs font-bold text-[var(--ink)] block mb-1">
+            <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
               Full Patient Testimonial Story *
             </label>
             <textarea
@@ -203,7 +203,7 @@ export default function AdminEditSuccessStoryPage() {
       fallback={
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)] font-sans">Loading Page...</p>
+          <p className="text-xs font-bold text-[#2B1F1A] font-sans">Loading Page...</p>
         </div>
       }
     >

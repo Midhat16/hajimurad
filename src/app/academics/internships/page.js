@@ -89,12 +89,12 @@ export default function InternshipsListingPage() {
         {loading ? (
           <div className="bg-white rounded-3xl p-16 text-center border border-[var(--line)] shadow-sm max-w-md mx-auto">
             <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-xs font-extrabold text-[var(--ink)] uppercase tracking-wider">Loading Internship Opportunities...</p>
+            <p className="text-xs font-extrabold text-[#2B1F1A] uppercase tracking-wider">Loading Internship Opportunities...</p>
           </div>
         ) : filteredInternships.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-[var(--line)] max-w-md mx-auto space-y-3 shadow-sm">
             <GraduationCap className="w-12 h-12 text-slate-300 mx-auto" />
-            <h3 className="text-lg font-extrabold text-[var(--ink)]">No Active Internships Found</h3>
+            <h3 className="text-lg font-extrabold text-[#2B1F1A]">No Active Internships Found</h3>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -118,7 +118,7 @@ export default function InternshipsListingPage() {
                   </div>
 
                   {/* Title */}
-                  <h2 className="text-xl font-extrabold text-[var(--ink)] group-hover:text-[var(--iris)] transition-colors leading-tight">
+                  <h2 className="text-xl font-extrabold text-[#2B1F1A] group-hover:text-[var(--iris)] transition-colors leading-tight">
                     {program.title}
                   </h2>
 
@@ -131,7 +131,7 @@ export default function InternshipsListingPage() {
                   <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
                     <div className="bg-[var(--fog)] p-2.5 rounded-xl border border-[var(--line)]/60">
                       <span className="text-[9px] font-bold uppercase text-slate-400 block">Available Seats</span>
-                      <span className="font-extrabold text-[var(--ink)] flex items-center gap-1">
+                      <span className="font-extrabold text-[#2B1F1A] flex items-center gap-1">
                         <Users className="w-3.5 h-3.5 text-[var(--iris)]" /> {program.seatsAvailable || "Limited"} Positions
                       </span>
                     </div>

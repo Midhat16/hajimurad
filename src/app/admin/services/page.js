@@ -61,7 +61,7 @@ export default function AdminServicesListPage() {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[var(--ink)] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
             Eye Care Services
           </h1>
           <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
@@ -81,12 +81,12 @@ export default function AdminServicesListPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-10 h-10 border-4 border-[var(--iris)] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-bold text-[var(--ink)]">Loading Services...</p>
+          <p className="text-xs font-bold text-[#2B1F1A]">Loading Services...</p>
         </div>
       ) : services.length === 0 ? (
         <div className="p-12 text-center bg-white rounded-3xl border border-[var(--line)]">
           <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-[var(--ink)]">No Services Added Yet</h3>
+          <h3 className="text-base font-bold text-[#2B1F1A]">No Services Added Yet</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
             Click "Add New Service" to create your first hospital specialty card.
           </p>
@@ -115,11 +115,11 @@ export default function AdminServicesListPage() {
                 <div>
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] p-0.5 shadow-xs flex items-center justify-center mb-4">
                     <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-[var(--ink)]" />
+                      <IconComponent className="w-6 h-6 text-[#2B1F1A]" />
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-[var(--ink)]">
+                  <h3 className="text-base font-bold text-[#2B1F1A]">
                     {svc.title}
                   </h3>
 
@@ -185,7 +185,7 @@ export default function AdminServicesListPage() {
                 </button>
               </div>
 
-              <h3 className="text-lg font-extrabold text-[var(--ink)]">
+              <h3 className="text-lg font-extrabold text-[#2B1F1A]">
                 Confirm Delete Service
               </h3>
               <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">

@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 
-export default function TiltCard({ children, className = "" }) {
+export default function TiltCard({ children, className = "", style = {} }) {
   const cardRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -43,10 +43,11 @@ export default function TiltCard({ children, className = "" }) {
       style={{
         transformStyle: "preserve-3d",
         willChange: "transform",
+        ...style,
       }}
       className={className}
     >
-      <div style={{ transform: "translateZ(15px)", transformStyle: "preserve-3d" }}>
+      <div className="h-full flex flex-col justify-between flex-1" style={{ transform: "translateZ(15px)", transformStyle: "preserve-3d" }}>
         {children}
       </div>
     </div>
