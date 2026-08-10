@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Save, Sparkles, AlertCircle, CheckCircle2, Award, Trophy, Users, ShieldCheck } from "lucide-react";
+import { Save, Sparkles, AlertCircle, CheckCircle2, Award, Trophy, Users, ShieldCheck, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const DEFAULT_WHY_CONTENT = {
@@ -46,7 +46,7 @@ export default function AdminWhyChooseUsPage() {
           setFormData({
             ...DEFAULT_WHY_CONTENT,
             ...data,
-            points: data.points && data.points.length === 3 ? data.points : DEFAULT_WHY_CONTENT.points,
+            points: Array.isArray(data.points) && data.points.length > 0 ? data.points : DEFAULT_WHY_CONTENT.points,
           });
         }
       } catch (err) {
@@ -74,6 +74,24 @@ export default function AdminWhyChooseUsPage() {
     });
   };
 
+  const handleAddPoint = () => {
+    setFormData((prev) => ({
+      ...prev,
+      points: [...prev.points, { title: "", description: "" }],
+    }));
+  };
+
+  const handleRemovePoint = (index) => {
+    setFormData((prev) => {
+      if (prev.points.length <= 1) {
+        setError("At least one highlight point is required.");
+        return prev;
+      }
+      const updated = prev.points.filter((_, idx) => idx !== index);
+      return { ...prev, points: updated };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -81,6 +99,18 @@ export default function AdminWhyChooseUsPage() {
 
     if (!formData.badgeText.trim() || !formData.heading.trim() || !formData.description.trim()) {
       setError("Badge text, heading, and description are required.");
+      return;
+    }
+
+    const validPoints = formData.points
+      .map((p) => ({
+        title: p.title.trim(),
+        description: p.description.trim(),
+      }))
+      .filter((p) => p.title || p.description);
+
+    if (validPoints.length === 0) {
+      setError("Please add at least one highlight point with title or description.");
       return;
     }
 
@@ -94,10 +124,7 @@ export default function AdminWhyChooseUsPage() {
         successfulSurgeries: Number(formData.successfulSurgeries) || 0,
         certifiedSpecialists: Number(formData.certifiedSpecialists) || 0,
         patientSuccessRate: Number(formData.patientSuccessRate) || 0,
-        points: formData.points.map((p) => ({
-          title: p.title.trim(),
-          description: p.description.trim(),
-        })),
+        points: validPoints,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
 
@@ -281,28 +308,58 @@ export default function AdminWhyChooseUsPage() {
           </div>
         </div>
 
-        {/* 3 Key Feature Points */}
+        {/* Hospital Highlights Section */}
         <div className="space-y-4">
-          <h3 className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
-            3 Key Hospital Highlights
-          </h3>
+          <div className="flex items-center justify-between gap-4 pb-1">
+            <div>
+              <h3 className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
+                Hospital Highlights & Feature Points ({formData.points.length})
+              </h3>
+              <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                Add, edit, or remove key highlights displayed in the "Why Choose Us" section on the Home page.
+              </p>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={handleAddPoint}
+              className="flex items-center gap-1.5 bg-[var(--iris)] hover:bg-[var(--ink)] text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-xs shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              Add Highlight
+            </motion.button>
+          </div>
 
           <div className="space-y-4">
             {formData.points.map((pt, idx) => (
-              <div key={idx} className="p-4 rounded-2xl bg-[var(--fog)] border border-[var(--line)] space-y-3">
-                <span className="text-[10px] font-bold text-[var(--iris)] uppercase tracking-widest block">
-                  Highlight Point #{idx + 1}
-                </span>
+              <div key={idx} className="p-4 rounded-2xl bg-[var(--fog)] border border-[var(--line)] space-y-3 relative group">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-[10px] font-bold text-[var(--iris)] uppercase tracking-widest block">
+                    Highlight #{idx + 1}
+                  </span>
+                  {formData.points.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePoint(idx)}
+                      className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer border border-red-200"
+                      title="Delete this highlight"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Remove
+                    </button>
+                  )}
+                </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block">
-                    Point Title
+                    Highlight Title *
                   </label>
                   <input
                     type="text"
                     value={pt.title}
                     onChange={(e) => handlePointChange(idx, "title", e.target.value)}
-                    placeholder=""
+                    placeholder="e.g. State-of-the-Art Laser Technology"
                     required
                     className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:ring-2"
                   />
@@ -310,13 +367,13 @@ export default function AdminWhyChooseUsPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block">
-                    Point Description
+                    Highlight Description *
                   </label>
                   <input
                     type="text"
                     value={pt.description}
                     onChange={(e) => handlePointChange(idx, "description", e.target.value)}
-                    placeholder=""
+                    placeholder="e.g. Certified diagnostics with Wavefront imaging for precise eye care"
                     required
                     className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:ring-2"
                   />
