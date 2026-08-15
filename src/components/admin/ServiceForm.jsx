@@ -463,7 +463,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
 
       {/* Form Container */}
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Title & Template Copy Selector */}
           <div className="space-y-1.5 md:col-span-2">
@@ -494,7 +494,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g. Diagnostics & Imaging"
+              placeholder=""
               required
               className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
@@ -549,7 +549,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
             value={formData.description}
             onChange={handleChange}
             rows={3}
-            placeholder="Comprehensive diagnostic evaluations using advanced ocular imaging..."
+            placeholder=""
             className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
           />
         </div>
@@ -640,7 +640,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                 min="1"
                 value={formData.maxBookingDays}
                 onChange={handleChange}
-                placeholder="e.g. 5 or 10"
+                placeholder=""
                 required
                 className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-2.5 text-sm text-[#2B1F1A] font-extrabold focus:outline-none focus:ring-4 transition-all"
               />
@@ -672,16 +672,15 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                   <label
                     key={doc.id}
                     onClick={() => toggleDoctorSelection(doc.id)}
-                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
-                      isSelected
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${isSelected
                         ? "bg-white border-[var(--iris)] shadow-xs"
                         : "bg-white/60 border-slate-200 hover:border-slate-300"
-                    }`}
+                      }`}
                   >
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => {}}
+                      onChange={() => { }}
                       className="w-4 h-4 text-[var(--iris)] rounded focus:ring-[var(--iris)]"
                     />
                     <div className="truncate">
@@ -745,7 +744,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                       type="text"
                       value={feat}
                       onChange={(e) => handleFeatureChange(idx, e.target.value)}
-                      placeholder={`Feature #${idx + 1} Name (e.g. PRP / OCT Macula)`}
+                      placeholder={`Feature #${idx + 1} Name`}
                       className="flex-1 bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3.5 py-2 text-xs font-bold text-[#2B1F1A] focus:outline-none focus:ring-2"
                     />
 
@@ -817,11 +816,10 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                                 return (
                                   <div
                                     key={docObj.id}
-                                    className={`p-3.5 rounded-2xl border transition-all ${
-                                      isAssigned
+                                    className={`p-3.5 rounded-2xl border transition-all ${isAssigned
                                         ? "bg-indigo-50/40 border-indigo-200 shadow-xs"
                                         : "bg-slate-50/50 border-slate-200 opacity-80"
-                                    }`}
+                                      }`}
                                   >
                                     <div
                                       onClick={() => toggleFeatureDoctor(idx, docObj.id)}
@@ -831,7 +829,7 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                                         <input
                                           type="checkbox"
                                           checked={isAssigned}
-                                          onChange={() => {}}
+                                          onChange={() => { }}
                                           className="w-4 h-4 text-[var(--iris)] rounded"
                                         />
                                         <div className="truncate">
@@ -898,11 +896,10 @@ export default function ServiceForm({ initialData = null, onSave, isSaving = fal
                                                     key={day}
                                                     type="button"
                                                     onClick={() => handleDoctorTimingChange(idx, docObj.id, "dayToggle", day)}
-                                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                                                      isDayActive
+                                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${isDayActive
                                                         ? "bg-[var(--iris)] text-white shadow-xs"
                                                         : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                                                    }`}
+                                                      }`}
                                                   >
                                                     {day.slice(0, 3)}
                                                   </button>

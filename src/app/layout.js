@@ -17,6 +17,7 @@ const inter = Inter({
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
 };
 
 export const metadata = {
@@ -33,8 +34,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${merriweather.variable} ${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-medical-light text-slate-800">
+    <html lang="en" className={`${merriweather.variable} ${inter.variable} h-full antialiased overflow-x-hidden max-w-full`}>
+      <body className="min-h-full flex flex-col bg-medical-light text-slate-800 overflow-x-hidden max-w-full w-full relative">
         <PublicLayoutWrapper>
           {children}
         </PublicLayoutWrapper>

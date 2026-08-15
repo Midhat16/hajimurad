@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, setLogLevel } from "firebase/firestore";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,9 +18,10 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 // Suppress internal Firestore connection retry logs from clogging Next.js dev overlay
 setLogLevel("error");
 
-// Initialize Cloud Firestore & Auth
+// Initialize Cloud Firestore, Auth & Storage
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 // Explicitly set browserLocalPersistence so session persists across refresh/tab close
 if (typeof window !== "undefined") {
@@ -28,4 +30,4 @@ if (typeof window !== "undefined") {
   });
 }
 
-export { app, db, auth };
+export { app, db, auth, storage };

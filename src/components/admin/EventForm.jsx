@@ -311,7 +311,7 @@ export default function EventForm({ initialData = null, isEdit = false }) {
                 type="text"
                 value={customStatusInput}
                 onChange={handleCustomStatusTextChange}
-                placeholder="e.g. Postponed, Registration Full, Ongoing, Canceled"
+                placeholder=""
                 required
                 className="w-full bg-white border border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-extrabold focus:outline-none focus:ring-4 transition-all"
               />

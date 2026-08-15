@@ -12,7 +12,7 @@ export async function generateAppointmentQRCode(text) {
       width: 200,
       margin: 1,
       color: {
-        dark: "#8C6CFF",
+        dark: "#1E1433",
         light: "#FFFFFF",
       },
     });

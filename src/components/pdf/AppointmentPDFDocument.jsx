@@ -19,7 +19,7 @@ const getSafePdfImage = (imgSrc, fallbackBase64) => {
   return fallbackBase64;
 };
 
-// Styles matching hospital theme (#C4232C Red Header & #8C6CFF Purple Accents)
+// Styles matching hospital theme (#C4232C Red Header & #1E1433 Dark Navy Accents)
 const styles = StyleSheet.create({
   page: {
     backgroundColor: "#FFFFFF",
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   contactWebLink: {
-    color: "#8C6CFF",
+    color: "#1E1433",
     fontWeight: "bold",
     textDecoration: "underline",
   },
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   webLinkFooter: {
-    color: "#8C6CFF",
+    color: "#1E1433",
     fontWeight: "bold",
     textDecoration: "underline",
   },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     paddingBottom: 8,
     borderBottomWidth: 1.5,
-    borderBottomColor: "#8C6CFF",
+    borderBottomColor: "#1E1433",
   },
   mainTitle: {
     fontSize: 15,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   badge: {
-    backgroundColor: "#8C6CFF",
+    backgroundColor: "#1E1433",
     paddingHorizontal: 10,
     paddingVertical: 4.5,
     borderRadius: 8,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   columnHeader: {
     fontSize: 9.5,
     fontWeight: "bold",
-    color: "#8C6CFF",
+    color: "#1E1433",
     marginBottom: 8,
     textTransform: "uppercase",
     borderBottomWidth: 1,

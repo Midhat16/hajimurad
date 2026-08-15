@@ -11,23 +11,33 @@ export const PREFERRED_DOCTOR_ORDER = [
 ];
 
 export function getDoctorOrderIndex(doctor) {
-  if (!doctor) return 999;
+  if (!doctor) return 99999;
 
-  // 1. If explicit numeric order field exists (e.g. 1, 2, 3...)
-  if (typeof doctor.order === "number" && !isNaN(doctor.order)) {
-    return doctor.order;
+  // 1. Check explicit numeric displayOrder field set by admin (e.g. 1, 2, 3...)
+  const rawOrder = doctor.displayOrder !== undefined && doctor.displayOrder !== null && doctor.displayOrder !== ""
+    ? doctor.displayOrder
+    : doctor.order;
+
+  const numOrder = typeof rawOrder === "number"
+    ? rawOrder
+    : (rawOrder !== undefined && rawOrder !== null && rawOrder !== ""
+        ? Number(rawOrder)
+        : null);
+
+  if (numOrder !== null && !isNaN(numOrder)) {
+    return numOrder;
   }
 
-  // 2. Substring match against preferred standard 7 doctors list
+  // 2. Substring match against preferred standard 7 doctors list (placed after explicitly ordered doctors)
   const nameLower = (doctor.name || "").toLowerCase();
   for (let i = 0; i < PREFERRED_DOCTOR_ORDER.length; i++) {
     if (nameLower.includes(PREFERRED_DOCTOR_ORDER[i])) {
-      return i + 1; // 1 to 7
+      return 10000 + (i + 1);
     }
   }
 
-  // 3. Fallback for new future doctors added by admin without explicit order index
-  return 1000;
+  // 3. Fallback for doctors without explicit displayOrder index
+  return 99999;
 }
 
 export function sortDoctors(doctorsList) {
@@ -100,20 +110,47 @@ export function getAvailableDoctorsForFeatures(
 ) {
   if (!Array.isArray(doctorsList) || doctorsList.length === 0) return [];
 
-  // If no features selected or no mappings exist, return fallback service doctors
-  if (!selectedFeatures || selectedFeatures.length === 0 || !featureDoctorMappings || featureDoctorMappings.length === 0) {
-    if (Array.isArray(serviceDoctorIds) && serviceDoctorIds.length > 0) {
-      return sortDoctors(doctorsList.filter((doc) => serviceDoctorIds.includes(doc.id)));
-    }
-    return sortDoctors(doctorsList);
+  // Filter ONLY doctors where isConsultant === true
+  const consultantDoctorsList = doctorsList.filter((doc) => doc.isConsultant === true);
+  if (consultantDoctorsList.length === 0) return [];
+
+  const genDocIds = Array.isArray(serviceDoctorIds) ? serviceDoctorIds : [];
+
+  // Union of all doctor IDs assigned across all feature mappings for this service
+  const featureDocIdsUnion = new Set();
+  if (Array.isArray(featureDoctorMappings)) {
+    featureDoctorMappings.forEach((m) => {
+      let ids = [];
+      if (Array.isArray(m.assignedDoctorIds) && m.assignedDoctorIds.length > 0) {
+        ids = m.assignedDoctorIds;
+      } else if (Array.isArray(m.assignedDoctors) && m.assignedDoctors.length > 0) {
+        ids = m.assignedDoctors.map((d) => d.doctorId);
+      } else if (m.doctorOverrides) {
+        ids = Object.keys(m.doctorOverrides);
+      }
+      ids.forEach((id) => featureDocIdsUnion.add(id));
+    });
   }
 
+  // 1. If NO features are selected (or no feature Doctor Mappings exist for this service)
+  if (!selectedFeatures || selectedFeatures.length === 0) {
+    if (genDocIds.length > 0) {
+      return sortDoctors(consultantDoctorsList.filter((doc) => genDocIds.includes(doc.id)));
+    }
+    if (featureDocIdsUnion.size > 0) {
+      return sortDoctors(consultantDoctorsList.filter((doc) => featureDocIdsUnion.has(doc.id)));
+    }
+    // Strict fix: If NO doctors are assigned to general service or features, return EMPTY array!
+    return [];
+  }
+
+  // 2. Features ARE selected
   const doctorSetsPerFeature = [];
 
   for (const featName of selectedFeatures) {
-    const mapping = featureDoctorMappings.find((m) => m.featureName === featName);
+    const mapping = (featureDoctorMappings || []).find((m) => m.featureName === featName);
+    let docIdsForFeat = [];
     if (mapping) {
-      let docIdsForFeat = [];
       if (Array.isArray(mapping.assignedDoctorIds) && mapping.assignedDoctorIds.length > 0) {
         docIdsForFeat = mapping.assignedDoctorIds;
       } else if (Array.isArray(mapping.assignedDoctors) && mapping.assignedDoctors.length > 0) {
@@ -121,16 +158,24 @@ export function getAvailableDoctorsForFeatures(
       } else if (mapping.doctorOverrides) {
         docIdsForFeat = Object.keys(mapping.doctorOverrides);
       }
-
-      doctorSetsPerFeature.push(new Set(docIdsForFeat));
     }
+
+    // Fall back to general service doctors if this specific feature has no per-feature doctors assigned
+    if (docIdsForFeat.length === 0 && genDocIds.length > 0) {
+      docIdsForFeat = genDocIds;
+    }
+
+    doctorSetsPerFeature.push(new Set(docIdsForFeat));
   }
 
   if (doctorSetsPerFeature.length === 0) {
-    if (Array.isArray(serviceDoctorIds) && serviceDoctorIds.length > 0) {
-      return sortDoctors(doctorsList.filter((doc) => serviceDoctorIds.includes(doc.id)));
+    if (genDocIds.length > 0) {
+      return sortDoctors(doctorsList.filter((doc) => genDocIds.includes(doc.id)));
     }
-    return sortDoctors(doctorsList);
+    if (featureDocIdsUnion.size > 0) {
+      return sortDoctors(doctorsList.filter((doc) => featureDocIdsUnion.has(doc.id)));
+    }
+    return [];
   }
 
   // Compute strict INTERSECTION across all selected features
@@ -147,7 +192,7 @@ export function getAvailableDoctorsForFeatures(
     intersectedDocIds = nextIntersection;
   }
 
-  const resultDoctors = doctorsList.filter((doc) => intersectedDocIds.has(doc.id));
+  const resultDoctors = consultantDoctorsList.filter((doc) => intersectedDocIds.has(doc.id));
   return sortDoctors(resultDoctors);
 }
 

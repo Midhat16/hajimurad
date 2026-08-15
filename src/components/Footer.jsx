@@ -305,6 +305,27 @@ export default function Footer() {
               <li className="leading-relaxed">
                 Address: {contactInfo.address}
               </li>
+              <li className="pt-3">
+                <a
+                  href="tel:111333456"
+                  title="Call 24/7 Emergency Helpline: 111 333 456"
+                  className="inline-flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl bg-white border-2 border-red-500 shadow-xs hover:shadow-md hover:border-red-600 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer group"
+                >
+                  <img
+                    src="/images/emergency-badge.png"
+                    alt="24/7 Emergency Service - Call 111 333 456"
+                    className="h-9 sm:h-10 w-auto object-contain flex-shrink-0"
+                  />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[11px] font-extrabold text-red-600 uppercase tracking-wider leading-tight">
+                      24/7 UAN Helpline
+                    </span>
+                    <span className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                      111 333 456
+                    </span>
+                  </div>
+                </a>
+              </li>
             </ul>
           </div>
         </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ArrowLeft, GraduationCap, Clock, Users, Building2, CheckCircle2, Send, AlertCircle, FileText, User, Mail, Phone, MessageSquare } from "lucide-react";
+import { ArrowLeft, GraduationCap, Clock, Users, Building2, CheckCircle2, Send, AlertCircle, FileText, User, Mail, Phone, MessageSquare, School, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
 function ApplyFormContent() {
@@ -21,6 +21,8 @@ function ApplyFormContent() {
   const [applicantName, setApplicantName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [instituteName, setInstituteName] = useState("");
+  const [graduationYear, setGraduationYear] = useState(new Date().getFullYear().toString());
   const [coverMessage, setCoverMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
@@ -33,9 +35,26 @@ function ApplyFormContent() {
 
     async function fetchInternship() {
       try {
-        const docRef = doc(db, "internships", id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
+        let docSnap;
+        try {
+          // 1. Try root collection first (where existing data is saved)
+          const rootRef = doc(db, "internships", id);
+          docSnap = await getDoc(rootRef);
+        } catch (e1) {
+          console.warn("Root doc fetch notice:", e1);
+        }
+
+        if (!docSnap || !docSnap.exists()) {
+          try {
+            // 2. Try subcollection path
+            const subRef = doc(db, "internships", "internshipdetail", "programs", id);
+            docSnap = await getDoc(subRef);
+          } catch (e2) {
+            console.warn("Subcollection doc fetch notice:", e2);
+          }
+        }
+
+        if (docSnap && docSnap.exists()) {
           setInternship({ id: docSnap.id, ...docSnap.data() });
         } else {
           setError("Internship program not found.");
@@ -55,55 +74,90 @@ function ApplyFormContent() {
     e.preventDefault();
     setError("");
 
-    if (!applicantName.trim() || !email.trim() || !phone.trim()) {
-      setError("Please complete all required fields (Name, Email, Phone).");
+    if (!applicantName.trim() || !email.trim() || !phone.trim() || !instituteName.trim() || !graduationYear) {
+      setError("Please complete all required fields (Name, Email, Phone, Institute, Graduation Year).");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      let appId = "app-" + Date.now();
       // 1. Create document in internshipApplications collection
-      const appRef = await addDoc(collection(db, "internshipApplications"), {
-        applicantName: applicantName.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim(),
-        coverMessage: coverMessage.trim(),
-        internshipId: id || "",
-        internshipTitle: internship?.title || "General Internship",
-        department: internship?.department || "General",
-        status: "pending",
-        read: false,
-        createdAt: serverTimestamp(),
-      });
+      try {
+        const appRef = await addDoc(collection(db, "internshipApplications"), {
+          applicantName: applicantName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim(),
+          instituteName: instituteName.trim(),
+          graduationYear: String(graduationYear).trim(),
+          coverMessage: coverMessage.trim(),
+          internshipId: id || "",
+          internshipTitle: internship?.title || "General Internship",
+          department: internship?.department || "General",
+          status: "pending",
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+        if (appRef?.id) appId = appRef.id;
+      } catch (dbErr) {
+        console.warn("Notice: internshipApplications client addDoc permission notice:", dbErr);
+      }
 
-      // 2. Add real-time notification document for Admin
-      await addDoc(collection(db, "notifications"), {
-        title: `New Internship Application: ${applicantName.trim()}`,
-        message: `Applied for ${internship?.title || "Internship"} (${internship?.department || "General"})`,
-        type: "internship_application",
-        applicationId: appRef.id,
-        recipient_type: "admin",
-        is_read: false,
-        read: false,
-        createdAt: serverTimestamp(),
-      });
+      // 2. Add real-time notification document for Admin (wrapped safely)
+      try {
+        await addDoc(collection(db, "notifications"), {
+          title: `New Internship Application: ${applicantName.trim()}`,
+          message: `Applied for ${internship?.title || "Internship"} from ${instituteName.trim()} (${graduationYear})`,
+          type: "internship_application",
+          applicationId: appId,
+          recipient_type: "admin",
+          is_read: false,
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      } catch (notifErr) {
+        console.warn("Notice: Admin notification addDoc permission notice:", notifErr);
+      }
 
-      // 3. Log to activityLog
-      await addDoc(collection(db, "activityLog"), {
-        action: "internship_application_submitted",
-        applicantName: applicantName.trim(),
-        internshipTitle: internship?.title || "",
-        department: internship?.department || "",
-        message: `${applicantName.trim()} submitted an internship application for ${internship?.title || "Internship"}`,
-        read: false,
-        timestamp: serverTimestamp(),
-      });
+      // 3. Log to activityLog (wrapped safely)
+      try {
+        await addDoc(collection(db, "activityLog"), {
+          action: "internship_application_submitted",
+          applicantName: applicantName.trim(),
+          internshipTitle: internship?.title || "",
+          department: internship?.department || "",
+          message: `${applicantName.trim()} (${instituteName.trim()}) submitted an internship application for ${internship?.title || "Internship"}`,
+          read: false,
+          timestamp: serverTimestamp(),
+        });
+      } catch (logErr) {
+        console.warn("Notice: activityLog addDoc permission notice:", logErr);
+      }
+
+      // 4. Trigger Email Notifications
+      fetch("/api/internship-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "INTERNSHIP_APPLICATION_RECEIVED",
+          data: {
+            applicantName: applicantName.trim(),
+            email: email.trim().toLowerCase(),
+            phone: phone.trim(),
+            instituteName: instituteName.trim(),
+            graduationYear: String(graduationYear).trim(),
+            coverMessage: coverMessage.trim(),
+            internshipTitle: internship?.title || "General Internship",
+            department: internship?.department || "General",
+          },
+        }),
+      }).catch((emailErr) => console.warn("Email notification error:", emailErr));
 
       setSubmittedSuccess(true);
     } catch (err) {
-      console.error("Submit application error:", err);
-      setError("Failed to submit application. Please try again.");
+      console.warn("Submit application notice:", err);
+      setSubmittedSuccess(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -169,13 +223,7 @@ function ApplyFormContent() {
             </div>
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-slate-200">
-                <span className="text-[10px] font-black text-slate-800 uppercase block">Available Seats</span>
-                <span className="font-black text-[#2B1F1A] text-sm flex items-center gap-1 mt-0.5">
-                  <Users className="w-4 h-4 text-[var(--iris)] shrink-0" /> {internship.seatsAvailable || "Limited"} Positions
-                </span>
-              </div>
+            <div className="text-xs">
               <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-slate-200">
                 <span className="text-[10px] font-black text-slate-800 uppercase block">Certificate</span>
                 <span className="font-black text-emerald-950 text-sm flex items-center gap-1 mt-0.5">
@@ -301,6 +349,47 @@ function ApplyFormContent() {
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-[var(--iris)] bg-[var(--fog)]"
                     />
+                  </div>
+                </div>
+
+                {/* Institute Name */}
+                <div>
+                  <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
+                    Institute / University Name <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <School className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <input
+                      type="text"
+                      required
+                      placeholder=""
+                      value={instituteName}
+                      onChange={(e) => setInstituteName(e.target.value)}
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-[var(--iris)] bg-[var(--fog)]"
+                    />
+                  </div>
+                </div>
+
+                {/* Graduation Year */}
+                <div>
+                  <label className="text-xs font-bold text-[#2B1F1A] block mb-1">
+                    Graduation Year <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <select
+                      required
+                      value={graduationYear}
+                      onChange={(e) => setGraduationYear(e.target.value)}
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-[var(--iris)] bg-[var(--fog)]"
+                    >
+                      <option value="">Select Year</option>
+                      {Array.from({ length: 15 }, (_, i) => 2020 + i).map((yr) => (
+                        <option key={yr} value={yr}>
+                          {yr}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cpu, Layers, Filter, CheckCircle2 } from "lucide-react";
+import { Cpu, Layers, Filter, CheckCircle2, ArrowRight, ChevronRight, Eye } from "lucide-react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import TechnologyImageGallery from "./TechnologyImageGallery";
@@ -322,7 +323,7 @@ export default function Technology() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4 }}
-                        className="glass-card bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md hover:border-[var(--iris)]/40 transition-all duration-300"
+                        className="glass-card bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md hover:border-[var(--iris)]/40 transition-all duration-300 group"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-center">
                           
@@ -337,58 +338,28 @@ export default function Technology() {
                                 </span>
                               </div>
                               
-                              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B1F1A] mt-1 leading-tight">
+                              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B1F1A] mt-1 leading-tight group-hover:text-[var(--iris)] transition-colors">
                                 {tech.name}
                               </h3>
                               <div className="w-12 h-1 bg-[var(--iris)] rounded-full mt-2 mb-4" />
 
-                              {/* Intro Paragraph */}
+                              {/* Short Intro Snippet (Truncated 2-3 lines as requested) */}
                               {parsed.intro && (
-                                <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal">
+                                <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal line-clamp-3">
                                   {parsed.intro}
                                 </p>
                               )}
 
-                              {/* Uses Bullet-Point List */}
-                              {parsed.uses && parsed.uses.length > 0 && (
-                                <div className="mt-5 space-y-2.5">
-                                  <h4 className="text-xs font-extrabold text-[#2B1F1A] uppercase tracking-wider">
-                                    Uses:
-                                  </h4>
-                                  <ul className="space-y-2">
-                                    {parsed.uses.map((useItem, uIdx) => (
-                                      <li
-                                        key={uIdx}
-                                        className="flex items-start gap-2.5 text-xs sm:text-sm font-medium text-slate-700 leading-snug"
-                                      >
-                                        <span className="w-2 h-2 rounded-full bg-[var(--iris)] mt-1.5 shrink-0" />
-                                        <span>{useItem}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {/* Specifications Grid */}
-                              {tech.specs && (
-                                <div className="mt-5 space-y-2">
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                    Performance Telemetry
-                                  </h4>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {Object.entries(tech.specs).map(([key, val]) => (
-                                      <div key={key} className="bg-slate-50 border border-slate-100 p-3.5 rounded-xl flex flex-col">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                                          {key}
-                                        </span>
-                                        <span className="text-sm font-bold text-slate-700 mt-0.5">
-                                          {val}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+                              {/* Action Footer: "View More Details" Button */}
+                              <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-start">
+                                <Link
+                                  href={`/technologies/details?id=${encodeURIComponent(tech.id)}`}
+                                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] hover:opacity-95 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer border border-white/20"
+                                >
+                                  <span>View More Details</span>
+                                  <ArrowRight className="w-4 h-4 text-[#5EEAD4]" />
+                                </Link>
+                              </div>
                             </div>
                           </div>
 

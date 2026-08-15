@@ -148,7 +148,7 @@ export default function Contact() {
       <div className="absolute bottom-1/3 right-0 w-90 h-90 bg-slate-100/40 rounded-full blur-3xl pointer-events-none translate-x-1/2" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
           <motion.div
@@ -171,7 +171,7 @@ export default function Contact() {
 
         {/* Contact Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          
+
           {/* Left: Contact Info & Maps */}
           <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
             {/* Info Cards Grid */}
@@ -256,12 +256,11 @@ export default function Contact() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Enter name"
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${
-                      errors.name
+                    placeholder=""
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${errors.name
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                    }`}
+                      }`}
                   />
                   {errors.name && (
                     <p className="text-xs font-semibold text-red-500 mt-1">{errors.name}</p>
@@ -276,12 +275,11 @@ export default function Contact() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="name@email.com"
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${
-                      errors.email
+                    placeholder=""
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${errors.email
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                    }`}
+                      }`}
                   />
                   {errors.email && (
                     <p className="text-xs font-semibold text-red-500 mt-1">{errors.email}</p>
@@ -296,12 +294,11 @@ export default function Contact() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="03XX-XXXXXXX"
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${
-                      errors.phone
+                    placeholder=""
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all ${errors.phone
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                    }`}
+                      }`}
                   />
                   {errors.phone && (
                     <p className="text-xs font-semibold text-red-500 mt-1">{errors.phone}</p>
@@ -316,12 +313,11 @@ export default function Contact() {
                     value={formData.message}
                     onChange={handleChange}
                     rows="4"
-                    placeholder="Type your inquiry for hospital team..."
-                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none ${
-                      errors.message
+                    placeholder=""
+                    className={`w-full bg-[var(--fog)] border rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none ${errors.message
                         ? "border-red-300 focus:ring-red-200 bg-red-50/20"
                         : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                    }`}
+                      }`}
                   />
                   {errors.message && (
                     <p className="text-xs font-semibold text-red-500 mt-1">{errors.message}</p>

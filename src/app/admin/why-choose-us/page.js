@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Save, Sparkles, AlertCircle, CheckCircle2, Award, Trophy, Users, ShieldCheck, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ImagePicker from "@/components/admin/ImagePicker";
 
 const DEFAULT_WHY_CONTENT = {
   badgeText: "Pioneering Vision Science",
@@ -46,7 +47,13 @@ export default function AdminWhyChooseUsPage() {
           setFormData({
             ...DEFAULT_WHY_CONTENT,
             ...data,
-            points: Array.isArray(data.points) && data.points.length > 0 ? data.points : DEFAULT_WHY_CONTENT.points,
+            points: Array.isArray(data.points) && data.points.length > 0
+              ? data.points.map((p) => ({
+                title: p.title || "",
+                description: p.description || "",
+                iconUrl: p.iconUrl || p.icon || "",
+              }))
+              : DEFAULT_WHY_CONTENT.points,
           });
         }
       } catch (err) {
@@ -77,7 +84,7 @@ export default function AdminWhyChooseUsPage() {
   const handleAddPoint = () => {
     setFormData((prev) => ({
       ...prev,
-      points: [...prev.points, { title: "", description: "" }],
+      points: [...prev.points, { title: "", description: "", iconUrl: "" }],
     }));
   };
 
@@ -106,6 +113,7 @@ export default function AdminWhyChooseUsPage() {
       .map((p) => ({
         title: p.title.trim(),
         description: p.description.trim(),
+        iconUrl: (p.iconUrl || p.icon || "").trim(),
       }))
       .filter((p) => p.title || p.description);
 
@@ -164,7 +172,7 @@ export default function AdminWhyChooseUsPage() {
 
       {/* Form Card */}
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
-        
+
         {error && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center gap-3 text-xs font-bold">
             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -359,7 +367,7 @@ export default function AdminWhyChooseUsPage() {
                     type="text"
                     value={pt.title}
                     onChange={(e) => handlePointChange(idx, "title", e.target.value)}
-                    placeholder="e.g. State-of-the-Art Laser Technology"
+                    placeholder=""
                     required
                     className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:ring-2"
                   />
@@ -373,9 +381,22 @@ export default function AdminWhyChooseUsPage() {
                     type="text"
                     value={pt.description}
                     onChange={(e) => handlePointChange(idx, "description", e.target.value)}
-                    placeholder="e.g. Certified diagnostics with Wavefront imaging for precise eye care"
+                    placeholder=""
                     required
                     className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] rounded-xl px-4 py-2 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:ring-2"
+                  />
+                </div>
+
+                {/* Highlight Icon Image Upload Input */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-[11px] font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                    Highlight Icon (Optional Image / Logo Upload)
+                  </label>
+                  <ImagePicker
+                    value={pt.iconUrl || ""}
+                    onChange={(newUrl) => handlePointChange(idx, "iconUrl", newUrl)}
+                    label="Highlight Custom Icon Image"
+                    cropSquare={false}
                   />
                 </div>
               </div>

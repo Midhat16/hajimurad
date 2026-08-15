@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   CheckCheck,
   ChevronRight,
-  Stethoscope
+  Stethoscope,
+  GraduationCap,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -24,8 +25,9 @@ export default function AdminNotificationsPage() {
   const [appointmentsDocs, setAppointmentsDocs] = useState([]);
   const [messagesDocs, setMessagesDocs] = useState([]);
   const [activityLogsDocs, setActivityLogsDocs] = useState([]);
+  const [internshipAppsDocs, setInternshipAppsDocs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all"); // "all" | "appointments" | "messages"
+  const [activeTab, setActiveTab] = useState("all"); // "all" | "appointments" | "internships" | "messages"
 
   useEffect(() => {
     // 1. Subscribe to notifications collection
@@ -68,7 +70,7 @@ export default function AdminNotificationsPage() {
       (err) => console.warn("Msgs notice:", err)
     );
 
-    // 4. Subscribe to activityLog collection (for doctor actions history)
+    // 4. Subscribe to activityLog collection (for doctor & system actions history)
     const unsubLogs = onSnapshot(
       collection(db, "activityLog"),
       (snap) => {
@@ -78,10 +80,24 @@ export default function AdminNotificationsPage() {
           ...d.data(),
         }));
         setActivityLogsDocs(list);
+      },
+      (err) => console.warn("Logs notice:", err)
+    );
+
+    // 5. Subscribe to internshipApplications collection
+    const unsubInternships = onSnapshot(
+      collection(db, "internshipApplications"),
+      (snap) => {
+        const list = snap.docs.map((d) => ({
+          id: d.id,
+          collectionName: "internshipApplications",
+          ...d.data(),
+        }));
+        setInternshipAppsDocs(list);
         setLoading(false);
       },
       (err) => {
-        console.warn("Logs notice:", err);
+        console.warn("Internships notice:", err);
         setLoading(false);
       }
     );
@@ -91,6 +107,7 @@ export default function AdminNotificationsPage() {
       unsubAppts();
       unsubMsgs();
       unsubLogs();
+      unsubInternships();
     };
   }, []);
 
@@ -100,29 +117,49 @@ export default function AdminNotificationsPage() {
   // A. Add records from `notifications` collection
   notificationsDocs.forEach((n) => {
     const rawTime = n.createdAt?.seconds ? n.createdAt.seconds * 1000 : Date.now();
+    const isInternship =
+      n.type === "internship_application" ||
+      n.type === "internship" ||
+      (n.title && /internship/i.test(n.title)) ||
+      (n.message && /internship/i.test(n.message));
+
     const isDoctorMsg =
-      n.type === "doctor_action" ||
-      n.type === "direct_message" ||
-      n.sender_type === "doctor" ||
-      Boolean(n.doctorId) ||
-      (n.title && n.title.toLowerCase().includes("doctor"));
+      !isInternship &&
+      (n.type === "doctor_action" ||
+        n.type === "direct_message" ||
+        n.sender_type === "doctor" ||
+        Boolean(n.doctorId) ||
+        (n.title && n.title.toLowerCase().includes("doctor")));
 
     let formattedTitle = n.title || "Notification";
-    if (formattedTitle.includes("New message from Dr.")) {
+
+    if (isInternship) {
+      const pTitle = n.internshipTitle || n.programTitle || "";
+      if (pTitle) {
+        formattedTitle = `New Internship Application: ${pTitle}`;
+      } else if (n.applicantName) {
+        formattedTitle = `New Internship Application: ${n.applicantName}`;
+      } else {
+        formattedTitle = "New Internship Application";
+      }
+    } else if (formattedTitle.includes("New message from Dr.")) {
       formattedTitle = formattedTitle.replace("New message from Dr.", "New Doctor Inquiry: Dr.");
     } else if (formattedTitle.includes("New Patient Inquiry:") && isDoctorMsg) {
       formattedTitle = formattedTitle.replace("New Patient Inquiry:", "New Doctor Inquiry:");
     }
 
     let href = n.href || "/admin/notifications";
-    const isApptNotif =
+    if (isInternship) {
+      href = n.applicationId
+        ? `/admin/internships/applications?id=${n.applicationId}`
+        : "/admin/internships/applications";
+    } else if (
       n.type === "appointment" ||
       n.type === "appointment_action" ||
       n.type === "doctor_action" ||
       (n.title && /appointment/i.test(n.title)) ||
-      (n.message && /appointment/i.test(n.message));
-
-    if (isApptNotif) {
+      (n.message && /appointment/i.test(n.message))
+    ) {
       href = "/admin/appointments";
     } else if (href === "/admin/messages" || href.startsWith("/admin/messages")) {
       if (isDoctorMsg) {
@@ -138,9 +175,11 @@ export default function AdminNotificationsPage() {
       id: n.id,
       collectionName: "notifications",
       appointmentId: n.appointmentId || "",
-      type: n.type || "appointment",
+      applicationId: n.applicationId || "",
+      type: isInternship ? "internship_application" : (n.type || "appointment"),
       sender_type: n.sender_type || "",
       isDoctorMsg,
+      isInternship,
       title: formattedTitle,
       message: n.message || "",
       href,
@@ -150,7 +189,84 @@ export default function AdminNotificationsPage() {
     });
   });
 
-  // B. Add records from `appointments` collection (if not already mapped)
+  // B. Add records from `activityLog` collection
+  activityLogsDocs.forEach((log) => {
+    const rawTime = log.timestamp?.seconds ? log.timestamp.seconds * 1000 : Date.now();
+    const act = (log.action || "").toUpperCase();
+    const mapKey = `act-${log.id}`;
+    const isInternshipLog = act.includes("INTERNSHIP") || (log.message && /internship/i.test(log.message));
+
+    if (isInternshipLog) {
+      allNotificationsMap.set(mapKey, {
+        id: log.id,
+        collectionName: "activityLog",
+        type: "internship_application",
+        sender_type: "candidate",
+        isInternship: true,
+        title: `New Internship Application: ${log.internshipTitle || "Internship Program"}`,
+        message: log.message || `Candidate submitted an application for ${log.internshipTitle || "Internship Program"}`,
+        href: log.applicationId
+          ? `/admin/internships/applications?id=${log.applicationId}`
+          : "/admin/internships/applications",
+        is_read: log.read === true || log.is_read === true,
+        timestamp: log.timestamp,
+        rawTime,
+      });
+      return;
+    }
+
+    const apptId = log.appointmentId || "";
+    const existingEntry = Array.from(allNotificationsMap.values()).find(
+      (n) => apptId && n.appointmentId === apptId && (n.type === "doctor_action" || n.collectionName === "notifications")
+    );
+
+    if (existingEntry) {
+      if ((log.read === true || log.is_read === true) && !existingEntry.is_read) {
+        existingEntry.is_read = true;
+      }
+      return;
+    }
+
+    if (!allNotificationsMap.has(mapKey)) {
+      allNotificationsMap.set(mapKey, {
+        id: log.id,
+        collectionName: "activityLog",
+        appointmentId: apptId,
+        type: "doctor_action",
+        sender_type: log.sender_type || "doctor",
+        title: `Doctor Action: Appointment ${act}`,
+        message: log.message || `Appointment was ${log.action} by Dr. ${log.doctorName || "Doctor"} for ${log.patientName || "Patient"}`,
+        href: `/admin/notifications/action-detail?id=${log.id}`,
+        is_read: log.read === true || log.is_read === true,
+        timestamp: log.timestamp,
+        rawTime,
+      });
+    }
+  });
+
+  // C. Add records from `internshipApplications` collection
+  internshipAppsDocs.forEach((app) => {
+    const rawTime = app.createdAt?.seconds ? app.createdAt.seconds * 1000 : Date.now();
+    const mapKey = `internship-${app.id}`;
+    if (!allNotificationsMap.has(mapKey)) {
+      allNotificationsMap.set(mapKey, {
+        id: app.id,
+        collectionName: "internshipApplications",
+        applicationId: app.id,
+        type: "internship_application",
+        sender_type: "candidate",
+        isInternship: true,
+        title: `New Internship Application: ${app.internshipTitle || "Internship Program"}`,
+        message: `${app.applicantName || "Candidate"} (${app.instituteName || "University"}) submitted an application for ${app.internshipTitle || "Internship Program"}`,
+        href: `/admin/internships/applications?id=${app.id}`,
+        is_read: app.read === true || app.is_read === true,
+        timestamp: app.createdAt,
+        rawTime,
+      });
+    }
+  });
+
+  // D. Add records from `appointments` collection (if not already mapped)
   appointmentsDocs.forEach((appt) => {
     const rawTime = appt.createdAt?.seconds ? appt.createdAt.seconds * 1000 : Date.now();
     const mapKey = `appt-${appt.id}`;
@@ -171,7 +287,7 @@ export default function AdminNotificationsPage() {
     }
   });
 
-  // C. Add records from `messages` collection
+  // E. Add records from `messages` collection
   messagesDocs.forEach((msg) => {
     const rawTime = msg.createdAt?.seconds ? msg.createdAt.seconds * 1000 : Date.now();
     const mapKey = `msg-${msg.id}`;
@@ -209,65 +325,24 @@ export default function AdminNotificationsPage() {
     }
   });
 
-  // D. Add records from `activityLog` collection (doctor actions)
-  // Deduplicate with notifications collection if same appointmentId/message
-  activityLogsDocs.forEach((log) => {
-    const rawTime = log.timestamp?.seconds ? log.timestamp.seconds * 1000 : Date.now();
-    const act = (log.action || "").toUpperCase();
-    const mapKey = `act-${log.id}`;
-    const apptId = log.appointmentId || "";
-
-    // Check if we already have a notification for this appointment doctor action
-    const existingEntry = Array.from(allNotificationsMap.values()).find(
-      (n) => apptId && n.appointmentId === apptId && (n.type === "doctor_action" || n.collectionName === "notifications")
-    );
-
-    if (existingEntry) {
-      // Sync read state if log is read
-      if ((log.read === true || log.is_read === true) && !existingEntry.is_read) {
-        existingEntry.is_read = true;
-      }
-      return;
-    }
-
-    if (!allNotificationsMap.has(mapKey)) {
-      const isApptLog =
-        act.includes("ACCEPT") ||
-        act.includes("REJECT") ||
-        act.includes("RESCHEDULE") ||
-        act.includes("APPOINTMENT") ||
-        (log.message && /appointment/i.test(log.message));
-
-      allNotificationsMap.set(mapKey, {
-        id: log.id,
-        collectionName: "activityLog",
-        appointmentId: apptId,
-        type: "doctor_action",
-        sender_type: log.sender_type || "doctor",
-        title: `Doctor Action: Appointment ${act}`,
-        message: log.message || `Appointment was ${log.action} by Dr. ${log.doctorName || "Doctor"} for ${log.patientName || "Patient"}`,
-        href: `/admin/notifications/action-detail?id=${log.id}`,
-        is_read: log.read === true || log.is_read === true,
-        timestamp: log.timestamp,
-        rawTime,
-      });
-    }
-  });
-
   const fullStream = Array.from(allNotificationsMap.values()).filter(
     (item) => item.sender_type !== "admin"
   );
   fullStream.sort((a, b) => b.rawTime - a.rawTime);
 
-  // Filter based on 3 tabs: "All", "Appointments", "Messages"
+  // Filter based on 4 tabs: "All", "Appointments", "Internships", "Messages"
   const filteredNotifications = fullStream.filter((item) => {
     if (activeTab === "all") return true;
     const type = (item.type || "").toLowerCase();
+
     if (activeTab === "appointments") {
-      return type.includes("appointment") || type.includes("doctor_action");
+      return !item.isInternship && (type.includes("appointment") || type.includes("doctor_action"));
+    }
+    if (activeTab === "internships") {
+      return item.isInternship || type.includes("internship");
     }
     if (activeTab === "messages") {
-      return type.includes("message") || type.includes("inquiry");
+      return !item.isInternship && (type.includes("message") || type.includes("inquiry"));
     }
     return true;
   });
@@ -277,19 +352,15 @@ export default function AdminNotificationsPage() {
   // Mark single notification as read in Firestore across all matching collections
   const handleMarkAsRead = async (item) => {
     if (!item) return;
-    console.log("[AdminNotificationsPage] handleMarkAsRead called for:", item.collectionName, item.id);
     try {
-      // 1. Mark target doc as read
       await updateDoc(doc(db, item.collectionName, item.id), {
         is_read: true,
         read: true,
       });
 
-      // 2. Cross-sync: Mark any matching notification in `notifications`, `activityLog`, or `appointments` by appointmentId
       const apptId = item.appointmentId || (item.collectionName === "appointments" ? item.id : "");
       if (apptId) {
         const syncPromises = [];
-
         notificationsDocs
           .filter((n) => n.appointmentId === apptId && (n.is_read !== true && n.read !== true))
           .forEach((n) => syncPromises.push(updateDoc(doc(db, "notifications", n.id), { is_read: true, read: true }).catch(() => {})));
@@ -323,6 +394,12 @@ export default function AdminNotificationsPage() {
       activityLogsDocs.forEach((l) => {
         if (l.read !== true && l.is_read !== true) {
           promises.push(updateDoc(doc(db, "activityLog", l.id), { is_read: true, read: true }));
+        }
+      });
+
+      internshipAppsDocs.forEach((i) => {
+        if (i.read !== true && i.is_read !== true) {
+          promises.push(updateDoc(doc(db, "internshipApplications", i.id), { read: true, is_read: true }));
         }
       });
 
@@ -377,7 +454,7 @@ export default function AdminNotificationsPage() {
               Admin Notifications Center
             </h1>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
-              Complete history of all appointments, doctor actions, and messages from start to present ({fullStream.length} total recorded).
+              Complete history of all appointments, internships, doctor actions, and messages ({fullStream.length} total recorded).
             </p>
           </div>
         </div>
@@ -393,26 +470,31 @@ export default function AdminNotificationsPage() {
         )}
       </div>
 
-      {/* 3 Filter Tabs (All, Appointments, Messages) */}
-      <div className="bg-white p-3 rounded-2xl border border-[var(--line)] shadow-xs flex items-center gap-2 max-w-md">
+      {/* 4 Filter Tabs (All, Appointments, Internships, Messages) */}
+      <div className="bg-white p-3 rounded-2xl border border-[var(--line)] shadow-xs flex items-center gap-2 max-w-xl overflow-x-auto">
         {[
           { id: "all", label: `All (${fullStream.length})` },
           {
             id: "appointments",
-            label: `Appointments (${fullStream.filter((n) => (n.type || "").includes("appointment") || (n.type || "").includes("doctor_action")).length})`,
+            label: `Appointments (${fullStream.filter((n) => !n.isInternship && ((n.type || "").includes("appointment") || (n.type || "").includes("doctor_action"))).length})`,
+          },
+          {
+            id: "internships",
+            label: `Internships (${fullStream.filter((n) => n.isInternship || (n.type || "").includes("internship")).length})`,
           },
           {
             id: "messages",
-            label: `Messages (${fullStream.filter((n) => (n.type || "").includes("message")).length})`,
+            label: `Messages (${fullStream.filter((n) => !n.isInternship && (n.type || "").includes("message")).length})`,
           },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${activeTab === tab.id
-              ? "bg-[var(--ink)] text-white shadow-xs"
-              : "bg-[var(--fog)] text-[var(--slate)] hover:bg-[var(--fog)]"
-              }`}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center whitespace-nowrap ${
+              activeTab === tab.id
+                ? "bg-[var(--ink)] text-white shadow-xs"
+                : "bg-[var(--fog)] text-[var(--slate)] hover:bg-[var(--fog)]"
+            }`}
           >
             {tab.label}
           </button>
@@ -446,8 +528,9 @@ export default function AdminNotificationsPage() {
 
           <div className="space-y-3">
             {filteredNotifications.map((item) => {
-              const isAppt = (item.type || "").includes("appointment") || (item.type || "").includes("doctor_action");
-              const isDoctorMsg = item.isDoctorMsg || (item.type || "").includes("doctor");
+              const isInternship = item.isInternship || (item.type || "").includes("internship");
+              const isAppt = !isInternship && ((item.type || "").includes("appointment") || (item.type || "").includes("doctor_action"));
+              const isDoctorMsg = !isInternship && (item.isDoctorMsg || (item.type || "").includes("doctor"));
               const isUnread = !item.is_read;
 
               return (
@@ -460,22 +543,28 @@ export default function AdminNotificationsPage() {
                     await handleMarkAsRead(item);
                     router.push(item.href);
                   }}
-                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative group cursor-pointer hover:shadow-md ${isUnread
-                    ? "bg-rose-50/50 border-rose-200 shadow-xs"
-                    : "bg-[var(--fog)] border-[var(--line)] opacity-90"
-                    }`}
+                  className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative group cursor-pointer hover:shadow-md ${
+                    isUnread
+                      ? "bg-purple-50/60 border-purple-200 shadow-xs"
+                      : "bg-[var(--fog)] border-[var(--line)] opacity-90"
+                  }`}
                 >
                   <div className="flex items-start gap-4 min-w-0 flex-1">
                     {/* Icon Pill */}
                     <div
-                      className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold flex-shrink-0 mt-0.5 shadow-xs ${isAppt
-                        ? "bg-sky-600"
-                        : isDoctorMsg
+                      className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold flex-shrink-0 mt-0.5 shadow-xs ${
+                        isInternship
+                          ? "bg-purple-700"
+                          : isAppt
+                          ? "bg-sky-600"
+                          : isDoctorMsg
                           ? "bg-emerald-600"
                           : "bg-amber-600"
-                        }`}
+                      }`}
                     >
-                      {isAppt ? (
+                      {isInternship ? (
+                        <GraduationCap className="w-5 h-5" />
+                      ) : isAppt ? (
                         <Calendar className="w-5 h-5" />
                       ) : isDoctorMsg ? (
                         <Stethoscope className="w-5 h-5" />
@@ -487,18 +576,23 @@ export default function AdminNotificationsPage() {
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <span
-                          className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${isAppt
-                            ? "bg-sky-100 text-sky-800"
-                            : isDoctorMsg
+                          className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                            isInternship
+                              ? "bg-purple-100 text-purple-950 border border-purple-200"
+                              : isAppt
+                              ? "bg-sky-100 text-sky-800"
+                              : isDoctorMsg
                               ? "bg-emerald-100 text-emerald-800"
                               : "bg-amber-100 text-amber-800"
-                            }`}
+                          }`}
                         >
-                          {isAppt
+                          {isInternship
+                            ? "Internship Application"
+                            : isAppt
                             ? "Appointment / Action"
                             : isDoctorMsg
-                              ? "Doctor Inquiry"
-                              : "Patient Message Inquiry"}
+                            ? "Doctor Inquiry"
+                            : "Patient Message Inquiry"}
                         </span>
 
                         <h4 className="text-sm font-extrabold text-[#2B1F1A] truncate">

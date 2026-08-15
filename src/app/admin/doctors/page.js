@@ -166,9 +166,36 @@ export default function AdminDoctorsListPage() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-bold text-[#2B1F1A] truncate">
-                      {doc.name}
-                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base font-bold text-[#2B1F1A] truncate">
+                        {doc.name}
+                      </h3>
+                      <span
+                        className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border shrink-0 ${
+                          doc.frameColor === "red"
+                            ? "bg-red-50 text-red-600 border-red-200"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {doc.frameColor === "red" ? "Red Frame" : "Black Frame"}
+                      </span>
+                      {doc.isConsultant === true && (
+                        <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200 shrink-0">
+                          Consultant
+                        </span>
+                      )}
+                      <span
+                        className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border shrink-0 ${
+                          doc.displayOrder !== undefined && doc.displayOrder !== null && doc.displayOrder !== ""
+                            ? "bg-purple-50 text-purple-700 border-purple-200"
+                            : "bg-slate-50 text-slate-500 border-slate-200"
+                        }`}
+                      >
+                        {doc.displayOrder !== undefined && doc.displayOrder !== null && doc.displayOrder !== ""
+                          ? `Order #${doc.displayOrder}`
+                          : "Order: Not Set"}
+                      </span>
+                    </div>
                     <p className="text-[11px] font-bold text-[var(--iris)] tracking-wider truncate">
                       {toTitleCase(doc.role)}
                     </p>

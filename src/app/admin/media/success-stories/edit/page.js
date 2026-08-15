@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ImagePicker from "@/components/admin/ImagePicker";
+import VideoPicker from "@/components/admin/VideoPicker";
+import { uploadMediaToCloudinary } from "@/lib/cloudinary";
 import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 
 function EditSuccessStoryForm() {
@@ -17,6 +19,7 @@ function EditSuccessStoryForm() {
   const [title, setTitle] = useState("");
   const [story, setStory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [order, setOrder] = useState(1);
 
   const [loading, setLoading] = useState(true);
@@ -38,6 +41,7 @@ function EditSuccessStoryForm() {
           setTitle(data.title || "");
           setStory(data.story || "");
           setImageUrl(data.imageUrl || "");
+          setVideoUrl(data.videoUrl || data.videoLink || "");
           setOrder(data.order || 1);
         } else {
           setError("Success Story document not found.");
@@ -60,11 +64,23 @@ function EditSuccessStoryForm() {
 
     setIsSubmitting(true);
     try {
+      let finalVideoUrl = videoUrl.trim();
+      let finalImageUrl = imageUrl.trim();
+
+      // Ensure no raw Base64 data URLs are saved to Firestore to prevent document size limit errors
+      if (finalVideoUrl.startsWith("data:")) {
+        finalVideoUrl = await uploadMediaToCloudinary(finalVideoUrl, "video");
+      }
+      if (finalImageUrl.startsWith("data:")) {
+        finalImageUrl = await uploadMediaToCloudinary(finalImageUrl, "image");
+      }
+
       await updateDoc(doc(db, "successStories", id), {
         patientName: patientName.trim() || "Patient",
         title: title.trim(),
         story: story.trim(),
-        imageUrl: imageUrl.trim(),
+        imageUrl: finalImageUrl,
+        videoUrl: finalVideoUrl,
         order: Number(order) || 1,
         updatedAt: serverTimestamp(),
       });
@@ -162,9 +178,16 @@ function EditSuccessStoryForm() {
 
           {/* Patient Photo */}
           <ImagePicker
-            label="Select Patient Photograph"
+            label="Select Patient Photograph (Optional)"
             value={imageUrl}
             onChange={setImageUrl}
+          />
+
+          {/* Patient Video (Optional - File or Link) */}
+          <VideoPicker
+            label="Select / Upload Patient Video OR Paste Video Link (Optional)"
+            value={videoUrl}
+            onChange={setVideoUrl}
           />
 
           {/* Story Body */}

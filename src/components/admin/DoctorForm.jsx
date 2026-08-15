@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ImagePicker from "./ImagePicker";
+import DoctorPhotoFrame from "@/components/DoctorPhotoFrame";
 import { Save, ArrowLeft, Calendar, Lock } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -30,10 +31,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
     bio: initialData?.bio || "",
     metrics: initialData?.metrics || "",
     gradient: initialData?.gradient || "from-sky-400 to-blue-500",
+    frameColor: initialData?.frameColor || "black",
+    displayOrder: initialData?.displayOrder !== undefined && initialData?.displayOrder !== null ? initialData.displayOrder : "",
     initials: initialData?.initials || "",
     photoUrl: initialData?.photoUrl || initialData?.photo || initialData?.imageUrl || "",
     loginEmail: initialData?.loginEmail || initialData?.email || "",
     loginPassword: initialData?.loginPassword || initialData?.password || "",
+    isConsultant: initialData?.isConsultant === true,
     workingDays: initialData?.workingDays && Array.isArray(initialData.workingDays) && initialData.workingDays.length > 0
       ? initialData.workingDays
       : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -52,10 +56,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
         bio: initialData.bio || "",
         metrics: initialData.metrics || "",
         gradient: initialData.gradient || "from-sky-400 to-blue-500",
+        frameColor: initialData.frameColor || "black",
+        displayOrder: initialData.displayOrder !== undefined && initialData.displayOrder !== null ? initialData.displayOrder : "",
         initials: initialData.initials || "",
         photoUrl: initialData.photoUrl || initialData.photo || initialData.imageUrl || "",
         loginEmail: initialData.loginEmail || initialData.email || "",
         loginPassword: initialData.loginPassword || initialData.password || "",
+        isConsultant: initialData.isConsultant === true,
         workingDays: initialData.workingDays && Array.isArray(initialData.workingDays) && initialData.workingDays.length > 0
           ? initialData.workingDays
           : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -65,12 +72,13 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
   }, [initialData]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
     setFormData((prev) => {
-      const updated = { ...prev, [name]: value };
+      const updated = { ...prev, [name]: val };
       // Auto compute initials if name changed and initials is empty or matching old initials
-      if (name === "name" && value.trim()) {
-        const parts = value.trim().replace(/^Dr\.\s*/i, "").split(" ");
+      if (name === "name" && typeof val === "string" && val.trim()) {
+        const parts = val.trim().replace(/^Dr\.\s*/i, "").split(" ");
         if (parts.length >= 2) {
           updated.initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         } else if (parts[0]?.length >= 2) {
@@ -131,6 +139,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
     onSave({
       ...formData,
+      displayOrder: formData.displayOrder !== "" && formData.displayOrder !== null ? Number(formData.displayOrder) : null,
       initials: finalInitials,
     });
   };
@@ -160,14 +169,101 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
       {/* Form Container */}
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
         
-        {/* Photo Picker */}
-        <ImagePicker
-          label="Doctor Photograph (Uploaded to ImgBB)"
-          value={formData.photoUrl}
-          onChange={(url) => setFormData((prev) => ({ ...prev, photoUrl: url }))}
-        />
+        {/* Photo Picker & Frame Configuration Section */}
+        <div className="p-5 rounded-2xl bg-[var(--fog)]/70 border border-[var(--line)] space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            <div className="lg:col-span-2 space-y-4">
+              <ImagePicker
+                label="Doctor Photograph (Uploaded to ImgBB)"
+                value={formData.photoUrl}
+                onChange={(url) => setFormData((prev) => ({ ...prev, photoUrl: url }))}
+              />
+
+              {/* Photo Frame Color Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                  Photo Frame Color *
+                </label>
+                <div className="flex items-center gap-3">
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl border text-xs font-extrabold cursor-pointer transition-all ${
+                      formData.frameColor === "black" || !formData.frameColor
+                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                        : "bg-white text-slate-700 border-[var(--line)] hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="frameColor"
+                      value="black"
+                      checked={formData.frameColor === "black" || !formData.frameColor}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <span className="w-3.5 h-3.5 rounded-full bg-slate-900 border border-white shrink-0 shadow-xs" />
+                    <span>Black Frame (Default)</span>
+                  </label>
+
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl border text-xs font-extrabold cursor-pointer transition-all ${
+                      formData.frameColor === "red"
+                        ? "bg-red-600 text-white border-red-600 shadow-sm"
+                        : "bg-white text-slate-700 border-[var(--line)] hover:border-slate-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="frameColor"
+                      value="red"
+                      checked={formData.frameColor === "red"}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <span className="w-3.5 h-3.5 rounded-full bg-red-600 border border-white shrink-0 shadow-xs" />
+                    <span>Red Frame</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Frame Preview */}
+            <div className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-[var(--line)]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                Live Frame Preview
+              </span>
+              <DoctorPhotoFrame
+                doctor={formData}
+                frameColor={formData.frameColor}
+                size="sm"
+              />
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Mark as Consultant Toggle */}
+          <div className="bg-gradient-to-r from-[var(--fog)] to-slate-50 p-4 rounded-2xl border border-[var(--line)] flex items-center justify-between gap-4 md:col-span-2 shadow-xs">
+            <div className="space-y-0.5">
+              <label htmlFor="isConsultant" className="text-xs font-extrabold text-[#2B1F1A] uppercase tracking-wider block cursor-pointer">
+                Mark as Consultant Doctor
+              </label>
+              <p className="text-xs font-semibold text-slate-500">
+                Controls whether a &quot;Book Consultant&quot; button shows on their card AND whether they appear as a selectable option in appointment booking forms.
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                id="isConsultant"
+                name="isConsultant"
+                checked={!!formData.isConsultant}
+                onChange={handleChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--iris)]" />
+            </label>
+          </div>
+
           {/* Full Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
@@ -253,6 +349,23 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               type="text"
               name="pmdcNo"
               value={formData.pmdcNo}
+              onChange={handleChange}
+              placeholder=""
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+            />
+          </div>
+
+          {/* Display Order */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider flex items-center justify-between">
+              <span>Display Order (Position on Site)</span>
+              <span className="text-[10px] text-[var(--iris)] font-extrabold lowercase">Lower numbers first</span>
+            </label>
+            <input
+              type="number"
+              name="displayOrder"
+              min="1"
+              value={formData.displayOrder}
               onChange={handleChange}
               placeholder=""
               className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
@@ -407,7 +520,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
                 value={formData.loginEmail}
                 onChange={handleChange}
                 autoComplete="off"
-                placeholder="doctor@example.com"
+                placeholder=""
                 className="w-full bg-white border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
               />
             </div>

@@ -3,6 +3,8 @@
 import React, { useState, useRef } from "react";
 import { UploadCloud, Image as ImageIcon, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 
 export default function ImagePicker({ value, onChange, label = "Doctor Photo / Image", cropSquare = true }) {
   const [uploading, setUploading] = useState(false);
@@ -28,7 +30,6 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
         img.onload = () => {
           try {
             if (!cropSquare) {
-              // Return original aspect ratio compressed JPEG
               const canvas = document.createElement("canvas");
               const maxDim = 700;
               let width = img.naturalWidth;
@@ -46,7 +47,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
               canvas.height = height;
               const ctx = canvas.getContext("2d");
               ctx.drawImage(img, 0, 0, width, height);
-              resolve(canvas.toDataURL("image/jpeg", 0.70));
+              resolve(canvas.toDataURL("image/jpeg", 0.65));
               return;
             }
 
@@ -92,16 +93,56 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
     setError("");
 
     try {
-      // 1. Process and auto-crop into a 1:1 square centered on head/face
+      // 1. Process and auto-crop into Data URL
       const croppedDataUrl = await processAndCropSquare(file);
       const dataUrlToUse = croppedDataUrl || (await fileToDataURL(file));
+      if (!dataUrlToUse) {
+        setError("Could not read image file.");
+        return;
+      }
 
-      // 2. Attempt ImgBB upload
-      const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "6d700a708235b3658f287854659b43e8";
-      const formData = new FormData();
-      formData.append("image", dataUrlToUse.replace(/^data:image\/\w+;base64,/, ""));
-
+      // 2. Primary: Firebase Storage Upload
       try {
+        const storagePath = `uploads/images/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.jpg`;
+        const storageRef = ref(storage, storagePath);
+        const snapshot = await uploadString(storageRef, dataUrlToUse, "data_url");
+        const downloadUrl = await getDownloadURL(snapshot.ref);
+        if (downloadUrl) {
+          onChange(downloadUrl);
+          return;
+        }
+      } catch (fbErr) {
+        console.warn("Firebase Storage upload failed, trying secondary uploader (ImgBB):", fbErr);
+      }
+
+      // 3. Secondary: Cloudinary Image Upload
+      try {
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "cakv1rwq";
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "haji_murad assets";
+        const formData = new FormData();
+        formData.append("file", dataUrlToUse);
+        formData.append("upload_preset", uploadPreset);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.secure_url || data.url) {
+          onChange(data.secure_url || data.url);
+          return;
+        }
+      } catch (cErr) {
+        console.warn("Cloudinary image upload notice:", cErr);
+      }
+
+      // 4. Tertiary Fallback: ImgBB Upload
+      try {
+        const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "6d700a708235b3658f287854659b43e8";
+        const base64Clean = dataUrlToUse.includes(",") ? dataUrlToUse.split(",")[1] : dataUrlToUse;
+        const formData = new FormData();
+        formData.append("image", base64Clean);
+
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
           method: "POST",
           body: formData,
@@ -111,15 +152,14 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
         if (data.success && data.data && (data.data.url || data.data.display_url)) {
           const remoteUrl = data.data.url || data.data.display_url;
           onChange(remoteUrl);
-        } else {
-          // Fallback to auto-cropped Data URL
-          console.warn("ImgBB API warning, using Cropped Data URL fallback:", data.error);
-          onChange(dataUrlToUse);
+          return;
         }
-      } catch (fetchErr) {
-        console.warn("ImgBB fetch network issue, using Cropped Data URL fallback:", fetchErr);
-        onChange(dataUrlToUse);
+      } catch (imgbbErr) {
+        console.warn("ImgBB upload failed:", imgbbErr);
       }
+
+      // SAFEGUARD: If cloud uploaders fail, DO NOT save raw Base64 to Firestore!
+      setError("Image upload failed. Please check your network connection and try again.");
     } catch (err) {
       console.error("File processing error:", err);
       setError("Failed to read image file. Please try another picture.");

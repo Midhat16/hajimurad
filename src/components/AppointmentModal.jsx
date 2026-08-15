@@ -254,12 +254,31 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     selectedServiceObject?.doctorIds
   );
 
-  const hasEmptyDoctorIntersection =
+  // Helper to check if the current service has any assigned doctors at all (either general or per-feature)
+  const serviceHasAssignedDoctors = !!(
+    selectedServiceObject &&
+    ((Array.isArray(selectedServiceObject.doctorIds) && selectedServiceObject.doctorIds.length > 0) ||
+      (Array.isArray(selectedServiceObject.featureDoctorMappings) &&
+        selectedServiceObject.featureDoctorMappings.some(
+          (m) =>
+            (Array.isArray(m.assignedDoctorIds) && m.assignedDoctorIds.length > 0) ||
+            (Array.isArray(m.assignedDoctors) && m.assignedDoctors.length > 0)
+        )))
+  );
+
+  // EMPTY Doctor Intersection alert should ONLY show if the service actually HAS assigned doctors,
+  // but selecting this specific combination of features leaves 0 overlapping assigned doctors.
+  const hasEmptyDoctorIntersection = !!(
+    serviceHasAssignedDoctors &&
     formData.selectedFeatures &&
     formData.selectedFeatures.length > 0 &&
-    selectedServiceObject?.featureDoctorMappings &&
-    selectedServiceObject.featureDoctorMappings.length > 0 &&
-    filteredDoctors.length === 0;
+    filteredDoctors.length === 0
+  );
+
+  // Decide if Doctor Selection field should be rendered in the form
+  const shouldShowDoctorField = eventContext.isEvent
+    ? !!(eventContext.assignedDoctors && eventContext.assignedDoctors.length > 0)
+    : (!!formData.doctor || (serviceHasAssignedDoctors && filteredDoctors.length > 0) || hasEmptyDoctorIntersection);
 
   // Dynamic INTERSECTION timing calculation across selected features
   const activeDoctorTiming = getIntersectedDoctorTiming(
@@ -642,7 +661,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+        className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-x-hidden overflow-y-auto w-screen max-w-full"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             closeModal();
@@ -654,7 +673,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 260, damping: 25 }}
-          className="relative w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-[var(--line)] max-h-[90vh] overflow-y-auto overflow-hidden"
+          className="relative w-full max-w-[calc(100vw-24px)] sm:max-w-2xl bg-white rounded-3xl p-4 sm:p-8 lg:p-10 shadow-2xl border border-[var(--line)] max-h-[90vh] overflow-y-auto overflow-x-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top colored indicator bar */}
@@ -704,8 +723,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         setErrors((prev) => ({ ...prev, guardianPhone: "" }));
                       }}
                       className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${appointmentFor === "Self"
-                          ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
-                          : "text-[var(--slate)] hover:bg-white/60"
+                        ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
+                        : "text-[var(--slate)] hover:bg-white/60"
                         }`}
                     >
                       <User className="w-4 h-4" />
@@ -715,8 +734,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                       type="button"
                       onClick={() => setAppointmentFor("Someone Else")}
                       className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${appointmentFor === "Someone Else"
-                          ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
-                          : "text-[var(--slate)] hover:bg-white/60"
+                        ? "bg-white text-[var(--iris)] shadow-md border border-[var(--iris)]/20"
+                        : "text-[var(--slate)] hover:bg-white/60"
                         }`}
                     >
                       <Users className="w-4 h-4" />
@@ -753,11 +772,11 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="Enter patient full name"
+                        placeholder=""
                         required
                         className={`w-full bg-[var(--fog)] border ${errors.name
-                            ? "border-red-300 focus:ring-red-200"
-                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                          ? "border-red-300 focus:ring-red-200"
+                          : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                           } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                       />
                     </div>
@@ -778,12 +797,12 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder="03xx-xxxxxxx"
+                        placeholder=""
                         maxLength={12}
                         required
                         className={`w-full bg-[var(--fog)] border ${errors.phone
-                            ? "border-red-300 focus:ring-red-200"
-                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                          ? "border-red-300 focus:ring-red-200"
+                          : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                           } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                       />
                     </div>
@@ -804,7 +823,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         name="patientAddress"
                         value={formData.patientAddress}
                         onChange={handleChange}
-                        placeholder="Street, City, Area"
+                        placeholder=""
                         className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                       />
                     </div>
@@ -827,8 +846,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                           onChange={handleChange}
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.dob
-                              ? "border-red-300 focus:ring-red-200"
-                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            ? "border-red-300 focus:ring-red-200"
+                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                             } rounded-xl pl-10 pr-2 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                         />
                       </div>
@@ -848,8 +867,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                           onChange={handleChange}
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.gender
-                              ? "border-red-300 focus:ring-red-200"
-                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            ? "border-red-300 focus:ring-red-200"
+                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                             } rounded-xl pl-10 pr-2 py-3.5 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                         >
                           <option value="Male">Male</option>
@@ -876,10 +895,10 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         value={formData.patientCnic}
                         onChange={handleChange}
                         maxLength={15}
-                        placeholder="xxxxx-xxxxxxx-x"
+                        placeholder=""
                         className={`w-full bg-[var(--fog)] border ${errors.patientCnic
-                            ? "border-red-300 focus:ring-red-200"
-                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                          ? "border-red-300 focus:ring-red-200"
+                          : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                           } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                       />
                     </div>
@@ -900,10 +919,10 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="name@example.com"
+                        placeholder=""
                         className={`w-full bg-[var(--fog)] border ${errors.email
-                            ? "border-red-300 focus:ring-red-200"
-                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                          ? "border-red-300 focus:ring-red-200"
+                          : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                           } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                       />
                     </div>
@@ -933,11 +952,11 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                             name="guardianName"
                             value={formData.guardianName}
                             onChange={handleChange}
-                            placeholder="Enter guardian name"
+                            placeholder=""
                             required
                             className={`w-full bg-[var(--fog)] border ${errors.guardianName
-                                ? "border-red-300 focus:ring-red-200"
-                                : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                              ? "border-red-300 focus:ring-red-200"
+                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                               } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                           />
                         </div>
@@ -958,12 +977,12 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                             name="guardianPhone"
                             value={formData.guardianPhone}
                             onChange={handleChange}
-                            placeholder="03xx-xxxxxxx"
+                            placeholder=""
                             maxLength={12}
                             required
                             className={`w-full bg-[var(--fog)] border ${errors.guardianPhone
-                                ? "border-red-300 focus:ring-red-200"
-                                : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                              ? "border-red-300 focus:ring-red-200"
+                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                               } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                           />
                         </div>
@@ -984,7 +1003,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                             name="guardianAddress"
                             value={formData.guardianAddress}
                             onChange={handleChange}
-                            placeholder="Guardian street/city address"
+                            placeholder=""
                             className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                           />
                         </div>
@@ -1026,10 +1045,10 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                             value={formData.guardianCnic}
                             onChange={handleChange}
                             maxLength={15}
-                            placeholder="xxxxx-xxxxxxx-x"
+                            placeholder=""
                             className={`w-full bg-[var(--fog)] border ${errors.guardianCnic
-                                ? "border-red-300 focus:ring-red-200"
-                                : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                              ? "border-red-300 focus:ring-red-200"
+                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                               } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                           />
                         </div>
@@ -1059,8 +1078,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         value={formData.service}
                         onChange={handleChange}
                         className={`w-full bg-[var(--fog)] border ${errors.service
-                            ? "border-red-300 focus:ring-red-200"
-                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                          ? "border-red-300 focus:ring-red-200"
+                          : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                           } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none`}
                       >
                         {eventContext.isEvent && eventContext.eventTitle ? (
@@ -1119,8 +1138,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                             <label
                               key={fIdx}
                               className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all ${isChecked
-                                  ? "bg-white border-[var(--iris)] text-[var(--iris)] shadow-xs ring-2 ring-[var(--iris)]/20"
-                                  : "bg-white/70 border-[var(--line)] text-[#2B1F1A] hover:bg-white hover:border-slate-300"
+                                ? "bg-white border-[var(--iris)] text-[var(--iris)] shadow-xs ring-2 ring-[var(--iris)]/20"
+                                : "bg-white/70 border-[var(--line)] text-[#2B1F1A] hover:bg-white hover:border-slate-300"
                                 }`}
                             >
                               <input
@@ -1150,52 +1169,54 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                     </div>
                   )}
 
-                  {/* Preferred Doctor with NOT SURE option */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
-                      Selected Doctor / Surgeon
-                    </label>
-                    <div className="relative">
-                      <Stethoscope className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
-                      <select
-                        name="doctor"
-                        value={formData.doctor}
-                        onChange={handleDoctorChange}
-                        disabled={hasEmptyDoctorIntersection}
-                        className={`w-full bg-[var(--fog)] border ${errors.doctor || hasEmptyDoctorIntersection
+                  {/* Preferred Doctor with NOT SURE option (Shown ONLY if service/feature has assigned doctors) */}
+                  {shouldShowDoctorField && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                        Selected Doctor / Surgeon
+                      </label>
+                      <div className="relative">
+                        <Stethoscope className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
+                        <select
+                          name="doctor"
+                          value={formData.doctor}
+                          onChange={handleDoctorChange}
+                          disabled={hasEmptyDoctorIntersection}
+                          className={`w-full bg-[var(--fog)] border ${errors.doctor || hasEmptyDoctorIntersection
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed`}
-                      >
-                        <option value="">
-                          {hasEmptyDoctorIntersection ? "-- No Matching Doctor --" : "Select Doctor"}
-                        </option>
-                        {!hasEmptyDoctorIntersection && (
-                          <option value="not_sure" className="font-bold text-[var(--iris)]">
-                            Not Sure / Let Front Desk Decide
+                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed`}
+                        >
+                          <option value="">
+                            {hasEmptyDoctorIntersection ? "-- No Matching Doctor --" : "Select Doctor"}
                           </option>
-                        )}
-                        {eventContext.isEvent && eventContext.assignedDoctors && eventContext.assignedDoctors.length > 0 ? (
-                          doctorsList
-                            .filter((d) => eventContext.assignedDoctors.includes(d.name) || eventContext.assignedDoctors.includes(d.id))
-                            .map((d) => (
+                          {!hasEmptyDoctorIntersection && (
+                            <option value="not_sure" className="font-bold text-[var(--iris)]">
+                              Not Sure / Let Front Desk Decide
+                            </option>
+                          )}
+                          {eventContext.isEvent && eventContext.assignedDoctors && eventContext.assignedDoctors.length > 0 ? (
+                            doctorsList
+                              .filter((d) => eventContext.assignedDoctors.includes(d.name) || eventContext.assignedDoctors.includes(d.id))
+                              .map((d) => (
+                                <option key={d.id || d.name} value={d.name}>
+                                  {d.name} {d.specialty ? `(${d.specialty})` : ""}
+                                </option>
+                              ))
+                          ) : (
+                            filteredDoctors.map((d) => (
                               <option key={d.id || d.name} value={d.name}>
                                 {d.name} {d.specialty ? `(${d.specialty})` : ""}
                               </option>
                             ))
-                        ) : (
-                          filteredDoctors.map((d) => (
-                            <option key={d.id || d.name} value={d.name}>
-                              {d.name} {d.specialty ? `(${d.specialty})` : ""}
-                            </option>
-                          ))
-                        )}
-                      </select>
+                          )}
+                        </select>
+                      </div>
+                      {errors.doctor && (
+                        <p className="text-[11px] text-red-500 font-semibold">{errors.doctor}</p>
+                      )}
                     </div>
-                    {errors.doctor && (
-                      <p className="text-[11px] text-red-500 font-semibold">{errors.doctor}</p>
-                    )}
-                  </div>
+                  )}
 
                   {/* Date & Time Slot */}
                   <div className="space-y-1.5">
@@ -1235,8 +1256,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                           disabled={hasEmptyDoctorIntersection || hasNoTimeOverlap}
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.date
-                              ? "border-red-300 focus:ring-red-200"
-                              : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            ? "border-red-300 focus:ring-red-200"
+                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                             } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-black font-semibold placeholder:text-black placeholder:font-medium focus:outline-none focus:ring-4 transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
                         />
                       )}
@@ -1258,8 +1279,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         onChange={handleChange}
                         disabled={hasEmptyDoctorIntersection || hasNoTimeOverlap}
                         className={`w-full bg-[var(--fog)] border ${errors.time
-                            ? "border-red-300 focus:ring-red-200"
-                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                          ? "border-red-300 focus:ring-red-200"
+                          : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                           } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
                         {eventContext.isEvent && eventContext.eventTime ? (

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { HeartHandshake, Plus, Trash2, Edit, User } from "lucide-react";
+import { HeartHandshake, Plus, Trash2, Edit, User, Video } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminSuccessStoriesPage() {
@@ -137,6 +137,20 @@ export default function AdminSuccessStoriesPage() {
                 <p className="text-xs text-slate-600 font-semibold line-clamp-3 leading-relaxed border-t border-slate-100 pt-3">
                   {item.story}
                 </p>
+
+                {(item.videoUrl || item.videoLink) && (
+                  <div className="pt-2">
+                    <a
+                      href={item.videoUrl || item.videoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-purple-700 hover:underline bg-purple-50 px-3 py-1 rounded-lg border border-purple-200"
+                    >
+                      <Video className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Has Video File / Link Attached</span>
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">

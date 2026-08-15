@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { sortDoctors } from "@/lib/doctorUtils";
+import { sortDoctors, getAvailableDoctorsForFeatures, getIntersectedDoctorTiming } from "@/lib/doctorUtils";
 import { notifyOnAppointmentBooked } from "@/lib/notificationService";
 import { triggerEmailApi } from "@/lib/clientEmailHelper";
 import DatePicker from "react-datepicker";
@@ -334,24 +334,13 @@ export default function Appointment() {
 
   const availableServiceFeatures = selectedServiceObject?.features || [];
 
-  // Filter doctors based on assigned doctorIds if specified in service
-  const filteredDoctors = doctorsList.filter((docItem) => {
-    if (
-      formData.doctor &&
-      (docItem.name === formData.doctor || docItem.id === formData.doctor)
-    ) {
-      return true;
-    }
-    if (
-      selectedServiceObject &&
-      selectedServiceObject.doctorIds &&
-      Array.isArray(selectedServiceObject.doctorIds) &&
-      selectedServiceObject.doctorIds.length > 0
-    ) {
-      return selectedServiceObject.doctorIds.includes(docItem.id);
-    }
-    return true;
-  });
+  // Filter doctors using getAvailableDoctorsForFeatures (enforces service/feature assignment AND isConsultant: true)
+  const filteredDoctors = getAvailableDoctorsForFeatures(
+    formData.selectedFeatures,
+    selectedServiceObject?.featureDoctorMappings,
+    doctorsList,
+    selectedServiceObject?.doctorIds
+  );
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -647,12 +636,11 @@ export default function Appointment() {
                       <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Patient Full Name *</label>
                       <div className="relative">
                         <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
-                        <input
-                          type="text"
+                                                 type="text"
                           name="name"
                           value={formData.name}
                           onChange={handleChange}
-                          placeholder="Enter patient full name"
+                          placeholder=""
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.name ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                             } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
@@ -671,7 +659,7 @@ export default function Appointment() {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          placeholder="03xx-xxxxxxx"
+                          placeholder=""
                           maxLength={12}
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.phone ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
@@ -691,7 +679,7 @@ export default function Appointment() {
                           name="patientAddress"
                           value={formData.patientAddress}
                           onChange={handleChange}
-                          placeholder="Street, City, House No. / Area"
+                          placeholder=""
                           className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                         />
                       </div>
@@ -757,7 +745,7 @@ export default function Appointment() {
                           value={formData.patientCnic}
                           onChange={handleChange}
                           maxLength={15}
-                          placeholder="xxxxx-xxxxxxx-x"
+                          placeholder=""
                           className={`w-full bg-[var(--fog)] border ${errors.patientCnic ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                             } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                         />
@@ -775,7 +763,7 @@ export default function Appointment() {
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
-                          placeholder="name@example.com"
+                          placeholder=""
                           className={`w-full bg-[var(--fog)] border ${errors.email ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                             } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
                         />
@@ -802,7 +790,7 @@ export default function Appointment() {
                               name="guardianName"
                               value={formData.guardianName}
                               onChange={handleChange}
-                              placeholder="Enter guardian name"
+                              placeholder=""
                               required
                               className={`w-full bg-[var(--fog)] border ${errors.guardianName ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                                 } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
@@ -821,7 +809,7 @@ export default function Appointment() {
                               name="guardianPhone"
                               value={formData.guardianPhone}
                               onChange={handleChange}
-                              placeholder="03xx-xxxxxxx"
+                              placeholder=""
                               maxLength={12}
                               required
                               className={`w-full bg-[var(--fog)] border ${errors.guardianPhone ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
@@ -841,7 +829,7 @@ export default function Appointment() {
                               name="guardianAddress"
                               value={formData.guardianAddress}
                               onChange={handleChange}
-                              placeholder="Guardian address (Street, City, Area)"
+                              placeholder=""
                               className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                             />
                           </div>
@@ -879,7 +867,7 @@ export default function Appointment() {
                               value={formData.guardianCnic}
                               onChange={handleChange}
                               maxLength={15}
-                              placeholder="xxxxx-xxxxxxx-x"
+                              placeholder=""
                               className={`w-full bg-[var(--fog)] border ${errors.guardianCnic ? "border-red-300 focus:ring-red-200" : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
                                 } rounded-xl pl-12 pr-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
                             />

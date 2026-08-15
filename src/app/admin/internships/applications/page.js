@@ -4,14 +4,34 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ArrowLeft, GraduationCap, Mail, Phone, Clock, Building2, CheckCircle2, XCircle, Trash2, X, MessageSquare, User, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  GraduationCap,
+  Mail,
+  Phone,
+  Clock,
+  Building2,
+  CheckCircle2,
+  XCircle,
+  Trash2,
+  X,
+  MessageSquare,
+  User,
+  FileText,
+  School,
+  Calendar,
+  Check,
+  Send,
+  AlertCircle,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminInternshipApplicationsPage() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("all"); // "all" | "pending" | "reviewed"
+  const [activeFilter, setActiveFilter] = useState("all"); // "all" | "pending" | "accepted" | "rejected"
   const [selectedApp, setSelectedApp] = useState(null);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -35,6 +55,22 @@ export default function AdminInternshipApplicationsPage() {
     return () => unsubscribe();
   }, []);
 
+  // Auto-open application modal if ?id=... is present in URL
+  useEffect(() => {
+    if (loading || applications.length === 0) return;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const targetId = params.get("id") || params.get("appId") || params.get("applicationId");
+      if (targetId) {
+        const found = applications.find((a) => a.id === targetId || a.internshipId === targetId);
+        if (found) {
+          handleMarkRead(found);
+          setSelectedApp(found);
+        }
+      }
+    }
+  }, [loading, applications]);
+
   const handleMarkRead = async (item) => {
     if (item.read) return;
     try {
@@ -46,15 +82,61 @@ export default function AdminInternshipApplicationsPage() {
     }
   };
 
-  const handleToggleStatus = async (item) => {
-    const nextStatus = item.status === "reviewed" ? "pending" : "reviewed";
+  const handleAcceptStatus = async (item) => {
+    setActionLoadingId(item.id);
     try {
       await updateDoc(doc(db, "internshipApplications", item.id), {
-        status: nextStatus,
+        status: "accepted",
         read: true,
       });
+
+      if (selectedApp?.id === item.id) {
+        setSelectedApp((prev) => (prev ? { ...prev, status: "accepted", read: true } : null));
+      }
+
+      // Send Acceptance Email Notification
+      await fetch("/api/internship-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "INTERNSHIP_ACCEPTED",
+          data: item,
+        }),
+      }).catch((err) => console.warn("Error triggering accept email:", err));
     } catch (err) {
-      alert("Failed to update status.");
+      alert("Failed to accept application.");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleRejectStatus = async (item) => {
+    if (!confirm(`Are you sure you want to reject the application from ${item.applicantName}? An official regret notification email will be sent to the candidate.`)) return;
+
+    setActionLoadingId(item.id);
+    try {
+      await updateDoc(doc(db, "internshipApplications", item.id), {
+        status: "rejected",
+        read: true,
+      });
+
+      if (selectedApp?.id === item.id) {
+        setSelectedApp((prev) => (prev ? { ...prev, status: "rejected", read: true } : null));
+      }
+
+      // Send Rejection Email Notification
+      await fetch("/api/internship-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "INTERNSHIP_REJECTED",
+          data: item,
+        }),
+      }).catch((err) => console.warn("Error triggering reject email:", err));
+    } catch (err) {
+      alert("Failed to reject application.");
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -77,9 +159,14 @@ export default function AdminInternshipApplicationsPage() {
 
   const filteredApps = applications.filter((item) => {
     if (activeFilter === "all") return true;
-    return item.status === activeFilter;
+    const itemStatus = (item.status || "pending").toLowerCase();
+    if (activeFilter === "pending") return itemStatus === "pending" || itemStatus === "reviewed";
+    return itemStatus === activeFilter.toLowerCase();
   });
 
+  const pendingCount = applications.filter((a) => (a.status || "pending").toLowerCase() === "pending").length;
+  const acceptedCount = applications.filter((a) => (a.status || "").toLowerCase() === "accepted").length;
+  const rejectedCount = applications.filter((a) => (a.status || "").toLowerCase() === "rejected").length;
   const unreadCount = applications.filter((a) => !a.read).length;
 
   const formatDate = (ts) => {
@@ -104,7 +191,7 @@ export default function AdminInternshipApplicationsPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-widest text-[var(--iris)] bg-[var(--fog)] px-2.5 py-0.5 rounded-md border border-[var(--line)]">
-                Internship Submissions
+                Internship Applications Portal
               </span>
               {unreadCount > 0 && (
                 <span className="text-xs font-bold text-white bg-rose-500 px-2.5 py-0.5 rounded-full animate-pulse">
@@ -116,23 +203,24 @@ export default function AdminInternshipApplicationsPage() {
               Candidate Applications ({applications.length})
             </h1>
             <p className="text-xs font-semibold text-[var(--slate)] mt-0.5">
-              Review and manage incoming candidate applications for hospital & administrative internships.
+              Review, accept, or reject candidate applications. Automated email notifications are dispatched on decision.
             </p>
           </div>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="bg-white p-2 rounded-2xl border border-[var(--line)] shadow-xs flex items-center gap-2 max-w-md">
+      <div className="bg-white p-2 rounded-2xl border border-[var(--line)] shadow-xs flex items-center gap-2 max-w-xl overflow-x-auto">
         {[
           { id: "all", label: `All (${applications.length})` },
-          { id: "pending", label: "Pending Review" },
-          { id: "reviewed", label: "Reviewed" },
+          { id: "pending", label: `Pending (${pendingCount})` },
+          { id: "accepted", label: `Accepted (${acceptedCount})` },
+          { id: "rejected", label: `Rejected (${rejectedCount})` },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveFilter(tab.id)}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+            className={`flex-1 min-w-[90px] py-2 px-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center whitespace-nowrap ${
               activeFilter === tab.id
                 ? "bg-[var(--ink)] text-white shadow-xs"
                 : "bg-[var(--fog)] text-[var(--slate)] hover:bg-[var(--line)]/20"
@@ -154,31 +242,39 @@ export default function AdminInternshipApplicationsPage() {
           <FileText className="w-12 h-12 text-slate-300 mx-auto" />
           <h3 className="text-base font-extrabold text-[#2B1F1A]">No Applications Found</h3>
           <p className="text-xs font-semibold text-[var(--slate)]">
-            There are no submitted candidate applications matching this filter.
+            There are no candidate applications matching this filter.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredApps.map((item) => {
             const isUnread = !item.read;
-            const isReviewed = item.status === "reviewed";
+            const status = (item.status || "pending").toLowerCase();
+            const isAccepted = status === "accepted";
+            const isRejected = status === "rejected";
 
             return (
               <div
                 key={item.id}
                 onClick={() => handleOpenApp(item)}
-                className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer relative hover:shadow-md ${
+                className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-4 cursor-pointer relative hover:shadow-md ${
                   isUnread
-                    ? "bg-rose-50/50 border-rose-200 shadow-xs"
-                    : isReviewed
+                    ? "bg-amber-50/40 border-amber-200 shadow-xs"
+                    : isAccepted
                     ? "bg-emerald-50/30 border-emerald-200"
+                    : isRejected
+                    ? "bg-rose-50/30 border-rose-200"
                     : "bg-white border-[var(--line)]"
                 }`}
               >
                 <div className="flex items-start gap-4 min-w-0 flex-1">
                   <div
                     className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold flex-shrink-0 mt-0.5 shadow-xs ${
-                      isReviewed ? "bg-emerald-600" : "bg-[var(--ink)]"
+                      isAccepted
+                        ? "bg-emerald-600"
+                        : isRejected
+                        ? "bg-rose-600"
+                        : "bg-[var(--ink)]"
                     }`}
                   >
                     <User className="w-5 h-5" />
@@ -189,6 +285,22 @@ export default function AdminInternshipApplicationsPage() {
                       <span className="text-[10px] font-black uppercase tracking-wider bg-[var(--fog)] text-[var(--iris)] px-2 py-0.5 rounded-md border border-[var(--line)]">
                         {item.department || "General"}
                       </span>
+
+                      {/* Status Badge */}
+                      {isAccepted ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Accepted
+                        </span>
+                      ) : isRejected ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full border border-rose-300">
+                          <XCircle className="w-3 h-3 text-rose-600" /> Rejected
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
+                          <Clock className="w-3 h-3 text-amber-700" /> Pending Review
+                        </span>
+                      )}
+
                       <h4 className="text-sm font-extrabold text-[#2B1F1A]">
                         {item.applicantName}
                       </h4>
@@ -198,11 +310,17 @@ export default function AdminInternshipApplicationsPage() {
                     </div>
 
                     <div className="flex items-center gap-4 text-xs font-semibold text-slate-600 flex-wrap">
+                      <span className="flex items-center gap-1 font-bold text-slate-800">
+                        <School className="w-3.5 h-3.5 text-[var(--iris)] shrink-0" /> {item.instituteName || "N/A"}
+                      </span>
+                      <span className="flex items-center gap-1 text-slate-500">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Class of {item.graduationYear || "N/A"}
+                      </span>
                       <span className="flex items-center gap-1">
-                        <Mail className="w-3.5 h-3.5 text-slate-400" /> {item.email}
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {item.email}
                       </span>
                       <span className="flex items-center gap-1 text-emerald-700 font-bold">
-                        <Phone className="w-3.5 h-3.5" /> {item.phone}
+                        <Phone className="w-3.5 h-3.5 shrink-0" /> {item.phone}
                       </span>
                     </div>
 
@@ -214,32 +332,53 @@ export default function AdminInternshipApplicationsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 self-end sm:self-center flex-shrink-0">
-                  <div className="flex items-center gap-1 text-slate-400 text-xs font-semibold">
+                <div className="flex items-center gap-2 self-end lg:self-center flex-shrink-0 flex-wrap">
+                  <div className="flex items-center gap-1 text-slate-400 text-xs font-semibold mr-2">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{formatDate(item.createdAt)}</span>
                   </div>
 
+                  {/* Accept Action Button */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleToggleStatus(item);
+                      handleAcceptStatus(item);
                     }}
-                    className={`px-3 py-1 rounded-xl text-xs font-extrabold border transition-colors cursor-pointer ${
-                      isReviewed
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                        : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                    disabled={actionLoadingId === item.id || isAccepted}
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs ${
+                      isAccepted
+                        ? "bg-emerald-600 text-white cursor-default opacity-90"
+                        : "bg-emerald-500 hover:bg-emerald-600 text-white"
                     }`}
                   >
-                    {isReviewed ? "Reviewed" : "Mark Reviewed"}
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{isAccepted ? "Accepted" : "Accept"}</span>
                   </button>
 
+                  {/* Reject Action Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRejectStatus(item);
+                    }}
+                    disabled={actionLoadingId === item.id || isRejected}
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs ${
+                      isRejected
+                        ? "bg-rose-600 text-white cursor-default opacity-90"
+                        : "bg-rose-500 hover:bg-rose-600 text-white"
+                    }`}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>{isRejected ? "Rejected" : "Reject"}</span>
+                  </button>
+
+                  {/* Delete Action Button */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDelete(item);
                     }}
-                    className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
+                    className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer ml-1"
                     title="Delete Application"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -247,7 +386,7 @@ export default function AdminInternshipApplicationsPage() {
 
                   {isUnread && (
                     <div
-                      className="w-3.5 h-3.5 rounded-full bg-rose-500 border-2 border-white shadow-md animate-pulse cursor-pointer flex-shrink-0"
+                      className="w-3.5 h-3.5 rounded-full bg-rose-500 border-2 border-white shadow-md animate-pulse cursor-pointer flex-shrink-0 ml-1"
                       title="Unread application"
                     />
                   )}
@@ -280,6 +419,24 @@ export default function AdminInternshipApplicationsPage() {
               </button>
             </div>
 
+            {/* Current Application Status Card */}
+            <div className="flex items-center justify-between p-3.5 rounded-2xl border bg-slate-50">
+              <span className="text-xs font-bold text-slate-500">Current Status:</span>
+              {(selectedApp.status || "pending").toLowerCase() === "accepted" ? (
+                <span className="inline-flex items-center gap-1 text-xs font-black uppercase bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Application Accepted
+                </span>
+              ) : (selectedApp.status || "").toLowerCase() === "rejected" ? (
+                <span className="inline-flex items-center gap-1 text-xs font-black uppercase bg-rose-100 text-rose-800 px-3 py-1 rounded-full border border-rose-300">
+                  <XCircle className="w-4 h-4 text-rose-600" /> Application Rejected
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-black uppercase bg-amber-100 text-amber-900 px-3 py-1 rounded-full border border-amber-300">
+                  <Clock className="w-4 h-4 text-amber-700" /> Pending Review
+                </span>
+              )}
+            </div>
+
             {/* Target Program Info */}
             <div className="bg-[var(--fog)] p-3.5 rounded-2xl border border-[var(--line)]/60 space-y-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Applied For Program</span>
@@ -296,6 +453,14 @@ export default function AdminInternshipApplicationsPage() {
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">Phone / WhatsApp</span>
                 <span className="font-extrabold text-emerald-700">{selectedApp.phone}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Institute / University</span>
+                <span className="font-extrabold text-[#2B1F1A]">{selectedApp.instituteName || "N/A"}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block">Graduation Year</span>
+                <span className="font-extrabold text-[var(--iris)]">{selectedApp.graduationYear ? `Class of ${selectedApp.graduationYear}` : "N/A"}</span>
               </div>
               <div className="sm:col-span-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">Email Address</span>
@@ -330,13 +495,16 @@ export default function AdminInternshipApplicationsPage() {
 
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={() => {
-                    handleToggleStatus(selectedApp);
-                    setSelectedApp({ ...selectedApp, status: selectedApp.status === "reviewed" ? "pending" : "reviewed" });
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-[var(--ink)] hover:bg-[var(--iris-dark)] text-white text-xs font-bold transition-colors cursor-pointer"
+                  onClick={() => handleAcceptStatus(selectedApp)}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
                 >
-                  {selectedApp.status === "reviewed" ? "Mark Pending" : "Mark Reviewed"}
+                  <Check className="w-3.5 h-3.5" /> Accept
+                </button>
+                <button
+                  onClick={() => handleRejectStatus(selectedApp)}
+                  className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <X className="w-3.5 h-3.5" /> Reject
                 </button>
                 <button
                   onClick={() => setSelectedApp(null)}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   collection,
@@ -37,7 +37,7 @@ import {
 import { getWhatsAppContactReplyUrl } from "@/lib/whatsappHelper";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function AdminMessagesPage() {
+function AdminMessagesContent() {
   const searchParams = useSearchParams();
   const initialDoctorId = searchParams.get("doctorId") || "";
   const initialTab = searchParams.get("tab") === "patient_inquiries" ? "patient_inquiries" : "doctor_chats";
@@ -1012,5 +1012,13 @@ export default function AdminMessagesPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function AdminMessagesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs font-bold text-slate-500">Loading Admin Messages...</div>}>
+      <AdminMessagesContent />
+    </Suspense>
   );
 }

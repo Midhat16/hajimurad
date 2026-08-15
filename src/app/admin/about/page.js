@@ -17,21 +17,21 @@ export default function AdminAboutPage() {
 
   const [lateChairmanData, setLateChairmanData] = useState({
     name: "Haji Murad Ali (Late)",
-    designation: "Founder & Late Chairman, Haji Murad Trust Eye Hospital",
+    designation: "Founder & Late Chairman, Haji Murad Eye Hospital Trust",
     message: "",
     imageUrl: "/images/chairman.jpg",
   });
 
   const [chairmanData, setChairmanData] = useState({
     name: "Dr. Zafar Iqbal",
-    designation: "Chairman, Haji Murad Trust Eye Hospital",
+    designation: "Chairman, Haji Murad Eye Hospital Trust",
     message: "",
     imageUrl: "/images/doctor-male-1.jpg",
   });
 
   const [adminData, setAdminData] = useState({
     name: "Hospital Administrator",
-    designation: "Administrator, Haji Murad Trust Eye Hospital",
+    designation: "Administrator, Haji Murad Eye Hospital Trust",
     message: "",
     imageUrl: "/images/admin-profile.jpg",
   });
@@ -78,7 +78,7 @@ export default function AdminAboutPage() {
           const lData = lateSnap.data();
           setLateChairmanData({
             name: lData.name || "Haji Murad Ali (Late)",
-            designation: lData.designation || "Founder & Late Chairman, Haji Murad Trust Eye Hospital",
+            designation: lData.designation ? lData.designation.replace(/Haji Murad Trust Eye Hospital/g, "Haji Murad Eye Hospital Trust") : "Founder & Late Chairman, Haji Murad Eye Hospital Trust",
             message: lData.message || "",
             imageUrl: lData.imageUrl || "/images/chairman.jpg",
           });
@@ -90,7 +90,7 @@ export default function AdminAboutPage() {
           const cData = chairmanSnap.data();
           setChairmanData({
             name: cData.name || "Dr. Zafar Iqbal",
-            designation: cData.designation || "Chairman, Haji Murad Trust Eye Hospital",
+            designation: cData.designation ? cData.designation.replace(/Haji Murad Trust Eye Hospital/g, "Haji Murad Eye Hospital Trust") : "Chairman, Haji Murad Eye Hospital Trust",
             message: cData.message || "",
             imageUrl: cData.imageUrl || "/images/doctor-male-1.jpg",
           });
@@ -102,7 +102,7 @@ export default function AdminAboutPage() {
           const aData = adminSnap.data();
           setAdminData({
             name: aData.name || "Hospital Administrator",
-            designation: aData.designation || "Administrator, Haji Murad Trust Eye Hospital",
+            designation: aData.designation ? aData.designation.replace(/Haji Murad Trust Eye Hospital/g, "Haji Murad Eye Hospital Trust") : "Administrator, Haji Murad Eye Hospital Trust",
             message: aData.message || "",
             imageUrl: aData.imageUrl || "/images/admin-profile.jpg",
           });

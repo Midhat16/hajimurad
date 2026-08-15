@@ -73,6 +73,7 @@ const POINT_ICONS = [ShieldCheck, HeartHandshake, Eye];
 
 export default function WhyChooseUs() {
   const [content, setContent] = useState(DEFAULT_WHY_CONTENT);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -86,15 +87,19 @@ export default function WhyChooseUs() {
             points: data.points && data.points.length > 0 ? data.points : DEFAULT_WHY_CONTENT.points,
           });
         }
+        setLoading(false);
       },
-      (err) => console.warn("WhyChooseUs subscription notice:", err.message)
+      (err) => {
+        console.warn("WhyChooseUs subscription notice:", err.message);
+        setLoading(false);
+      }
     );
 
     return () => unsub();
   }, []);
 
   return (
-    <section id="why-choose-us" className="py-14 lg:py-16 bg-[var(--fog)] relative">
+    <section id="why-choose-us" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden w-full">
       {/* Dynamic blurred glow shapes */}
       <div className="absolute top-1/2 left-0 w-80 h-80 rounded-full bg-slate-100/40 blur-3xl pointer-events-none -translate-x-1/2" />
       
@@ -106,13 +111,13 @@ export default function WhyChooseUs() {
             
             {/* 1. HEADING & DESCRIPTION TEXT */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
               className="space-y-3"
             >
-              <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
+              <span className="inline-block text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3.5 py-1.5 rounded-full border border-[var(--line)] shadow-xs mb-3">
                 {content.badgeText}
               </span>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2B1F1A] tracking-tight leading-tight">
@@ -127,6 +132,7 @@ export default function WhyChooseUs() {
             <div className="space-y-4 max-w-2xl">
               {content.points.map((point, index) => {
                 const Icon = POINT_ICONS[index % POINT_ICONS.length] || ShieldCheck;
+                const iconImageUrl = (point.iconUrl || point.icon || "").trim();
                 return (
                   <motion.div
                     key={index}
@@ -136,8 +142,27 @@ export default function WhyChooseUs() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     className="flex gap-4 p-4 sm:p-5 rounded-2xl bg-white border border-[var(--line)] hover:border-[var(--iris)] shadow-xs hover:shadow-md transition-all duration-300 group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-[var(--fog)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--ink)] transition-colors duration-300">
-                      <Icon className="w-5 h-5 text-[var(--iris)] group-hover:text-white transition-colors duration-300" />
+                    <div
+                      className={`w-11 h-11 rounded-xl relative flex items-center justify-center flex-shrink-0 overflow-hidden border border-[var(--iris)] ${
+                        loading
+                          ? "bg-slate-100"
+                          : iconImageUrl
+                          ? "bg-transparent"
+                          : "bg-[var(--fog)] group-hover:bg-[var(--ink)] shadow-xs transition-colors duration-300 p-1.5"
+                      }`}
+                    >
+                      {loading ? (
+                        <div className="w-full h-full bg-slate-200/80 animate-pulse rounded-lg" />
+                      ) : iconImageUrl ? (
+                        <img
+                          src={iconImageUrl}
+                          alt={point.title || "Highlight Icon"}
+                          style={{ objectFit: "contain" }}
+                          className="w-full h-full transition-transform duration-500 ease-in-out group-hover:-scale-x-100"
+                        />
+                      ) : (
+                        <Icon className="w-5 h-5 text-[var(--iris)] group-hover:text-white transition-all duration-500 ease-in-out group-hover:-scale-x-100" />
+                      )}
                     </div>
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-[#2B1F1A]">

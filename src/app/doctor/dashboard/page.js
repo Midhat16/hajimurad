@@ -472,7 +472,7 @@ export default function DoctorDashboard() {
               Assigned Patient Desk
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold mt-3 tracking-tight">
-              Welcome back, {doctorProfile?.name || "Doctor"}
+              Welcome, {doctorProfile?.name || "Doctor"}
             </h2>
             <p className="text-xs sm:text-sm text-slate-200 mt-1 font-medium leading-relaxed">
               Review and manage patient appointments assigned to your clinic schedule. Confirm, reschedule, or decline requests in real-time.

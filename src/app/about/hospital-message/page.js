@@ -60,14 +60,14 @@ export default function HospitalMessagePage() {
           const d = snap.data();
           setLateChairmanData({
             name: d.name || "Haji Murad Ali (Late)",
-            designation: d.designation || "Founder & Late Chairman, Haji Murad Trust Eye Hospital",
+            designation: d.designation ? d.designation.replace(/Haji Murad Trust Eye Hospital/g, "Haji Murad Eye Hospital Trust") : "Founder & Late Chairman, Haji Murad Eye Hospital Trust",
             message: d.message || DEFAULT_LATE_CHAIRMAN_URDU,
             imageUrl: d.imageUrl || "/images/chairman.jpg",
           });
         } else {
           setLateChairmanData({
             name: "Haji Murad Ali (Late)",
-            designation: "Founder & Late Chairman, Haji Murad Trust Eye Hospital",
+            designation: "Founder & Late Chairman, Haji Murad Eye Hospital Trust",
             message: DEFAULT_LATE_CHAIRMAN_URDU,
             imageUrl: "/images/chairman.jpg",
           });
@@ -85,14 +85,14 @@ export default function HospitalMessagePage() {
           const d = snap.data();
           setChairmanData({
             name: d.name || "Dr. Zafar Iqbal",
-            designation: d.designation || "Chairman, Haji Murad Trust Eye Hospital",
+            designation: d.designation ? d.designation.replace(/Haji Murad Trust Eye Hospital/g, "Haji Murad Eye Hospital Trust") : "Chairman, Haji Murad Eye Hospital Trust",
             message: d.message || DEFAULT_CHAIRMAN_URDU,
             imageUrl: d.imageUrl || "/images/doctor-male-1.jpg",
           });
         } else {
           setChairmanData({
             name: "Dr. Zafar Iqbal",
-            designation: "Chairman, Haji Murad Trust Eye Hospital",
+            designation: "Chairman, Haji Murad Eye Hospital Trust",
             message: DEFAULT_CHAIRMAN_URDU,
             imageUrl: "/images/doctor-male-1.jpg",
           });
@@ -110,14 +110,14 @@ export default function HospitalMessagePage() {
           const d = snap.data();
           setAdminData({
             name: d.name || "Hospital Administrator",
-            designation: d.designation || "Administrator, Haji Murad Trust Eye Hospital",
+            designation: d.designation ? d.designation.replace(/Haji Murad Trust Eye Hospital/g, "Haji Murad Eye Hospital Trust") : "Administrator, Haji Murad Eye Hospital Trust",
             message: d.message || DEFAULT_ADMIN_URDU,
             imageUrl: d.imageUrl || "/images/admin-profile.jpg",
           });
         } else {
           setAdminData({
             name: "Hospital Administrator",
-            designation: "Administrator, Haji Murad Trust Eye Hospital",
+            designation: "Administrator, Haji Murad Eye Hospital Trust",
             message: DEFAULT_ADMIN_URDU,
             imageUrl: "/images/admin-profile.jpg",
           });
@@ -134,7 +134,25 @@ export default function HospitalMessagePage() {
     };
   }, []);
 
+  // Auto-scroll to section if URL hash exists (e.g. #admin-message)
+  useEffect(() => {
+    if (loading || typeof window === "undefined") return;
+    const hash = window.location.hash ? window.location.hash.replace("#", "") : null;
+    if (hash) {
+      const targetElem = document.getElementById(hash);
+      if (targetElem) {
+        setActiveSection(hash);
+        setTimeout(() => {
+          const yOffset = -100;
+          const y = targetElem.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }, 250);
+      }
+    }
+  }, [loading]);
+
   // IntersectionObserver to auto-update active sidebar link on scroll
+
   useEffect(() => {
     const handleObserver = (entries) => {
       entries.forEach((entry) => {
@@ -200,7 +218,7 @@ export default function HospitalMessagePage() {
             Leadership & Management Vision
           </h1>
           <p className="text-xs sm:text-base text-slate-200 max-w-2xl mx-auto font-medium leading-relaxed">
-            The founding values, ongoing medical guidance, and administrative commitment at Haji Murad Trust Eye Hospital.
+            The founding values, ongoing medical guidance, and administrative commitment at Haji Murad Eye Hospital Trust.
           </p>
         </div>
       </section>
@@ -216,11 +234,10 @@ export default function HospitalMessagePage() {
                 key={item.id}
                 type="button"
                 onClick={() => scrollToSection(item.id)}
-                className={`px-4 py-2 rounded-full text-xs font-extrabold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer border ${
-                  isActive
-                    ? "bg-[var(--ink)] text-white border-[var(--ink)] shadow-md scale-105"
-                    : "bg-white text-[#2B1F1A] border-[var(--line)] hover:bg-[#F7F3EA]"
-                }`}
+                className={`px-4 py-2 rounded-full text-xs font-extrabold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer border ${isActive
+                  ? "bg-[var(--ink)] text-white border-[var(--ink)] shadow-md scale-105"
+                  : "bg-white text-[#2B1F1A] border-[var(--line)] hover:bg-[#F7F3EA]"
+                  }`}
               >
                 <IconComp className="w-3.5 h-3.5" />
                 <span>{item.label}</span>
@@ -232,13 +249,13 @@ export default function HospitalMessagePage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* ================= LEFT STICKY SIDEBAR (DESKTOP) ================= */}
-          <aside className="hidden lg:block lg:col-span-4 sticky top-28 z-20 space-y-4">
-            <div className="bg-white rounded-3xl p-6 border border-[var(--line)] shadow-lg space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-[var(--line)]">
-                <Sparkles className="w-4 h-4 text-[var(--iris)]" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#2B1F1A]">
+          <aside className="hidden lg:block lg:col-span-3 sticky top-28 z-20 space-y-4">
+            <div className="bg-white rounded-3xl p-4 xl:p-5 border border-[var(--line)] shadow-lg space-y-3.5">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-[var(--line)]">
+                <Sparkles className="w-3.5 h-3.5 text-[var(--iris)]" />
+                <h3 className="text-[11px] font-black uppercase tracking-wider text-[#2B1F1A]">
                   Messages Navigation
                 </h3>
               </div>
@@ -252,26 +269,24 @@ export default function HospitalMessagePage() {
                       key={item.id}
                       type="button"
                       onClick={() => scrollToSection(item.id)}
-                      className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-extrabold text-left transition-all duration-300 cursor-pointer border ${
-                        isActive
-                          ? "bg-[var(--ink)] text-white border-[var(--ink)] shadow-md translate-x-1"
-                          : "bg-white text-[#2B1F1A] border-[var(--line)] hover:border-[var(--iris)]/40 hover:bg-[#F7F3EA]"
-                      }`}
+                      className={`w-full flex items-center justify-between p-2.5 xl:p-3 rounded-2xl text-[11px] xl:text-xs font-extrabold text-left transition-all duration-300 cursor-pointer border ${isActive
+                        ? "bg-[var(--ink)] text-white border-[var(--ink)] shadow-md translate-x-0.5"
+                        : "bg-white text-[#2B1F1A] border-[var(--line)] hover:border-[var(--iris)]/40 hover:bg-[#F7F3EA]"
+                        }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                          isActive ? "bg-white/20 text-white" : "bg-[var(--fog)] text-[var(--iris)]"
-                        }`}>
-                          <IconComp className="w-4 h-4" />
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${isActive ? "bg-white/20 text-white" : "bg-[var(--fog)] text-[var(--iris)]"
+                          }`}>
+                          <IconComp className="w-3.5 h-3.5" />
                         </div>
-                        <div>
-                          <span className="block">{item.label}</span>
-                          <span className={`text-[10px] font-bold block ${isActive ? "text-white/80" : "text-slate-400"}`}>
+                        <div className="min-w-0">
+                          <span className="block truncate">{item.label}</span>
+                          <span className={`text-[9.5px] font-bold block truncate ${isActive ? "text-white/80" : "text-slate-400"}`}>
                             {item.badge}
                           </span>
                         </div>
                       </div>
-                      <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? "translate-x-1" : "opacity-40"}`} />
+                      <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-transform ${isActive ? "translate-x-0.5" : "opacity-40"}`} />
                     </button>
                   );
                 })}
@@ -280,7 +295,7 @@ export default function HospitalMessagePage() {
           </aside>
 
           {/* ================= RIGHT MAIN CONTENT AREA (3 SECTIONS IN ONE PAGE) ================= */}
-          <div className="lg:col-span-8 space-y-12">
+          <div className="lg:col-span-9 space-y-12">
             {loading || !lateChairmanData || !chairmanData || !adminData ? (
               <div className="bg-white rounded-3xl p-8 border border-[var(--line)] shadow-xl space-y-6 animate-pulse">
                 <div className="h-8 bg-slate-200 rounded-xl w-1/3 mx-auto" />
@@ -295,237 +310,237 @@ export default function HospitalMessagePage() {
               </div>
             ) : (
               <>
-            {/* ---------------- SECTION 1: LATE CHAIRMAN'S MESSAGE ---------------- */}
-            <motion.section
-              id="late-chairman-message"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-3xl p-6 sm:p-10 border border-[var(--line)] shadow-xl relative overflow-hidden space-y-8 scroll-mt-28"
-            >
-              <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
-                <span className="bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
-                  <Award className="w-3.5 h-3.5 text-amber-700" /> Founding Vision
-                </span>
-              </div>
+                {/* ---------------- SECTION 1: LATE CHAIRMAN'S MESSAGE ---------------- */}
+                <motion.section
+                  id="late-chairman-message"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-white rounded-3xl p-6 sm:p-10 border border-[var(--line)] shadow-xl relative overflow-hidden space-y-8 scroll-mt-28"
+                >
+                  <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
+                    <span className="bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                      <Award className="w-3.5 h-3.5 text-amber-700" /> Founding Vision
+                    </span>
+                  </div>
 
-              {/* Profile Card Header (Centered Photo + Stacked Details) */}
-              <div className="flex flex-col items-center justify-center text-center gap-4 bg-[var(--fog)] p-6 sm:p-8 rounded-2xl border border-[var(--line)]">
-                <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-[var(--iris)] shadow-md flex-shrink-0 bg-[#0c4b8e] mx-auto">
-                  <Image
-                    src={lateChairmanData.imageUrl}
-                    alt={lateChairmanData.name}
-                    fill
-                    className="object-cover object-top"
-                  />
-                </div>
-                <div className="text-center space-y-1.5 max-w-lg mx-auto">
-                  <h2 className="text-2xl sm:text-3xl font-black text-[#0A192F] tracking-tight">
-                    {lateChairmanData.name}
-                  </h2>
-                  <p className="text-xs sm:text-sm font-extrabold text-[#0C2340] uppercase tracking-wide">
-                    {lateChairmanData.designation}
-                  </p>
-                  <p className="text-xs sm:text-sm text-[#1E293B] font-medium leading-relaxed">
-                    Founder & Visionary behind Haji Murad Trust Eye Hospital's non-profit vision care movement.
-                  </p>
-                </div>
-              </div>
-
-              {/* Message Content in Urdu */}
-              {(() => {
-                const { bismillahHeader, paragraphs } = parseUrduText(lateChairmanData.message);
-                return (
-                  <div className="space-y-6 text-right" dir="rtl">
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
-                      <p className={`${notoNastaliq.className} text-base sm:text-lg text-emerald-800 font-bold leading-loose`}>
-                        {bismillahHeader}
+                  {/* Profile Card Header (Centered Photo + Stacked Details) */}
+                  <div className="flex flex-col items-center justify-center text-center gap-4 bg-[var(--fog)] p-6 sm:p-8 rounded-2xl border border-[var(--line)]">
+                    <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-[var(--iris)] shadow-md flex-shrink-0 bg-[#0c4b8e] mx-auto">
+                      <Image
+                        src={lateChairmanData.imageUrl}
+                        alt={lateChairmanData.name}
+                        fill
+                        className="object-cover object-top"
+                      />
+                    </div>
+                    <div className="text-center space-y-1.5 max-w-lg mx-auto">
+                      <h2 className="text-2xl sm:text-3xl font-black text-[#0A192F] tracking-tight">
+                        {lateChairmanData.name}
+                      </h2>
+                      <p className="text-xs sm:text-sm font-extrabold text-[#0C2340] uppercase tracking-wide">
+                        {lateChairmanData.designation}
+                      </p>
+                      <p className="text-xs sm:text-sm text-[#1E293B] font-medium leading-relaxed">
+                        Founder & Visionary behind Haji Murad Eye Hospital Trust's non-profit vision care movement.
                       </p>
                     </div>
-
-                    <div className="space-y-4 text-slate-800">
-                      {paragraphs.split("\n\n").map((para, idx) => (
-                        <p key={idx} className={`${notoNastaliq.className} text-xs sm:text-sm lg:text-base font-normal leading-[2.0] tracking-normal text-justify`}>
-                          {para}
-                        </p>
-                      ))}
-                    </div>
-
-                    {/* Red Left-Aligned Signature Sign-off Block */}
-                    <div className="pt-6 border-t border-slate-100 flex justify-start text-left" dir="ltr">
-                      <div className="text-left font-extrabold text-red-600 space-y-0.5 leading-snug">
-                        <p className="text-base sm:text-lg tracking-tight font-extrabold text-red-600">
-                          {lateChairmanData.name}
-                        </p>
-                        <p className="text-xs sm:text-sm font-bold text-red-600">
-                          {lateChairmanData.designation}
-                        </p>
-                        <p className="text-xs sm:text-sm font-extrabold text-red-600">
-                          Haji Murad Trust Eye Hospital
-                        </p>
-                      </div>
-                    </div>
                   </div>
-                );
-              })()}
-            </motion.section>
+
+                  {/* Message Content in Urdu */}
+                  {(() => {
+                    const { bismillahHeader, paragraphs } = parseUrduText(lateChairmanData.message);
+                    return (
+                      <div className="space-y-6 text-right" dir="rtl">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+                          <p className={`${notoNastaliq.className} text-base sm:text-lg text-emerald-800 font-bold leading-loose`}>
+                            {bismillahHeader}
+                          </p>
+                        </div>
+
+                        <div className="space-y-4 text-slate-800">
+                          {paragraphs.split("\n\n").map((para, idx) => (
+                            <p key={idx} className={`${notoNastaliq.className} text-xs sm:text-sm lg:text-base font-normal leading-[2.0] tracking-normal text-justify`}>
+                              {para}
+                            </p>
+                          ))}
+                        </div>
+
+                        {/* Red Left-Aligned Signature Sign-off Block */}
+                        <div className="pt-6 border-t border-slate-100 flex justify-start text-left" dir="ltr">
+                          <div className="text-left font-extrabold text-red-600 space-y-0.5 leading-snug">
+                            <p className="text-base sm:text-lg tracking-tight font-extrabold text-red-600">
+                              {lateChairmanData.name}
+                            </p>
+                            <p className="text-xs sm:text-sm font-bold text-red-600">
+                              {lateChairmanData.designation}
+                            </p>
+                            <p className="text-xs sm:text-sm font-extrabold text-red-600">
+                              Haji Murad Eye Hospital Trust
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </motion.section>
 
 
-            {/* ---------------- SECTION 2: CHAIRMAN'S MESSAGE ---------------- */}
-            <motion.section
-              id="chairman-message"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-3xl p-6 sm:p-10 border border-[var(--line)] shadow-xl relative overflow-hidden space-y-8 scroll-mt-28"
-            >
-              <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
-                <span className="bg-indigo-100 text-indigo-900 border border-indigo-300 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
-                  <UserCheck className="w-3.5 h-3.5 text-indigo-700" /> Leadership & Guidance
-                </span>
-                <span className="text-xs font-extrabold text-slate-400">Current Leadership</span>
-              </div>
+                {/* ---------------- SECTION 2: CHAIRMAN'S MESSAGE ---------------- */}
+                <motion.section
+                  id="chairman-message"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-white rounded-3xl p-6 sm:p-10 border border-[var(--line)] shadow-xl relative overflow-hidden space-y-8 scroll-mt-28"
+                >
+                  <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
+                    <span className="bg-indigo-100 text-indigo-900 border border-indigo-300 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                      <UserCheck className="w-3.5 h-3.5 text-indigo-700" /> Leadership & Guidance
+                    </span>
+                    <span className="text-xs font-extrabold text-slate-400">Current Leadership</span>
+                  </div>
 
-              {/* Profile Card Header (Centered Photo + Stacked Details) */}
-              <div className="flex flex-col items-center justify-center text-center gap-4 bg-[var(--fog)] p-6 sm:p-8 rounded-2xl border border-[var(--line)]">
-                <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-[var(--ink)] shadow-md flex-shrink-0 bg-[#0c4b8e] mx-auto">
-                  <Image
-                    src={chairmanData.imageUrl}
-                    alt={chairmanData.name}
-                    fill
-                    className="object-cover object-top"
-                  />
-                </div>
-                <div className="text-center space-y-1.5 max-w-lg mx-auto">
-                  <h2 className="text-2xl sm:text-3xl font-black text-[#0A192F] tracking-tight">
-                    {chairmanData.name}
-                  </h2>
-                  <p className="text-xs sm:text-sm font-extrabold text-[#0C2340] uppercase tracking-wide">
-                    {chairmanData.designation}
-                  </p>
-                  <p className="text-xs sm:text-sm text-[#1E293B] font-medium leading-relaxed">
-                    Guiding the hospital's expansion into modern femtosecond laser technology and specialized ophthalmic subspecialties.
-                  </p>
-                </div>
-              </div>
-
-              {/* Message Content in Urdu */}
-              {(() => {
-                const { bismillahHeader, paragraphs } = parseUrduText(chairmanData.message);
-                return (
-                  <div className="space-y-6 text-right" dir="rtl">
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
-                      <p className={`${notoNastaliq.className} text-base sm:text-lg text-emerald-800 font-bold leading-loose`}>
-                        {bismillahHeader}
+                  {/* Profile Card Header (Centered Photo + Stacked Details) */}
+                  <div className="flex flex-col items-center justify-center text-center gap-4 bg-[var(--fog)] p-6 sm:p-8 rounded-2xl border border-[var(--line)]">
+                    <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-[var(--ink)] shadow-md flex-shrink-0 bg-[#0c4b8e] mx-auto">
+                      <Image
+                        src={chairmanData.imageUrl}
+                        alt={chairmanData.name}
+                        fill
+                        className="object-cover object-top"
+                      />
+                    </div>
+                    <div className="text-center space-y-1.5 max-w-lg mx-auto">
+                      <h2 className="text-2xl sm:text-3xl font-black text-[#0A192F] tracking-tight">
+                        {chairmanData.name}
+                      </h2>
+                      <p className="text-xs sm:text-sm font-extrabold text-[#0C2340] uppercase tracking-wide">
+                        {chairmanData.designation}
+                      </p>
+                      <p className="text-xs sm:text-sm text-[#1E293B] font-medium leading-relaxed">
+                        Guiding the hospital's expansion into modern femtosecond laser technology and specialized ophthalmic subspecialties.
                       </p>
                     </div>
-
-                    <div className="space-y-4 text-slate-800">
-                      {paragraphs.split("\n\n").map((para, idx) => (
-                        <p key={idx} className={`${notoNastaliq.className} text-xs sm:text-sm lg:text-base font-normal leading-[2.0] tracking-normal text-justify`}>
-                          {para}
-                        </p>
-                      ))}
-                    </div>
-
-                    {/* Red Left-Aligned Signature Sign-off Block */}
-                    <div className="pt-6 border-t border-slate-100 flex justify-start text-left" dir="ltr">
-                      <div className="text-left font-extrabold text-red-600 space-y-0.5 leading-snug">
-                        <p className="text-base sm:text-lg tracking-tight font-extrabold text-red-600">
-                          {chairmanData.name}
-                        </p>
-                        <p className="text-xs sm:text-sm font-bold text-red-600">
-                          {chairmanData.designation}
-                        </p>
-                        <p className="text-xs sm:text-sm font-extrabold text-red-600">
-                          Haji Murad Trust Eye Hospital
-                        </p>
-                      </div>
-                    </div>
                   </div>
-                );
-              })()}
-            </motion.section>
+
+                  {/* Message Content in Urdu */}
+                  {(() => {
+                    const { bismillahHeader, paragraphs } = parseUrduText(chairmanData.message);
+                    return (
+                      <div className="space-y-6 text-right" dir="rtl">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+                          <p className={`${notoNastaliq.className} text-base sm:text-lg text-emerald-800 font-bold leading-loose`}>
+                            {bismillahHeader}
+                          </p>
+                        </div>
+
+                        <div className="space-y-4 text-slate-800">
+                          {paragraphs.split("\n\n").map((para, idx) => (
+                            <p key={idx} className={`${notoNastaliq.className} text-xs sm:text-sm lg:text-base font-normal leading-[2.0] tracking-normal text-justify`}>
+                              {para}
+                            </p>
+                          ))}
+                        </div>
+
+                        {/* Red Left-Aligned Signature Sign-off Block */}
+                        <div className="pt-6 border-t border-slate-100 flex justify-start text-left" dir="ltr">
+                          <div className="text-left font-extrabold text-red-600 space-y-0.5 leading-snug">
+                            <p className="text-base sm:text-lg tracking-tight font-extrabold text-red-600">
+                              {chairmanData.name}
+                            </p>
+                            <p className="text-xs sm:text-sm font-bold text-red-600">
+                              {chairmanData.designation}
+                            </p>
+                            <p className="text-xs sm:text-sm font-extrabold text-red-600">
+                              Haji Murad Eye Hospital Trust
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </motion.section>
 
 
-            {/* ---------------- SECTION 3: ADMIN'S MESSAGE ---------------- */}
-            <motion.section
-              id="admin-message"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-3xl p-6 sm:p-10 border border-[var(--line)] shadow-xl relative overflow-hidden space-y-8 scroll-mt-28"
-            >
-              <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
-                <span className="bg-teal-100 text-teal-900 border border-teal-300 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
-                  <Building2 className="w-3.5 h-3.5 text-teal-700" /> Hospital Administration
-                </span>
-                <span className="text-xs font-extrabold text-slate-400">Operational Excellence</span>
-              </div>
+                {/* ---------------- SECTION 3: ADMIN'S MESSAGE ---------------- */}
+                <motion.section
+                  id="admin-message"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-white rounded-3xl p-6 sm:p-10 border border-[var(--line)] shadow-xl relative overflow-hidden space-y-8 scroll-mt-28"
+                >
+                  <div className="flex items-center justify-between border-b border-[var(--line)] pb-4">
+                    <span className="bg-teal-100 text-teal-900 border border-teal-300 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                      <Building2 className="w-3.5 h-3.5 text-teal-700" /> Hospital Administration
+                    </span>
+                    <span className="text-xs font-extrabold text-slate-400">Operational Excellence</span>
+                  </div>
 
-              {/* Profile Card Header (Centered Photo + Stacked Details) */}
-              <div className="flex flex-col items-center justify-center text-center gap-4 bg-[var(--fog)] p-6 sm:p-8 rounded-2xl border border-[var(--line)]">
-                <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-teal-600 shadow-md flex-shrink-0 bg-[#0c4b8e] mx-auto">
-                  <Image
-                    src={adminData.imageUrl}
-                    alt={adminData.name}
-                    fill
-                    className="object-cover object-top"
-                  />
-                </div>
-                <div className="text-center space-y-1.5 max-w-lg mx-auto">
-                  <h2 className="text-2xl sm:text-3xl font-black text-[#0A192F] tracking-tight">
-                    {adminData.name}
-                  </h2>
-                  <p className="text-xs sm:text-sm font-extrabold text-[#0C2340] uppercase tracking-wide">
-                    {adminData.designation}
-                  </p>
-                  <p className="text-xs sm:text-sm text-[#1E293B] font-medium leading-relaxed">
-                    Overseeing patient workflows, state-of-the-art diagnostic equipment, and transparent hospital administration.
-                  </p>
-                </div>
-              </div>
-
-              {/* Message Content in Urdu */}
-              {(() => {
-                const { bismillahHeader, paragraphs } = parseUrduText(adminData.message);
-                return (
-                  <div className="space-y-6 text-right" dir="rtl">
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
-                      <p className={`${notoNastaliq.className} text-base sm:text-lg text-emerald-800 font-bold leading-loose`}>
-                        {bismillahHeader}
+                  {/* Profile Card Header (Centered Photo + Stacked Details) */}
+                  <div className="flex flex-col items-center justify-center text-center gap-4 bg-[var(--fog)] p-6 sm:p-8 rounded-2xl border border-[var(--line)]">
+                    <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl overflow-hidden border-2 border-teal-600 shadow-md flex-shrink-0 bg-[#0c4b8e] mx-auto">
+                      <Image
+                        src={adminData.imageUrl}
+                        alt={adminData.name}
+                        fill
+                        className="object-cover object-top"
+                      />
+                    </div>
+                    <div className="text-center space-y-1.5 max-w-lg mx-auto">
+                      <h2 className="text-2xl sm:text-3xl font-black text-[#0A192F] tracking-tight">
+                        {adminData.name}
+                      </h2>
+                      <p className="text-xs sm:text-sm font-extrabold text-[#0C2340] uppercase tracking-wide">
+                        {adminData.designation}
+                      </p>
+                      <p className="text-xs sm:text-sm text-[#1E293B] font-medium leading-relaxed">
+                        Overseeing patient workflows, state-of-the-art diagnostic equipment, and transparent hospital administration.
                       </p>
                     </div>
-
-                    <div className="space-y-4 text-slate-800">
-                      {paragraphs.split("\n\n").map((para, idx) => (
-                        <p key={idx} className={`${notoNastaliq.className} text-xs sm:text-sm lg:text-base font-normal leading-[2.0] tracking-normal text-justify`}>
-                          {para}
-                        </p>
-                      ))}
-                    </div>
-
-                    {/* Red Left-Aligned Signature Sign-off Block */}
-                    <div className="pt-6 border-t border-slate-100 flex justify-start text-left" dir="ltr">
-                      <div className="text-left font-extrabold text-red-600 space-y-0.5 leading-snug">
-                        <p className="text-base sm:text-lg tracking-tight font-extrabold text-red-600">
-                          {adminData.name}
-                        </p>
-                        <p className="text-xs sm:text-sm font-bold text-red-600">
-                          {adminData.designation}
-                        </p>
-                        <p className="text-xs sm:text-sm font-extrabold text-red-600">
-                          Haji Murad Trust Eye Hospital
-                        </p>
-                      </div>
-                    </div>
                   </div>
-                );
-              })()}
-            </motion.section>
+
+                  {/* Message Content in Urdu */}
+                  {(() => {
+                    const { bismillahHeader, paragraphs } = parseUrduText(adminData.message);
+                    return (
+                      <div className="space-y-6 text-right" dir="rtl">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+                          <p className={`${notoNastaliq.className} text-base sm:text-lg text-emerald-800 font-bold leading-loose`}>
+                            {bismillahHeader}
+                          </p>
+                        </div>
+
+                        <div className="space-y-4 text-slate-800">
+                          {paragraphs.split("\n\n").map((para, idx) => (
+                            <p key={idx} className={`${notoNastaliq.className} text-xs sm:text-sm lg:text-base font-normal leading-[2.0] tracking-normal text-justify`}>
+                              {para}
+                            </p>
+                          ))}
+                        </div>
+
+                        {/* Red Left-Aligned Signature Sign-off Block */}
+                        <div className="pt-6 border-t border-slate-100 flex justify-start text-left" dir="ltr">
+                          <div className="text-left font-extrabold text-red-600 space-y-0.5 leading-snug">
+                            <p className="text-base sm:text-lg tracking-tight font-extrabold text-red-600">
+                              {adminData.name}
+                            </p>
+                            <p className="text-xs sm:text-sm font-bold text-red-600">
+                              {adminData.designation}
+                            </p>
+                            <p className="text-xs sm:text-sm font-extrabold text-red-600">
+                              Haji Murad Eye Hospital Trust
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </motion.section>
               </>
             )}
           </div>

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ImagePicker from "@/components/admin/ImagePicker";
+import VideoPicker from "@/components/admin/VideoPicker";
+import { uploadMediaToCloudinary } from "@/lib/cloudinary";
 import { ArrowLeft, Save, HeartHandshake, AlertCircle } from "lucide-react";
 
 export default function AdminNewSuccessStoryPage() {
@@ -14,6 +16,7 @@ export default function AdminNewSuccessStoryPage() {
   const [title, setTitle] = useState("");
   const [story, setStory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [order, setOrder] = useState(1);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,11 +29,23 @@ export default function AdminNewSuccessStoryPage() {
 
     setIsSubmitting(true);
     try {
+      let finalVideoUrl = videoUrl.trim();
+      let finalImageUrl = imageUrl.trim();
+
+      // Ensure no raw Base64 data URLs are saved to Firestore to prevent document size limit errors
+      if (finalVideoUrl.startsWith("data:")) {
+        finalVideoUrl = await uploadMediaToCloudinary(finalVideoUrl, "video");
+      }
+      if (finalImageUrl.startsWith("data:")) {
+        finalImageUrl = await uploadMediaToCloudinary(finalImageUrl, "image");
+      }
+
       await addDoc(collection(db, "successStories"), {
         patientName: patientName.trim() || "Patient",
         title: title.trim(),
         story: story.trim(),
-        imageUrl: imageUrl.trim(),
+        imageUrl: finalImageUrl,
+        videoUrl: finalVideoUrl,
         order: Number(order) || 1,
         createdAt: serverTimestamp(),
       });
@@ -127,9 +142,16 @@ export default function AdminNewSuccessStoryPage() {
 
           {/* Patient Photo (Optional) */}
           <ImagePicker
-            label="Select Patient Photograph"
+            label="Select Patient Photograph (Optional)"
             value={imageUrl}
             onChange={setImageUrl}
+          />
+
+          {/* Patient Video (Optional - File or Link) */}
+          <VideoPicker
+            label="Select / Upload Patient Video OR Paste Video Link (Optional)"
+            value={videoUrl}
+            onChange={setVideoUrl}
           />
 
           {/* Story Body */}

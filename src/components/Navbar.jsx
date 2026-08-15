@@ -36,7 +36,7 @@ const NAV_LINKS = [
     href: "/about",
     key: "about",
     dropdown: [
-      { label: "Hospital Message", href: "/about/hospital-message", icon: UserCheck, subtitle: "Leadership & Management Vision" },
+      { label: "Messages", href: "/about/hospital-message", icon: UserCheck, subtitle: "Leadership & Management Vision" },
       { label: "Contact Us", href: "/contact", icon: PhoneCall, subtitle: "Get In Touch & Location" }
     ]
   },
@@ -62,43 +62,42 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ${scrolled
           ? "bg-[#F7F3EA]/95 backdrop-blur-md shadow-md border-b border-[#2B1F1A]/10 py-1.5 sm:py-2.5"
           : "bg-[#F7F3EA] border-b border-[#2B1F1A]/10 py-2 sm:py-3.5"
-      }`}
+        }`}
     >
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 w-full">
-        <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-1.5 lg:gap-3 xl:gap-4 min-w-0">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 w-full">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-3 xl:gap-4 min-w-0">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-1.5 sm:gap-2 md:gap-2 xl:gap-3 group cursor-pointer flex-shrink-0 min-w-0"
+            className="flex items-center gap-1 sm:gap-2 xl:gap-3 group cursor-pointer flex-shrink min-w-0 overflow-hidden"
           >
-            <div className="relative h-9 w-9 sm:h-10 sm:w-10 md:h-10 md:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 flex-shrink-0 group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+            <div className="relative h-8 w-8 sm:h-10 sm:w-10 lg:h-11 lg:w-11 xl:h-13 xl:w-13 flex-shrink-0 group-hover:scale-105 transition-transform duration-300 overflow-hidden">
               <img
                 src={profile.logoUrl}
                 alt={profile.hospitalName}
                 className="w-full h-full object-contain"
               />
             </div>
-            <div className="flex flex-col flex-shrink min-w-0">
-              <span className="text-xs sm:text-sm md:text-xs lg:text-base xl:text-xl font-bold tracking-tight text-[#1A1A1A] leading-tight whitespace-nowrap">
+            <div className="flex flex-col flex-shrink min-w-0 overflow-hidden">
+              <span className="text-[11px] sm:text-sm lg:text-base xl:text-lg 2xl:text-xl font-bold tracking-tight text-[#1A1A1A] leading-tight truncate">
                 {brand.mainFirst}{" "}
                 {brand.mainHighlight && (
                   <span className="text-[var(--iris)]">{brand.mainHighlight}</span>
                 )}
               </span>
               {brand.sub && (
-                <span className="text-[7px] sm:text-[8px] md:text-[7.5px] lg:text-[9px] xl:text-[10px] font-semibold text-[var(--iris)] tracking-widest uppercase whitespace-nowrap">
+                <span className="text-[6.5px] sm:text-[8px] lg:text-[9px] xl:text-[10px] font-semibold text-[var(--iris)] tracking-widest uppercase truncate">
                   {brand.sub}
                 </span>
               )}
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-0 md:gap-0.5 lg:gap-1.5 xl:gap-2 flex-shrink min-w-0">
+          {/* Desktop Navigation Links (Visible on 1280px+ screens) */}
+          <nav className="hidden xl:flex items-center gap-0.5 xl:gap-1.5 2xl:gap-2 flex-shrink min-w-0">
             {NAV_LINKS.map((link) => {
               const isDropdown = !!link.dropdown;
               const isActive =
@@ -119,14 +118,13 @@ export default function Navbar() {
                     {link.href ? (
                       <Link
                         href={link.href}
-                        className={`relative px-1 md:px-1.5 lg:px-2.5 xl:px-3.5 py-1.5 md:py-2 text-[11px] md:text-[11px] lg:text-xs xl:text-sm 2xl:text-base font-bold transition-colors duration-200 flex items-center gap-0.5 md:gap-1 cursor-pointer whitespace-nowrap ${
-                          isActive
+                        className={`relative px-2 xl:px-2.5 2xl:px-3.5 py-2 text-xs xl:text-[13px] 2xl:text-sm font-bold transition-colors duration-200 flex items-center gap-1 cursor-pointer whitespace-nowrap ${isActive
                             ? "text-[var(--ink)] font-extrabold"
                             : "text-[#2B1F1A]/85 hover:text-[var(--ink)]"
-                        }`}
+                          }`}
                       >
                         <span className="whitespace-nowrap">{link.label}</span>
-                        <ChevronDown className={`w-3 h-3 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5 xl:w-4 xl:h-4 flex-shrink-0 transition-transform duration-200 ${isHovered ? "rotate-180 text-[var(--ink)]" : "text-[#2B1F1A]/60"}`} />
+                        <ChevronDown className={`w-3.5 h-3.5 xl:w-4 xl:h-4 flex-shrink-0 transition-transform duration-200 ${isHovered ? "rotate-180 text-[var(--ink)]" : "text-[#2B1F1A]/60"}`} />
                         {isActive && (
                           <motion.span
                             layoutId="navHoverUnderline"
@@ -139,14 +137,13 @@ export default function Navbar() {
                       <button
                         type="button"
                         onClick={() => setHoveredDropdown((prev) => (prev === link.key ? null : link.key))}
-                        className={`relative px-1 md:px-1.5 lg:px-2.5 xl:px-3.5 py-1.5 md:py-2 text-[11px] md:text-[11px] lg:text-xs xl:text-sm 2xl:text-base font-bold transition-colors duration-200 flex items-center gap-0.5 md:gap-1 cursor-pointer bg-transparent border-0 select-none whitespace-nowrap ${
-                          isActive
+                        className={`relative px-2 xl:px-2.5 2xl:px-3.5 py-2 text-xs xl:text-[13px] 2xl:text-sm font-bold transition-colors duration-200 flex items-center gap-1 cursor-pointer bg-transparent border-0 select-none whitespace-nowrap ${isActive
                             ? "text-[var(--ink)] font-extrabold"
                             : "text-[#2B1F1A]/85 hover:text-[var(--ink)]"
-                        }`}
+                          }`}
                       >
                         <span className="whitespace-nowrap">{link.label}</span>
-                        <ChevronDown className={`w-3 h-3 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5 xl:w-4 xl:h-4 flex-shrink-0 transition-transform duration-200 ${isHovered ? "rotate-180 text-[var(--ink)]" : "text-[#2B1F1A]/60"}`} />
+                        <ChevronDown className={`w-3.5 h-3.5 xl:w-4 xl:h-4 flex-shrink-0 transition-transform duration-200 ${isHovered ? "rotate-180 text-[var(--ink)]" : "text-[#2B1F1A]/60"}`} />
                         {isActive && (
                           <motion.span
                             layoutId="navHoverUnderline"
@@ -196,11 +193,10 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`relative px-1 md:px-1.5 lg:px-2.5 xl:px-3.5 py-1.5 md:py-2 text-[11px] md:text-[11px] lg:text-xs xl:text-sm 2xl:text-base font-bold transition-colors duration-200 whitespace-nowrap flex-shrink-0 ${
-                    isActive
+                  className={`relative px-2 xl:px-2.5 2xl:px-3.5 py-2 text-xs xl:text-[13px] 2xl:text-sm font-bold transition-colors duration-200 whitespace-nowrap flex-shrink-0 ${isActive
                       ? "text-[var(--ink)] font-extrabold"
                       : "text-[#2B1F1A]/85 hover:text-[var(--ink)]"
-                  }`}
+                    }`}
                 >
                   <span className="whitespace-nowrap">{link.label}</span>
                   {isActive && (
@@ -215,8 +211,9 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden md:flex items-center flex-shrink-0">
+          {/* CTA Button & Emergency Badge (Visible on 1280px+ screens) */}
+          <div className="hidden xl:flex items-center gap-2.5 xl:gap-3.5 flex-shrink-0">
+            {/* Book Appointment CTA Button */}
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
@@ -226,27 +223,52 @@ export default function Navbar() {
                   window.dispatchEvent(new CustomEvent("open-appointment-modal"));
                 }
               }}
-              className="flex items-center gap-1 md:gap-1.5 lg:gap-2 bg-gradient-to-r from-[var(--iris)] to-[#E63946] text-white px-2.5 md:px-2.5 lg:px-3.5 xl:px-5 py-1.5 md:py-1.5 lg:py-2 xl:py-2.5 rounded-full text-[11px] md:text-[11px] lg:text-xs xl:text-sm font-semibold shadow-md hover:opacity-95 transition-all cursor-pointer border border-white/10 whitespace-nowrap flex-shrink-0"
+              className="flex items-center gap-1.5 xl:gap-2 bg-gradient-to-r from-[var(--iris)] to-[#E63946] text-white px-3.5 xl:px-5 py-2 xl:py-2.5 rounded-full text-xs xl:text-sm font-semibold shadow-md hover:opacity-95 transition-all cursor-pointer border border-white/10 whitespace-nowrap flex-shrink-0"
             >
-              <Calendar className="w-3 h-3 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5 xl:w-4 xl:h-4 flex-shrink-0" />
+              <Calendar className="w-3.5 h-3.5 xl:w-4 xl:h-4 flex-shrink-0" />
               <span className="whitespace-nowrap">Book Appointment</span>
             </motion.button>
+
+            {/* 24/7 Emergency Service Badge (Clickable Call Link to 111 333 456) */}
+            <a
+              href="tel:111333456"
+              title="Call 24/7 Emergency Helpline: 111 333 456"
+              className="flex items-center flex-shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+            >
+              <img
+                src="/images/emergency-badge.png"
+                alt="24/7 Emergency Service - Call 111 333 456"
+                className="h-10 xl:h-13 w-auto object-contain drop-shadow-xs hover:drop-shadow-md transition-all"
+              />
+            </a>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex md:hidden flex-shrink-0">
+          {/* Mobile / Tablet Collapsed Header Actions (< 1280px screens) */}
+          <div className="flex xl:hidden items-center gap-1 sm:gap-3 flex-shrink-0">
+            <a
+              href="tel:111333456"
+              title="Call 24/7 Emergency Helpline: 111 333 456"
+              className="flex items-center flex-shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+            >
+              <img
+                src="/images/emergency-badge.png"
+                alt="24/7 Emergency Service - Call 111 333 456"
+                className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-xs hover:drop-shadow-md transition-all"
+              />
+            </a>
+
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-[#1A1A1A] hover:bg-[#2B1F1A]/5 focus:outline-none focus:ring-2 focus:ring-[var(--ink)]"
+              className="p-1 sm:p-2 rounded-xl text-[#1A1A1A] hover:bg-[#2B1F1A]/5 focus:outline-none focus:ring-2 focus:ring-[var(--ink)] cursor-pointer"
               aria-label="Toggle menu"
             >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? <X className="w-5.5 h-5.5 sm:w-7 sm:h-7" /> : <Menu className="w-5.5 h-5.5 sm:w-7 sm:h-7" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Mobile / Tablet Navigation Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -254,9 +276,9 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="md:hidden bg-[#F7F3EA] border-t border-[#2B1F1A]/10 overflow-y-auto max-h-[calc(100vh-70px)]"
+            className="xl:hidden bg-[#F7F3EA] border-t border-[#2B1F1A]/10 overflow-y-auto max-h-[calc(100vh-70px)] shadow-lg"
           >
-            <div className="px-4 pt-2 pb-6 space-y-2">
+            <div className="px-4 pt-3 pb-6 space-y-2 max-w-2xl mx-auto">
               {NAV_LINKS.map((link) => {
                 const isDropdown = !!link.dropdown;
                 const isActive =
@@ -271,18 +293,17 @@ export default function Navbar() {
                     <div key={link.label} className="space-y-1">
                       <button
                         onClick={() => setMobileDropdownOpen(isMobileOpen ? null : link.key)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
-                          isActive
-                            ? "text-[var(--ink)] bg-[#2B1F1A]/5 font-bold"
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-base font-bold transition-colors ${isActive
+                            ? "text-[var(--ink)] bg-[#2B1F1A]/5 font-extrabold"
                             : "text-[#2B1F1A]/85 hover:text-[var(--ink)] hover:bg-[#2B1F1A]/5"
-                        }`}
+                          }`}
                       >
                         <span>{link.label}</span>
                         <ChevronDown className={`w-4 h-4 transition-transform ${isMobileOpen ? "rotate-180 text-[var(--ink)]" : "text-[#2B1F1A]/60"}`} />
                       </button>
 
                       {isMobileOpen && (
-                        <div className="pl-4 space-y-1">
+                        <div className="pl-4 pr-2 space-y-1 border-l-2 border-[var(--iris)]/20 ml-3 my-1">
                           {link.dropdown.map((subItem) => {
                             const SubIcon = subItem.icon || Info;
                             return (
@@ -290,10 +311,17 @@ export default function Navbar() {
                                 key={subItem.label}
                                 href={subItem.href}
                                 onClick={() => setIsOpen(false)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-[#1A1A1A] hover:text-[var(--ink)] hover:bg-[#2B1F1A]/5"
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-[#1A1A1A] hover:text-[var(--ink)] hover:bg-[#2B1F1A]/5 transition-colors"
                               >
-                                <SubIcon className="w-4 h-4 text-[var(--ink)]" />
-                                <span>{subItem.label}</span>
+                                <div className="w-7 h-7 rounded-lg bg-[var(--ink)] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                                  <SubIcon className="w-3.5 h-3.5 text-white" />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span>{subItem.label}</span>
+                                  {subItem.subtitle && (
+                                    <span className="text-[11px] font-normal text-slate-500">{subItem.subtitle}</span>
+                                  )}
+                                </div>
                               </Link>
                             );
                           })}
@@ -308,11 +336,10 @@ export default function Navbar() {
                     key={link.label}
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className={`block px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
-                      isActive
-                        ? "text-[var(--ink)] bg-[#2B1F1A]/5 font-bold"
+                    className={`block px-3.5 py-2.5 rounded-xl text-base font-bold transition-colors ${isActive
+                        ? "text-[var(--ink)] bg-[#2B1F1A]/5 font-extrabold"
                         : "text-[#2B1F1A]/85 hover:text-[var(--ink)] hover:bg-[#2B1F1A]/5"
-                    }`}
+                      }`}
                   >
                     {link.label}
                   </Link>

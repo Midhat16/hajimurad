@@ -106,9 +106,9 @@ export default function AnnualReportsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[var(--fog)] pt-24 pb-20 font-sans">
+    <main className="min-h-screen bg-[var(--fog)] pt-16 sm:pt-20 pb-16 font-sans">
       {/* Top Banner */}
-      <section className="bg-gradient-to-r from-[var(--ink)] to-[var(--iris-dark)] text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden mb-12 shadow-xl">
+      <section className="bg-gradient-to-r from-[var(--ink)] to-[var(--iris-dark)] text-white pt-6 pb-6 sm:pt-8 sm:pb-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden mb-6 shadow-md">
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto relative z-10 text-center space-y-4">
           <span className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-[#5EEAD4] bg-white/10 px-4 py-1.5 rounded-full border border-white/10">

@@ -332,7 +332,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
 
       {/* Form Container */}
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-sm space-y-6">
-        
+
         {/* UNIFIED SINGLE GALLERY UPLOADER BLOCK */}
         <div className="p-5 rounded-2xl border border-[var(--line)] bg-[var(--fog)] space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -368,7 +368,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
                 type="url"
                 value={pastedUrl}
                 onChange={(e) => setPastedUrl(e.target.value)}
-                placeholder="Paste direct image URL (e.g. https://i.ibb.co/...)"
+                placeholder="Paste direct image URL"
                 className="flex-1 text-xs px-3 py-1.5 focus:outline-none font-medium text-[#2B1F1A]"
               />
               <button
@@ -392,7 +392,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
 
           {/* THUMBNAILS + INLINE ADD PHOTO BUTTON IN THE SAME GRID BLOCK */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 pt-1">
-            
+
             {/* Uploaded Image Cards */}
             {formData.images.map((imgUrl, idx) => (
               <div
@@ -465,7 +465,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="e.g. Femtosecond Laser Platform"
+              placeholder=""
               required
               className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
@@ -484,7 +484,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
                     setCustomCategoryInput(e.target.value);
                     setFormData((prev) => ({ ...prev, category: e.target.value }));
                   }}
-                  placeholder="Enter new category name..."
+                  placeholder=""
                   required
                   className="w-full bg-[var(--fog)] border border-[var(--iris)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                 />
@@ -551,7 +551,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
             value={formData.description}
             onChange={handleChange}
             rows={3}
-            placeholder="e.g. Non-invasive high-resolution imaging..."
+            placeholder=""
             className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
           />
         </div>
@@ -579,7 +579,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
                   type="text"
                   value={useItem}
                   onChange={(e) => handleUseChange(index, e.target.value)}
-                  placeholder={`Use Bullet ${index + 1} (e.g. Precision corneal flap creation)`}
+                  placeholder={`Bullet ${index + 1}`}
                   className="flex-1 bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-2.5 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
                 />
                 {formData.uses.length > 1 && (

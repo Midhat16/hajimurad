@@ -4,7 +4,7 @@
  */
 
 const HOSPITAL_BRAND_HEADER = `
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #8C6CFF 0%, #C4232C 100%); border-radius: 16px 16px 0 0;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #1E1433 0%, #C4232C 100%); border-radius: 16px 16px 0 0;">
     <tr>
       <td align="center" style="padding: 28px 20px;">
         <h1 style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
@@ -29,7 +29,7 @@ const HOSPITAL_FOOTER = `
           Helpline: +92 300 0000000 | Email: info@hmeht.com
         </p>
         <p style="margin: 0;">
-          <a href="https://hmeht.com/" target="_blank" style="color: #8C6CFF; font-size: 12px; font-weight: 700; text-decoration: none;">
+          <a href="https://hmeht.com/" target="_blank" style="color: #1E1433; font-size: 12px; font-weight: 700; text-decoration: none;">
             Visit Official Website (hmeht.com) &rarr;
           </a>
         </p>
@@ -86,12 +86,12 @@ export function getUserBookingReceivedEmail(data) {
 
             <!-- Details Card -->
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 1px solid #CBD5E1; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
-              <tr style="background-color: #8C6CFF;">
+              <tr style="background-color: #1E1433;">
                 <td colspan="2" style="padding: 10px 14px; color: #FFFFFF; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
                   Appointment Summary
                 </td>
               </tr>
-              ${renderDetailRow("Reference ID", `<span style="color: #8C6CFF; font-family: monospace;">#${refId}</span>`, "#F8FAFC")}
+              ${renderDetailRow("Reference ID", `<span style="color: #1E1433; font-family: monospace;">#${refId}</span>`, "#F8FAFC")}
               ${renderDetailRow("Service", service, "#FFFFFF")}
               ${renderDetailRow("Doctor / Specialist", doctor, "#F8FAFC")}
               ${renderDetailRow("Requested Date", dateStr, "#FFFFFF")}
@@ -175,7 +175,7 @@ export function getAdminNewBookingEmail(data) {
                   1. Patient Personal Info
                 </td>
               </tr>
-              ${renderDetailRow("Reference ID", `<span style="color: #8C6CFF; font-family: monospace;">#${refId}</span>`, "#F8FAFC")}
+              ${renderDetailRow("Reference ID", `<span style="color: #1E1433; font-family: monospace;">#${refId}</span>`, "#F8FAFC")}
               ${renderDetailRow("Patient Name", patientName, "#FFFFFF")}
               ${renderDetailRow("Age & Gender", `${data.age || 'N/A'} yrs / ${data.gender || 'N/A'}`, "#F8FAFC")}
               ${renderDetailRow("CNIC / ID", data.cnic || "N/A", "#FFFFFF")}
@@ -269,7 +269,7 @@ export function getConfirmedEmail(data) {
     <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
         <tr>
-          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #059669 0%, #8C6CFF 100%); border-radius: 16px 16px 0 0;">
+          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #059669 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
             <h1 style="color: #FFFFFF; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase;">
               APPOINTMENT CONFIRMED ✅
             </h1>
@@ -368,7 +368,7 @@ export function getCancelledEmail(data) {
             <table width="100%" border="0" cellspacing="0" cellpadding="0">
               <tr>
                 <td align="center">
-                  <a href="https://hmeht.com/#appointment" target="_blank" style="display: inline-block; background-color: #8C6CFF; color: #FFFFFF; padding: 12px 24px; font-size: 13px; font-weight: 800; border-radius: 10px; text-decoration: none;">
+                  <a href="https://hmeht.com/#appointment" target="_blank" style="display: inline-block; background-color: #1E1433; color: #FFFFFF; padding: 12px 24px; font-size: 13px; font-weight: 800; border-radius: 10px; text-decoration: none;">
                     Rebook New Appointment &rarr;
                   </a>
                 </td>
@@ -396,7 +396,7 @@ export function getRescheduledEmail(data) {
   const refId = data.id || data.appointmentId || "N/A";
   const service = data.service || "Ophthalmic Service";
   const doctor = data.doctorName || data.doctor || "Assigned Specialist";
-  
+
   const oldDate = data.oldDate || data.previousDate || "Previous Date";
   const oldTime = data.oldTime || data.previousTime || "Previous Time";
   const newDate = data.date || data.newDate || "New Date";
@@ -410,7 +410,7 @@ export function getRescheduledEmail(data) {
     <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
         <tr>
-          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #D97706 0%, #8C6CFF 100%); border-radius: 16px 16px 0 0;">
+          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #D97706 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
             <h1 style="color: #FFFFFF; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase;">
               APPOINTMENT RESCHEDULED 📅
             </h1>
@@ -464,6 +464,284 @@ export function getRescheduledEmail(data) {
 
   return {
     subject: "Your Appointment Has Been Rescheduled – Haji Murad Eye Hospital Trust",
+    html,
+  };
+}
+
+/**
+ * 6. Email — To Candidate (Internship Application Received Notice)
+ */
+export function getUserInternshipApplicationReceivedEmail(data) {
+  const applicantName = data.applicantName || "Valued Applicant";
+  const programTitle = data.internshipTitle || "Internship Program";
+  const department = data.department || "Medical / Clinical";
+  const institute = data.instituteName || "University";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
+        <tr><td>${HOSPITAL_BRAND_HEADER}</td></tr>
+        <tr>
+          <td style="padding: 28px 24px; font-family: 'Segoe UI', Arial, sans-serif;">
+            <div style="display: inline-block; background-color: #EEF2FF; border: 1px solid #C7D2FE; color: #4338CA; font-size: 11px; font-weight: 800; padding: 4px 12px; rounded: 8px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
+              Academic Training Portal
+            </div>
+            <h2 style="color: #0F172A; font-size: 20px; font-weight: 800; margin: 0 0 12px 0;">
+              Internship Application Submitted Successfully! 🎓
+            </h2>
+            <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+              Dear <strong>${applicantName}</strong>,<br/><br/>
+              Thank you for applying to the <strong>${programTitle}</strong> at Haji Murad Trust Eye Hospital. We have received your application and educational credentials.
+            </p>
+
+            <!-- Application Details Card -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 1px solid #CBD5E1; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+              <tr style="background-color: #1E1433;">
+                <td colspan="2" style="padding: 10px 14px; color: #FFFFFF; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
+                  Application Details Summary
+                </td>
+              </tr>
+              ${renderDetailRow("Program Applied", programTitle, "#F8FAFC")}
+              ${renderDetailRow("Department", department, "#FFFFFF")}
+              ${renderDetailRow("Institute / University", institute, "#F8FAFC")}
+              ${renderDetailRow("Application Status", "<span style='color: #D97706; font-weight: 800;'>Under Academic Board Review (Pending)</span>", "#FFFFFF")}
+            </table>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 16px; font-size: 13px; color: #166534; line-height: 1.6;">
+                  📅 <strong>What Happens Next?</strong><br/>
+                  Our Academic Selection Board will evaluate your background. You will receive an official notification regarding the status of your application within <strong>3 to 5 business days</strong> via email or WhatsApp.
+                </td>
+              </tr>
+            </table>
+
+            <p style="color: #64748B; font-size: 13px; margin: 0;">
+              We wish you the very best in your professional journey,<br/>
+              <strong>Haji Murad Trust Eye Hospital Academic Directorate</strong>
+            </p>
+          </td>
+        </tr>
+        <tr><td>${HOSPITAL_FOOTER}</td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return {
+    subject: `Application Received: ${programTitle} – Haji Murad Eye Hospital`,
+    html,
+  };
+}
+
+/**
+ * 7. Email — To Hospital Admin (New Internship Application Notification)
+ */
+export function getAdminNewInternshipApplicationEmail(data) {
+  const applicantName = data.applicantName || "Candidate";
+  const programTitle = data.internshipTitle || "Internship Program";
+  const department = data.department || "General";
+  const institute = data.instituteName || "N/A";
+  const graduationYear = data.graduationYear || "N/A";
+  const email = data.email || "N/A";
+  const phone = data.phone || "N/A";
+  const message = data.coverMessage || "";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
+        <tr>
+          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #4338CA 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
+            <h1 style="color: #FFFFFF; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase;">
+              NEW INTERNSHIP CANDIDATE 🎓
+            </h1>
+            <p style="color: rgba(255,255,255,0.85); font-size: 12px; margin: 4px 0 0 0; font-weight: 700;">
+              Haji Murad Trust Eye Hospital Admin Alert
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px;">
+            <p style="color: #0F172A; font-size: 14px; font-weight: 700; margin: 0 0 16px 0;">
+              A new candidate has submitted an official application for <strong>${programTitle}</strong>.
+            </p>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 1px solid #CBD5E1; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+              ${renderDetailRow("Applicant Name", applicantName, "#F8FAFC")}
+              ${renderDetailRow("Program Title", programTitle, "#FFFFFF")}
+              ${renderDetailRow("Department", department, "#F8FAFC")}
+              ${renderDetailRow("Institute / University", institute, "#FFFFFF")}
+              ${renderDetailRow("Graduation Year", `Class of ${graduationYear}`, "#F8FAFC")}
+              ${renderDetailRow("Email Address", `<a href="mailto:${email}" style="color: #4338CA;">${email}</a>`, "#FFFFFF")}
+              ${renderDetailRow("Phone / WhatsApp", `<a href="tel:${phone}" style="color: #047857; font-weight: 800;">${phone}</a>`, "#F8FAFC")}
+            </table>
+
+            ${
+              message
+                ? `
+            <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; margin-bottom: 20px;">
+              <span style="font-size: 11px; font-weight: 800; color: #4338CA; text-transform: uppercase; display: block; margin-bottom: 4px;">Candidate Cover Statement:</span>
+              <p style="color: #334155; font-size: 13px; font-style: italic; margin: 0; line-height: 1.5;">"${message}"</p>
+            </div>
+            `
+                : ""
+            }
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center">
+                  <a href="https://hmeht.com/admin/internships/applications" target="_blank" style="display: inline-block; background-color: #4338CA; color: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: 800; padding: 12px 28px; border-radius: 10px; text-decoration: none; box-shadow: 0 4px 12px rgba(67, 56, 202, 0.3);">
+                    Open Admin Applications Portal &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr><td>${HOSPITAL_FOOTER}</td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return {
+    subject: `🎓 New Internship Application: ${applicantName} – ${programTitle}`,
+    html,
+  };
+}
+
+/**
+ * 8. Email — Candidate Application ACCEPTED
+ */
+export function getUserInternshipAcceptedEmail(data) {
+  const applicantName = data.applicantName || "Candidate";
+  const programTitle = data.internshipTitle || "Internship Program";
+  const department = data.department || "Medical";
+  const timing = data.timing || "08:00 AM - 02:00 PM";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
+        <tr>
+          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #059669 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
+            <h1 style="color: #FFFFFF; font-size: 22px; font-weight: 800; margin: 0; text-transform: uppercase;">
+              CONGRATULATIONS! ACCEPTED ✅
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 4px 0 0 0; font-weight: 700;">
+              Haji Murad Trust Eye Hospital Academic Board
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 28px 24px;">
+            <p style="color: #0F172A; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+              Dear <strong>${applicantName}</strong>,<br/><br/>
+              We are delighted to inform you that your application for the <strong>${programTitle}</strong> has been officially <strong>ACCEPTED</strong> by the Academic Directorate of Haji Murad Trust Eye Hospital!
+            </p>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 1px solid #A7F3D0; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+              <tr style="background-color: #059669;">
+                <td colspan="2" style="padding: 10px 14px; color: #FFFFFF; font-size: 12px; font-weight: 800; text-transform: uppercase;">
+                  Accepted Candidate Enrollment Summary
+                </td>
+              </tr>
+              ${renderDetailRow("Applicant Name", applicantName, "#ECFDF5")}
+              ${renderDetailRow("Accepted Program", programTitle, "#FFFFFF")}
+              ${renderDetailRow("Department", department, "#ECFDF5")}
+              ${renderDetailRow("Program Schedule Timing", timing, "#FFFFFF")}
+              ${renderDetailRow("Status", "<span style='color: #059669; font-weight: 800;'>ACCEPTED & CONFIRMED ✅</span>", "#ECFDF5")}
+            </table>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ECFDF5; border: 1px solid #6EE7B7; border-radius: 12px; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 16px; font-size: 13px; color: #065F46; line-height: 1.6;">
+                  📋 <strong>Orientation Instructions:</strong><br/>
+                  Our academic coordinator will reach out to you via Phone/WhatsApp to guide you through the orientation schedule and document submission. Please keep your educational original certificates ready.
+                </td>
+              </tr>
+            </table>
+
+            <p style="color: #334155; font-size: 13px; margin: 0;">
+              Congratulations once again on joining Haji Murad Eye Hospital!<br/><br/>
+              Warm regards,<br/>
+              <strong>Academic Selection Directorate</strong><br/>
+              Haji Murad Trust Eye Hospital
+            </p>
+          </td>
+        </tr>
+        <tr><td>${HOSPITAL_FOOTER}</td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return {
+    subject: `🎉 Congratulations! Application Accepted for ${programTitle} – Haji Murad Eye Hospital`,
+    html,
+  };
+}
+
+/**
+ * 9. Email — Candidate Application REJECTED / REGRET
+ */
+export function getUserInternshipRejectedEmail(data) {
+  const applicantName = data.applicantName || "Candidate";
+  const programTitle = data.internshipTitle || "Internship Program";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
+        <tr><td>${HOSPITAL_BRAND_HEADER}</td></tr>
+        <tr>
+          <td style="padding: 28px 24px;">
+            <h2 style="color: #0F172A; font-size: 18px; font-weight: 800; margin: 0 0 14px 0;">
+              Update Regarding Your Internship Application
+            </h2>
+            <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
+              Dear <strong>${applicantName}</strong>,<br/><br/>
+              Thank you for taking the time to apply for the <strong>${programTitle}</strong> at Haji Murad Trust Eye Hospital.
+            </p>
+            <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+              After a thorough review of all applications by our Academic Board, we regret to inform you that we are unable to offer you a position for this current intake due to high candidate competition and limited seat availability.
+            </p>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 16px; font-size: 13px; color: #475569; line-height: 1.6;">
+                  💡 <strong>Future Opportunities:</strong><br/>
+                  Your profile has been saved in our academic talent database. We encourage you to re-apply for upcoming training cohorts and specialized academic workshops.
+                </td>
+              </tr>
+            </table>
+
+            <p style="color: #64748B; font-size: 13px; margin: 0;">
+              We wish you every success in your future academic and professional endeavors.<br/><br/>
+              Sincerely,<br/>
+              <strong>Academic Directorate</strong><br/>
+              Haji Murad Trust Eye Hospital
+            </p>
+          </td>
+        </tr>
+        <tr><td>${HOSPITAL_FOOTER}</td></tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return {
+    subject: `Update Regarding Your Application for ${programTitle} – Haji Murad Eye Hospital`,
     html,
   };
 }

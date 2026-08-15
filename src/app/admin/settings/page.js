@@ -15,6 +15,9 @@ const DEFAULT_SETTINGS = {
   emergencyNumber: "0332-4290724",
   email: "info@hajimuradhospital.org",
   address: "Upper Chanab Canal Bank G.T Road Gujranwala",
+  uanHelplineTitle: "24/7 UAN Helpline",
+  uanHelplineSubtitle: "Need assistance? Our team is available 24/7.",
+  uanHelplineImage: "/images/247-helpline.svg",
 };
 
 const DEFAULT_PROFILE = {
@@ -26,7 +29,7 @@ export default function AdminSettingsPage() {
   const [formData, setFormData] = useState(DEFAULT_SETTINGS);
   const [profileData, setProfileData] = useState(DEFAULT_PROFILE);
   const [loading, setLoading] = useState(true);
-  
+
   // Contact Info States
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -55,6 +58,9 @@ export default function AdminSettingsPage() {
             helplineNumber: helpVal,
             mainDeskNumber: uanVal,
             emergencyNumber: callVal,
+            uanHelplineTitle: data.uanHelplineTitle || DEFAULT_SETTINGS.uanHelplineTitle,
+            uanHelplineSubtitle: data.uanHelplineSubtitle || DEFAULT_SETTINGS.uanHelplineSubtitle,
+            uanHelplineImage: data.uanHelplineImage || DEFAULT_SETTINGS.uanHelplineImage,
           });
         }
 
@@ -143,6 +149,9 @@ export default function AdminSettingsPage() {
         secondaryNumber: helpVal,
         email: formData.email.trim(),
         address: formData.address.trim(),
+        uanHelplineTitle: (formData.uanHelplineTitle || DEFAULT_SETTINGS.uanHelplineTitle).trim(),
+        uanHelplineSubtitle: (formData.uanHelplineSubtitle || DEFAULT_SETTINGS.uanHelplineSubtitle).trim(),
+        uanHelplineImage: formData.uanHelplineImage || DEFAULT_SETTINGS.uanHelplineImage,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
 
@@ -342,6 +351,57 @@ export default function AdminSettingsPage() {
               required
               className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all resize-none"
             />
+          </div>
+
+          {/* 24/7 UAN HELPLINE BANNER SETTINGS */}
+          <div className="md:col-span-2 pt-6 border-t border-slate-200 space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-md border border-rose-200">
+                Home Page Section
+              </span>
+              <h3 className="text-sm font-extrabold text-[#2B1F1A] uppercase tracking-wider">
+                24/7 UAN Helpline Banner Controls
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                  Helpline Section Title
+                </label>
+                <input
+                  type="text"
+                  name="uanHelplineTitle"
+                  value={formData.uanHelplineTitle || ""}
+                  onChange={handleChange}
+                  placeholder=""
+                  className="w-full bg-[var(--fog)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:border-[var(--iris)]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                  Helpline Subtitle Text
+                </label>
+                <input
+                  type="text"
+                  name="uanHelplineSubtitle"
+                  value={formData.uanHelplineSubtitle || ""}
+                  onChange={handleChange}
+                  placeholder=""
+                  className="w-full bg-[var(--fog)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs text-[#2B1F1A] font-semibold focus:outline-none focus:border-[var(--iris)]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <ImagePicker
+                  label="24/7 Clock / Helpline Image *"
+                  value={formData.uanHelplineImage || "/images/247-helpline.svg"}
+                  onChange={(url) => setFormData((prev) => ({ ...prev, uanHelplineImage: url }))}
+                  cropSquare={false}
+                />
+              </div>
+            </div>
           </div>
         </div>
 

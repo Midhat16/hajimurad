@@ -128,7 +128,7 @@ export default function Hero() {
   const currentImage = HERO_BANNER_IMAGES[bgIndex];
 
   return (
-    <section id="hero-banner-section" className="relative pt-24 pb-10 lg:pt-28 lg:pb-12 flex flex-col justify-center bg-[var(--ink)] min-h-[85vh]">
+    <section id="hero-banner-section" className="relative pt-24 pb-10 lg:pt-28 lg:pb-12 flex flex-col justify-center bg-[var(--ink)] min-h-[85vh] overflow-hidden w-full">
 
       {/* Animated Hero Banner Background Images */}
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -163,7 +163,7 @@ export default function Hero() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
+
           {/* Left: Main Headline & Subtitle */}
           <motion.div
             variants={containerVariants}
@@ -183,7 +183,7 @@ export default function Hero() {
           </motion.div>
 
           {/* Right: Reserved EyeGallery Slot */}
-          <div className="lg:col-span-5 w-full min-h-[360px] flex items-center justify-center lg:justify-end relative z-20">
+          <div className="lg:col-span-5 w-full min-h-[260px] sm:min-h-[320px] lg:min-h-[360px] flex items-center justify-center lg:justify-end relative z-20">
             <div
               ref={galleryRef}
               className="w-full max-w-[360px] aspect-square flex items-center justify-center"
@@ -195,7 +195,7 @@ export default function Hero() {
         </div>
 
         {/* Infinite Right-to-Left Scrolling Marquee Banner with Clear Top Margin (mt-8) */}
-        <div className="mt-8 pt-4 border-t border-white/15 overflow-hidden relative marquee-gradient-mask">
+        <div className="mt-8 pt-4 border-t border-white/15 overflow-hidden w-full max-w-full relative marquee-gradient-mask">
           <div className="flex w-max animate-marquee gap-3">
             {[...marqueeItems, ...marqueeItems].map((item, idx) => {
               const IconComp = item.icon;

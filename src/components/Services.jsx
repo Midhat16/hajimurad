@@ -226,7 +226,7 @@ export default function Services() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <span className="text-[11px] font-extrabold tracking-widest text-[#8C6CFF] uppercase bg-white px-3.5 py-1.5 rounded-full border border-black/10 shadow-xs">
+            <span className="text-[11px] font-extrabold tracking-widest text-[#1E1433] uppercase bg-white px-3.5 py-1.5 rounded-full border border-black/10 shadow-xs">
               Department of Ophthalmology
             </span>
             <h2 className="mt-4 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1A1A1A] tracking-tight leading-tight">

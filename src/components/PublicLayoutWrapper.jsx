@@ -2,13 +2,10 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-const AppointmentModal = dynamic(() => import("@/components/AppointmentModal"), {
-  ssr: false,
-});
+import AppointmentModal from "@/components/AppointmentModal";
+import EveningServicesPopup from "@/components/EveningServicesPopup";
 
 export default function PublicLayoutWrapper({ children }) {
   const pathname = usePathname();
@@ -26,9 +23,10 @@ export default function PublicLayoutWrapper({ children }) {
   return (
     <>
       <Navbar />
-      <main className="flex-1 pt-20">{children}</main>
+      <main className="flex-1 pt-20 overflow-x-hidden w-full max-w-full relative">{children}</main>
       <Footer />
       <AppointmentModal />
+      <EveningServicesPopup />
     </>
   );
 }

@@ -193,9 +193,9 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
           <div className="space-y-3">
             <div>
               <h4 className="text-lg sm:text-xl font-extrabold leading-tight text-white">{doctor.name}</h4>
-              <p className="text-xs font-extrabold text-[#0F172A] tracking-wide mt-0.5">{toTitleCase(doctor.specialty || doctor.role)}</p>
+              <p className="text-xs font-extrabold text-slate-200 tracking-wide mt-0.5">{toTitleCase(doctor.specialty || doctor.role)}</p>
               {doctor.pmdcNo && (
-                <p className="text-[11px] text-[#0F172A] font-bold mt-0.5">PMDC #: {doctor.pmdcNo}</p>
+                <p className="text-[11px] text-slate-300 font-bold mt-0.5">PMDC #: {doctor.pmdcNo}</p>
               )}
             </div>
 
@@ -203,7 +203,7 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
               className={`p-2.5 rounded-xl border text-xs font-extrabold flex items-center gap-1.5 ${
                 scheduleDisplay === "Schedule not set"
                   ? "bg-white/10 border-white/10 text-slate-300 italic"
-                  : "bg-emerald-500/90 border-emerald-400 text-white shadow-xs"
+                  : "bg-emerald-500/30 border-emerald-400/40 text-white shadow-xs"
               }`}
             >
               <Calendar className="w-4 h-4 flex-shrink-0 text-white" />
@@ -218,7 +218,7 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
 
             {doctor.fellowship && (
               <div className="space-y-1 border-t border-white/20 pt-2">
-                <p className="text-[10px] text-[#0F172A] font-extrabold uppercase tracking-wider">Fellowship Training</p>
+                <p className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Fellowship Training</p>
                 <p className="text-xs sm:text-[13px] text-white leading-relaxed font-bold">
                   {doctor.fellowship}
                 </p>
@@ -226,18 +226,20 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
             )}
           </div>
 
-          {/* Book Button on Back */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleBookConsult(e, doctor.name);
-            }}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity mt-2 cursor-pointer border border-white/20"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            Book Consult
-          </button>
+          {/* Book Button on Back Only - ONLY IF doctor is marked as Consultant (isConsultant: true) */}
+          {doctor.isConsultant === true && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleBookConsult(e, doctor.name);
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity mt-2 cursor-pointer border border-white/20"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              Book Consultant
+            </button>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -295,7 +297,7 @@ export default function Doctors() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3 py-1 rounded-full border border-[var(--line)] shadow-xs">
+            <span className="inline-block text-[11px] font-bold tracking-widest text-[var(--iris)] uppercase bg-white px-3.5 py-1.5 rounded-full border border-[var(--line)] shadow-xs mb-3">
               Expert Medical Board
             </span>
             <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#2B1F1A] tracking-tight leading-tight">

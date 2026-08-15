@@ -4,16 +4,27 @@ import { db } from "@/lib/firebase";
 import { sendEmail } from "@/lib/sendEmail";
 import { getConfirmedEmail, getCancelledEmail } from "@/lib/emailTemplates";
 
+export const dynamic = "force-static";
+
 export async function GET(req) {
-  const { searchParams } = new URL(req.url);
+  let searchParams;
+  try {
+    searchParams = req?.url ? new URL(req.url).searchParams : new URLSearchParams();
+  } catch (e) {
+    searchParams = new URLSearchParams();
+  }
+
   const id = searchParams.get("id");
   const action = searchParams.get("action");
   const token = searchParams.get("token");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl?.origin || "https://hmeht.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req?.nextUrl?.origin || "https://hmeht.com";
 
   if (!id || !action) {
-    return NextResponse.redirect(`${baseUrl}/admin/action-success?error=missing_params`);
+    return NextResponse.json({
+      status: "ok",
+      message: "Appointment action API endpoint",
+    });
   }
 
   try {

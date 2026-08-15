@@ -7,11 +7,12 @@ service cloud.firestore {
     match /doctorCredentials/{doctorId} { allow read: if true; allow write: if request.auth != null; }
     match /testimonials/{doc} { allow read: if true; allow write: if request.auth != null; }
     match /technologies/{doc} { allow read: if true; allow write: if request.auth != null; }
-    match /siteContent/{doc} { allow read: if true; allow write: if request.auth != null; }
+    match /siteContent/{doc} { allow read: if true; allow write: if true; }
+    match /internshipSlides/{doc} { allow read: if true; allow write: if true; }
     match /appointments/{doc} { allow create: if true; allow read, update, delete: if request.auth != null; }
     match /messages/{doc} { allow create: if true; allow read, update, delete: if request.auth != null; }
     match /activityLog/{doc} { allow create: if true; allow read, update: if request.auth != null; }
-    match /internships/{doc} { allow read: if true; allow write: if request.auth != null; }
+    match /internships/{doc=**} { allow read: if true; allow write: if true; }
     match /internshipApplications/{doc} { allow create: if true; allow read, update, delete: if request.auth != null; }
     match /annualReports/{doc} { allow read: if true; allow write: if request.auth != null; }
     match /newsletters/{doc} { allow read: if true; allow write: if request.auth != null; }

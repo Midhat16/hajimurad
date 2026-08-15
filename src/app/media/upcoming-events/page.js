@@ -106,9 +106,9 @@ export default function UpcomingEventsPage() {
   const hasNoEvents = upcomingList.length === 0 && displayCompleted.length === 0;
 
   return (
-    <main className="min-h-screen bg-[var(--fog)] pt-24 pb-20 font-sans">
+    <main className="min-h-screen bg-[var(--fog)] pt-16 sm:pt-20 pb-16 font-sans">
       {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-[var(--ink)] to-[var(--iris-dark)] text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden mb-12 shadow-xl">
+      <section className="bg-gradient-to-r from-[var(--ink)] to-[var(--iris-dark)] text-white pt-6 pb-6 sm:pt-8 sm:pb-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden mb-6 shadow-md">
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto relative z-10 text-center space-y-4">
           <span className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-[#5EEAD4] bg-white/10 px-4 py-1.5 rounded-full border border-white/10">
@@ -123,9 +123,9 @@ export default function UpcomingEventsPage() {
         </div>
       </section>
 
-      {/* Sticky Category Header Bar (Flush with Navbar, 0px gap) */}
+      {/* Sticky Category Header Bar (Flush with Navbar) */}
       {categories.length > 1 && (
-        <div className="sticky top-[56px] sm:top-[68px] lg:top-[76px] z-40 bg-[var(--fog)] py-3 border-b border-[var(--line)] shadow-sm mb-10 transition-all">
+        <div className="sticky top-[56px] sm:top-[64px] lg:top-[70px] z-40 bg-[var(--fog)]/95 backdrop-blur-md py-2 border-b border-[var(--line)] shadow-xs mb-6 transition-all">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-2 flex-wrap">
             {categories.map((cat) => (
               <button

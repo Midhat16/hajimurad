@@ -49,7 +49,7 @@ function AdminContentGuard({ children }) {
       <AdminSidebar />
 
       {/* Main Admin Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 md:pl-64">
         {/* Top Header Bar */}
         <header className="bg-white border-b border-[var(--line)] px-3 sm:px-8 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-40 min-w-0">
           <div className="flex items-center gap-2 pl-11 md:pl-0 min-w-0">
