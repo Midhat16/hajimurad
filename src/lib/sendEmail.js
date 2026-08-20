@@ -30,7 +30,7 @@ export async function sendEmail({ to, subject, html }) {
     });
 
     const mailOptions = {
-      from: `"Haji Murad Eye Hospital" <${user}>`,
+      from: `"Haji Murad Eye Hospital Trust" <${user}>`,
       to,
       subject,
       html,

@@ -1,0 +1,9 @@
+# User-agent rules for Haji Murad Eye Hospital Gujranwala
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /doctor/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://hajimuradeyehospital.org/sitemap.xml

@@ -2,8 +2,9 @@ import React from "react";
 import Doctors from "@/components/Doctors";
 
 export const metadata = {
-  title: "World-Class Ophthalmic Surgeons | Haji Murad Eye Hospital",
-  description: "Meet our team of internationally trained eye surgeons and specialists dedicated to visual restoration.",
+  title: "Haji Murad Eye Hospital Trust | Best Eye Specialists & Ophthalmologists Gujranwala",
+  description:
+    "Consult top eye specialists and ophthalmic surgeons in Gujranwala. Expert consultants for cataract surgery, retina procedures, cornea, glaucoma & pediatric eye care.",
 };
 
 export default function DoctorsPage() {

@@ -1,11 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   reactCompiler: true,
 
-  // Static export
-  output: 'export',
-
-  // Optional: Agar image optimization use nahi karni
   images: {
     unoptimized: true,
     remotePatterns: [

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ArrowLeft, Save, GraduationCap, Building2, Clock, Users, FileText, CheckCircle2, Plus, Trash2, Sparkles, AlertCircle, Quote } from "lucide-react";
 import ImagePicker from "@/components/admin/ImagePicker";
@@ -132,6 +132,12 @@ export default function AdminNewInternshipPage() {
       const currentProgs = detailsSnap.exists() && Array.isArray(detailsSnap.data().programs) ? [...detailsSnap.data().programs] : [];
       currentProgs.push(newProgramObj);
       await setDoc(detailsRef, { programs: currentProgs, updatedAt: serverTimestamp() });
+
+      try {
+        await setDoc(doc(db, "internships", newProgramObj.id), newProgramObj);
+      } catch (rootDocErr) {
+        console.warn("Notice saving root doc:", rootDocErr);
+      }
 
       router.push("/admin/internships");
     } catch (err) {

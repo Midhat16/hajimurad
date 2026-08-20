@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { GraduationCap, Award, Stethoscope, Calendar } from "lucide-react";
+import { GraduationCap, Award, Stethoscope, Calendar, Phone, Globe, ChevronRight } from "lucide-react";
 import { useLenis } from "lenis/react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { sortDoctors } from "@/lib/doctorUtils";
 
@@ -98,7 +99,7 @@ function formatDoctorSchedule(doctor) {
   return `${daysText} • ${hoursText}`;
 }
 
-function DoctorCard({ doctor, index, handleBookConsult }) {
+function DoctorCard({ doctor, index, handleBookConsult, contactInfo }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const scheduleDisplay = formatDoctorSchedule(doctor);
 
@@ -108,7 +109,7 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="h-[430px] sm:h-[450px] w-full cursor-pointer select-none pt-6"
+      className="h-[430px] sm:h-[450px] w-full cursor-pointer select-none pt-6 mb-[10px]"
       style={{ perspective: "1200px" }}
       onMouseEnter={() => setIsFlipped(true)}
       onMouseLeave={() => setIsFlipped(false)}
@@ -121,7 +122,7 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
       >
-        {/* 1. FRONT SIDE */}
+        {/* 1. FRONT SIDE (Exact match to Image 1) */}
         <div
           className="absolute inset-0 w-full h-full rounded-[28px] p-5 sm:p-6 glass-card bg-white flex flex-col justify-between border border-[var(--line)] shadow-xs overflow-visible"
           style={{
@@ -144,6 +145,13 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
             <p className="text-xs sm:text-sm text-[var(--slate)] font-semibold mt-1 text-center line-clamp-2">
               {doctor.specialty}
             </p>
+
+            {doctor.experienceYears && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200 mt-1.5 shadow-2xs">
+                <Award className="w-3 h-3 text-teal-600" />
+                {doctor.experienceYears}+ Yrs Experience
+              </span>
+            )}
           </div>
 
           {/* Credentials Footer on Front */}
@@ -181,9 +189,9 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
           </div>
         </div>
 
-        {/* 2. BACK SIDE (Flipped by 180 degrees) */}
+        {/* 2. BACK SIDE (Flipped by 180 degrees - Simplified as requested in Image 2) */}
         <div
-          className="absolute inset-0 w-full h-full rounded-[28px] p-6 bg-gradient-to-b from-[var(--ink)] via-[var(--ink)] to-[var(--ink)] flex flex-col justify-between text-white border border-[var(--ink)] shadow-xl overflow-y-auto custom-scrollbar"
+          className="absolute inset-0 w-full h-full rounded-[28px] p-5 sm:p-6 bg-[#1E1433] flex flex-col justify-between text-white border border-[var(--ink)] shadow-xl overflow-y-auto custom-scrollbar"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
@@ -191,14 +199,18 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
           }}
         >
           <div className="space-y-3">
+            {/* Header: Doctor Name & Specialty */}
             <div>
               <h4 className="text-lg sm:text-xl font-extrabold leading-tight text-white">{doctor.name}</h4>
-              <p className="text-xs font-extrabold text-slate-200 tracking-wide mt-0.5">{toTitleCase(doctor.specialty || doctor.role)}</p>
+              <p className="text-xs font-extrabold text-slate-200 tracking-wide mt-0.5">
+                {toTitleCase(doctor.specialty || doctor.role)}
+              </p>
               {doctor.pmdcNo && (
                 <p className="text-[11px] text-slate-300 font-bold mt-0.5">PMDC #: {doctor.pmdcNo}</p>
               )}
             </div>
 
+            {/* Green Availability Block */}
             <div
               className={`p-2.5 rounded-xl border text-xs font-extrabold flex items-center gap-1.5 ${
                 scheduleDisplay === "Schedule not set"
@@ -210,36 +222,41 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
               <span className="text-white">Availability: {scheduleDisplay}</span>
             </div>
 
+            {/* Short Bio / Description Text */}
             {doctor.bio && (
               <p className="text-xs sm:text-[13px] text-white leading-relaxed font-semibold">
                 {doctor.bio}
               </p>
             )}
-
-            {doctor.fellowship && (
-              <div className="space-y-1 border-t border-white/20 pt-2">
-                <p className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Fellowship Training</p>
-                <p className="text-xs sm:text-[13px] text-white leading-relaxed font-bold">
-                  {doctor.fellowship}
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Book Button on Back Only - ONLY IF doctor is marked as Consultant (isConsultant: true) */}
-          {doctor.isConsultant === true && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleBookConsult(e, doctor.name);
-              }}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity mt-2 cursor-pointer border border-white/20"
+          {/* Stacked Action Buttons at Bottom of Back Card */}
+          <div className="pt-2 flex flex-col gap-2 w-full mt-auto shrink-0">
+            {/* 1. Book Consult Button (FIRST / ON TOP - ONLY IF doctor is marked as Consultant) */}
+            {doctor.isConsultant === true && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBookConsult(e, doctor.name);
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-[#C4232C] hover:bg-[#a81c24] text-white py-2 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer border border-white/20"
+              >
+                <Calendar className="w-3.5 h-3.5 text-[#5EEAD4]" />
+                <span>Book Consult</span>
+              </button>
+            )}
+
+            {/* 2. View More Button (SECOND / BELOW - ALWAYS SHOWN for all doctors) */}
+            <Link
+              href={`/doctors/details?id=${doctor.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#1E1433] hover:bg-[#2A1C47] text-white font-extrabold text-xs transition-all border border-white/20 shadow-xs group cursor-pointer"
             >
-              <Calendar className="w-3.5 h-3.5" />
-              Book Consultant
-            </button>
-          )}
+              <span>View More</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[#5EEAD4] group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -248,6 +265,11 @@ function DoctorCard({ doctor, index, handleBookConsult }) {
 
 export default function Doctors() {
   const [doctors, setDoctors] = useState([]);
+  const [contactInfo, setContactInfo] = useState({
+    callNumber: "0324-1111691",
+    emergencyNumber: "0324-1111691",
+    uanNumber: "111 333 456",
+  });
   const lenis = useLenis();
 
   useEffect(() => {
@@ -267,7 +289,20 @@ export default function Doctors() {
         }
       );
 
-      return () => unsubscribe();
+      const unsubContact = onSnapshot(
+        doc(db, "siteContent", "contactInfo"),
+        (docSnap) => {
+          if (docSnap.exists()) {
+            setContactInfo((prev) => ({ ...prev, ...docSnap.data() }));
+          }
+        },
+        (err) => console.warn("Doctors contactInfo error:", err)
+      );
+
+      return () => {
+        unsubscribe();
+        unsubContact();
+      };
     } catch (err) {
       console.warn("Firestore initialization error:", err);
     }
@@ -283,7 +318,7 @@ export default function Doctors() {
   };
 
   return (
-    <section id="doctors" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
+    <section id="doctors" className="py-10 sm:py-12 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
       {/* Background radial soft blur */}
       <div className="absolute bottom-0 right-0 w-[450px] h-[450px] bg-slate-100/40 rounded-full blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
 
@@ -304,7 +339,7 @@ export default function Doctors() {
               Meet Our Doctors
             </h2>
             <p className="mt-3 text-base sm:text-lg text-[var(--slate)] leading-relaxed">
-              Our specialists hold fellowships from the world's most prestigious ophthalmic institutions, active research chairs, and thousands of successful sight restoration surgeries.
+              Our specialists hold advanced clinical fellowships, recognized professional training, and extensive experience in sight restoration surgeries.
             </p>
           </motion.div>
         </div>
@@ -317,6 +352,7 @@ export default function Doctors() {
               doctor={doctor}
               index={index}
               handleBookConsult={handleBookConsult}
+              contactInfo={contactInfo}
             />
           ))}
         </div>

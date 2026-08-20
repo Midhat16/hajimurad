@@ -11,18 +11,18 @@ const DEFAULT_WHY_CONTENT = {
   badgeText: "Pioneering Vision Science",
   heading: "Setting New Milestones in Ophthalmic Excellence",
   description: "Haji Murad Eye Hospital is not just an eye clinic; it is a specialized center of vision science. We combine decades of experience with advanced diagnostics to resolve vision issues before they disrupt your life.",
-  yearsExperience: 25,
-  successfulSurgeries: 45000,
-  certifiedSpecialists: 18,
-  patientSuccessRate: 99.8,
+  yearsExperience: "25+",
+  successfulSurgeries: "45,000+",
+  certifiedSpecialists: "18+",
+  patientSuccessRate: "99.8%",
   points: [
     {
       title: "FDA-Approved Surgical Tech",
-      description: "Every laser and scanning machine we utilize is state-of-the-art and certified by international health boards.",
+      description: "Every laser and scanning machine we utilize is modern, high-precision equipment meeting international safety and clinical standards.",
     },
     {
       title: "Patient-First Care Structure",
-      description: "Personalized outpatient care plans and a lifetime follow-up guarantee for all surgical procedures.",
+      description: "Personalized outpatient care plans and dedicated post-operative follow-up support for all surgical procedures.",
     },
     {
       title: "Advanced Cornea Topography",
@@ -47,6 +47,10 @@ export default function AdminWhyChooseUsPage() {
           setFormData({
             ...DEFAULT_WHY_CONTENT,
             ...data,
+            yearsExperience: data.yearsExperience !== undefined && data.yearsExperience !== null ? String(data.yearsExperience) : DEFAULT_WHY_CONTENT.yearsExperience,
+            successfulSurgeries: data.successfulSurgeries !== undefined && data.successfulSurgeries !== null ? String(data.successfulSurgeries) : DEFAULT_WHY_CONTENT.successfulSurgeries,
+            certifiedSpecialists: data.certifiedSpecialists !== undefined && data.certifiedSpecialists !== null ? String(data.certifiedSpecialists) : DEFAULT_WHY_CONTENT.certifiedSpecialists,
+            patientSuccessRate: data.patientSuccessRate !== undefined && data.patientSuccessRate !== null ? String(data.patientSuccessRate) : DEFAULT_WHY_CONTENT.patientSuccessRate,
             points: Array.isArray(data.points) && data.points.length > 0
               ? data.points.map((p) => ({
                 title: p.title || "",
@@ -128,10 +132,10 @@ export default function AdminWhyChooseUsPage() {
         badgeText: formData.badgeText.trim(),
         heading: formData.heading.trim(),
         description: formData.description.trim(),
-        yearsExperience: Number(formData.yearsExperience) || 0,
-        successfulSurgeries: Number(formData.successfulSurgeries) || 0,
-        certifiedSpecialists: Number(formData.certifiedSpecialists) || 0,
-        patientSuccessRate: Number(formData.patientSuccessRate) || 0,
+        yearsExperience: String(formData.yearsExperience || "").trim(),
+        successfulSurgeries: String(formData.successfulSurgeries || "").trim(),
+        certifiedSpecialists: String(formData.certifiedSpecialists || "").trim(),
+        patientSuccessRate: String(formData.patientSuccessRate || "").trim(),
         points: validPoints,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
@@ -240,7 +244,7 @@ export default function AdminWhyChooseUsPage() {
         {/* 4 Track Record Metrics */}
         <div className="space-y-4 border-b border-slate-100 pb-6">
           <h3 className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider">
-            Track Record Statistics (Count-Up Numbers)
+            Track Record Statistics (Editable Text / Numbers)
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -251,12 +255,11 @@ export default function AdminWhyChooseUsPage() {
                 Years Experience
               </label>
               <input
-                type="number"
+                type="text"
                 name="yearsExperience"
                 value={formData.yearsExperience}
                 onChange={handleChange}
-                min={0}
-                required
+                placeholder="e.g. 25+ or Coming Soon"
                 className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
@@ -268,12 +271,11 @@ export default function AdminWhyChooseUsPage() {
                 Surgeries Count
               </label>
               <input
-                type="number"
+                type="text"
                 name="successfulSurgeries"
                 value={formData.successfulSurgeries}
                 onChange={handleChange}
-                min={0}
-                required
+                placeholder="e.g. 45,000+ or Coming Soon"
                 className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
@@ -285,12 +287,11 @@ export default function AdminWhyChooseUsPage() {
                 Specialists Count
               </label>
               <input
-                type="number"
+                type="text"
                 name="certifiedSpecialists"
                 value={formData.certifiedSpecialists}
                 onChange={handleChange}
-                min={0}
-                required
+                placeholder="e.g. 18+ or Coming Soon"
                 className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
@@ -302,14 +303,11 @@ export default function AdminWhyChooseUsPage() {
                 Success Rate (%)
               </label>
               <input
-                type="number"
-                step="0.1"
+                type="text"
                 name="patientSuccessRate"
                 value={formData.patientSuccessRate}
                 onChange={handleChange}
-                min={0}
-                max={100}
-                required
+                placeholder="e.g. 99.8% or Coming Soon"
                 className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-3 py-2.5 text-sm text-[#2B1F1A] font-bold focus:outline-none focus:ring-4 transition-all"
               />
             </div>
@@ -427,7 +425,7 @@ export default function AdminWhyChooseUsPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSaving}
-            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {isSaving ? "Saving Content..." : "Save Changes"}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ArrowLeft, Save, GraduationCap, AlertCircle, Plus, Trash2, Sparkles, Quote } from "lucide-react";
 import ImagePicker from "@/components/admin/ImagePicker";
@@ -257,6 +257,12 @@ function EditInternshipFormContent() {
         await setDoc(detailsRef, { programs: updatedProgs, updatedAt: serverTimestamp() });
       } else {
         await setDoc(detailsRef, { programs: [updatePayload], updatedAt: serverTimestamp() });
+      }
+
+      try {
+        await setDoc(doc(db, "internships", id), updatePayload, { merge: true });
+      } catch (rootErr) {
+        console.warn("Notice updating root doc:", rootErr);
       }
 
       router.push("/admin/internships");

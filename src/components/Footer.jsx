@@ -85,12 +85,12 @@ const YoutubeIcon = (props) => (
 
 const DEFAULT_CONTACT_INFO = {
   uanNumber: "111 333 456",
-  callNumber: "0332-4290724",
+  callNumber: "0324-1111691",
   helplineNumber: "0324-1111691",
   mainDeskNumber: "111 333 456",
-  emergencyNumber: "0332-4290724",
-  email: "info@hajimuradhospital.org",
-  address: "Upper Chanab Canal Bank G.T Road Gujranwala",
+  emergencyNumber: "0324-1111691",
+  email: "info@hmeht.com",
+  address: "Upper Chanab, Canal Bank, G.T Road, Gujranwala",
 };
 
 export default function Footer() {
@@ -141,7 +141,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-[#F7F3EA] text-[#1A1A1A] border-t border-[#2B1F1A]/10 pt-12 pb-6 lg:pt-14 lg:pb-6 text-left relative z-10 select-none">
+    <footer suppressHydrationWarning className="bg-[#F7F3EA] text-[#1A1A1A] border-t border-[#2B1F1A]/10 pt-8 pb-6 lg:pt-10 lg:pb-6 text-left relative z-10 select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 pb-10 border-b border-[#2B1F1A]/10">
@@ -149,10 +149,13 @@ export default function Footer() {
           <div className="lg:col-span-4 space-y-5">
             <Link href="/" className="flex items-center gap-3">
               <div className="relative h-13 w-13 sm:h-14 sm:w-14 md:h-15 md:w-15 flex-shrink-0 overflow-hidden">
-                <img
-                  src={profile.logoUrl}
-                  alt={profile.hospitalName}
+                <Image
+                  src={profile.logoUrl || "/images/logo.png"}
+                  alt={`${profile.hospitalName || "Haji Murad Eye Hospital"} - Eye Specialist Hospital Gujranwala`}
+                  width={60}
+                  height={60}
                   className="w-full h-full object-contain"
+                  loading="lazy"
                 />
               </div>
               <div className="flex flex-col">
@@ -224,7 +227,7 @@ export default function Footer() {
 
           {/* Quick Links Column */}
           <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-widest">
+            <h4 style={{ fontFamily: "var(--font-heading)" }} className="text-xs font-extrabold text-red-600 hover:text-[#1E1433] transition-colors duration-200 cursor-pointer uppercase tracking-widest">
               Quick Links
             </h4>
             <ul className="space-y-2.5">
@@ -233,7 +236,9 @@ export default function Footer() {
                 { label: "Specialty Services", href: "/services" },
                 { label: "Medical Surgeons", href: "/doctors" },
                 { label: "Clinic Equipment", href: "/technologies" },
+                { label: "Blog & Articles", href: "/patient-education" },
                 { label: "About Us", href: "/about" },
+                { label: "FAQs", href: "/about/faqs" },
                 { label: "Contact Us", href: "/contact" },
               ].map((link) => (
                 <li key={link.label}>
@@ -250,8 +255,8 @@ export default function Footer() {
 
           {/* Services Column - Dynamic Firestore List */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-widest">
-              <Link href="/services" className="hover:text-[var(--ink)] transition-colors">
+            <h4 style={{ fontFamily: "var(--font-heading)" }} className="text-xs font-extrabold text-red-600 hover:text-[#1E1433] transition-colors duration-200 cursor-pointer uppercase tracking-widest">
+              <Link href="/services" style={{ fontFamily: "var(--font-heading)" }} className="text-red-600 hover:text-[#1E1433] transition-colors duration-200 uppercase tracking-widest">
                 Ophthalmic Services
               </Link>
             </h4>
@@ -271,7 +276,7 @@ export default function Footer() {
 
           {/* Contact Details Column - Dynamic Firestore Info */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-widest">
+            <h4 style={{ fontFamily: "var(--font-heading)" }} className="text-xs font-extrabold text-red-600 hover:text-[#1E1433] transition-colors duration-200 cursor-pointer uppercase tracking-widest">
               Immediate Help
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm text-[#4A4A4A] font-medium">
@@ -299,7 +304,7 @@ export default function Footer() {
                   href={`mailto:${contactInfo.email}`}
                   className="text-[#1A1A1A] font-extrabold hover:text-[var(--ink)] transition-colors"
                 >
-                  info@HMEHT.com
+                  {contactInfo.email}
                 </a>
               </li>
               <li className="leading-relaxed">
@@ -307,21 +312,24 @@ export default function Footer() {
               </li>
               <li className="pt-3">
                 <a
-                  href="tel:111333456"
-                  title="Call 24/7 Emergency Helpline: 111 333 456"
+                  href={`tel:${(contactInfo.uanNumber || contactInfo.mainDeskNumber)?.replace(/\s+/g, "")}`}
+                  title={`Call 24/7 Emergency Helpline: ${contactInfo.uanNumber || "111 333 456"}`}
                   className="inline-flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl bg-white border-2 border-red-500 shadow-xs hover:shadow-md hover:border-red-600 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer group"
                 >
-                  <img
+                  <Image
                     src="/images/emergency-badge.png"
-                    alt="24/7 Emergency Service - Call 111 333 456"
+                    alt={`24/7 Emergency Service - Call ${contactInfo.uanNumber || "111 333 456"}`}
+                    width={40}
+                    height={40}
                     className="h-9 sm:h-10 w-auto object-contain flex-shrink-0"
+                    loading="lazy"
                   />
                   <div className="flex flex-col text-left">
                     <span className="text-[11px] font-extrabold text-red-600 uppercase tracking-wider leading-tight">
                       24/7 UAN Helpline
                     </span>
                     <span className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
-                      111 333 456
+                      {contactInfo.uanNumber || contactInfo.mainDeskNumber}
                     </span>
                   </div>
                 </a>
@@ -338,7 +346,7 @@ export default function Footer() {
               href="https://bizdevit.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#1A1A1A] hover:text-[var(--ink)] font-bold hover:underline transition-colors"
+              className="text-red-600 hover:text-[#1E1433] font-extrabold hover:underline transition-colors duration-200"
             >
               Biz Dev IT
             </a>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { collection, onSnapshot } from "firebase/firestore";
@@ -28,6 +29,8 @@ import {
   Image as ImageIcon,
   HeartHandshake,
   CalendarDays,
+  HelpCircle,
+  BookOpen,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,7 +47,9 @@ const NAV_ITEMS = [
   { label: "Newsletters", href: "/admin/media/newsletters", icon: Newspaper },
   { label: "Success Stories", href: "/admin/media/success-stories", icon: HeartHandshake },
   { label: "Upcoming Events", href: "/admin/media/events", icon: CalendarDays },
+  { label: "Blog & Articles", href: "/admin/patient-education", icon: BookOpen },
   { label: "Why Choose Us", href: "/admin/why-choose-us", icon: Sparkles },
+  { label: "Manage FAQs", href: "/admin/faqs", icon: HelpCircle },
   { label: "About Content", href: "/admin/about", icon: Info },
   { label: "Messages", href: "/admin/messages", icon: MessageSquare },
   { label: "Site Settings", href: "/admin/settings", icon: Settings },
@@ -109,7 +114,13 @@ export default function AdminSidebar() {
       <div className="flex items-center justify-between px-1 pb-3 border-b border-[#E5E5E5] shrink-0">
         <Link href="/admin/dashboard" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
-            <img src={profile.logoUrl} alt={profile.hospitalName} className="w-full h-full object-contain" />
+            <Image
+              src={profile.logoUrl}
+              alt={profile.hospitalName}
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-black tracking-tight text-[#2B1F1A] leading-tight">
@@ -145,7 +156,7 @@ export default function AdminSidebar() {
               onClick={() => setMobileOpen(false)}
               className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all group ${
                 isActive
-                  ? "bg-gradient-to-r from-[#C4232C] to-[#E63946] text-white shadow-md font-black"
+                  ? "bg-[#C4232C] text-white shadow-md font-black"
                   : "text-[#2B1F1A] hover:bg-slate-100 hover:text-[#C4232C]"
               }`}
             >

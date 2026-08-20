@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   collection,
   onSnapshot,
@@ -142,6 +143,9 @@ export default function AdminInternshipsPage() {
         );
         await setDoc(detailsRef, { programs: updated, updatedAt: serverTimestamp() });
       }
+      try {
+        await setDoc(doc(db, "internships", item.id), { isActive: !item.isActive }, { merge: true });
+      } catch (e1) {}
     } catch (err) {
       alert("Failed to update status.");
     }
@@ -157,6 +161,9 @@ export default function AdminInternshipsPage() {
         const updated = currentProgs.filter((p) => p.id !== item.id);
         await setDoc(detailsRef, { programs: updated, updatedAt: serverTimestamp() });
       }
+      try {
+        await deleteDoc(doc(db, "internships", item.id));
+      } catch (e2) {}
     } catch (err) {
       alert("Failed to delete internship program.");
     }
@@ -472,9 +479,12 @@ export default function AdminInternshipsPage() {
                         <span className="absolute bottom-2 right-2 text-[10px] font-black uppercase bg-black/60 px-2 py-0.5 rounded text-white">Video</span>
                       </div>
                     ) : (
-                      <img
+                      <Image
                         src={slide.mediaUrl || slide.imageUrl}
-                        alt={slide.caption}
+                        alt={slide.caption || "Demonstration slide preview"}
+                        width={300}
+                        height={170}
+                        unoptimized
                         className="w-full h-full object-cover"
                       />
                     )}

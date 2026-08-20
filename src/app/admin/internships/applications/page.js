@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   ArrowLeft,
@@ -26,12 +26,15 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+import ConfirmModal from "@/components/admin/ConfirmModal";
+
 export default function AdminInternshipApplicationsPage() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("all"); // "all" | "pending" | "accepted" | "rejected"
   const [selectedApp, setSelectedApp] = useState(null);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -82,7 +85,7 @@ export default function AdminInternshipApplicationsPage() {
     }
   };
 
-  const handleAcceptStatus = async (item) => {
+  const processAcceptStatus = async (item) => {
     setActionLoadingId(item.id);
     try {
       await updateDoc(doc(db, "internshipApplications", item.id), {
@@ -104,15 +107,14 @@ export default function AdminInternshipApplicationsPage() {
         }),
       }).catch((err) => console.warn("Error triggering accept email:", err));
     } catch (err) {
-      alert("Failed to accept application.");
+      console.warn("Failed to accept application:", err);
     } finally {
       setActionLoadingId(null);
+      setConfirmConfig(null);
     }
   };
 
-  const handleRejectStatus = async (item) => {
-    if (!confirm(`Are you sure you want to reject the application from ${item.applicantName}? An official regret notification email will be sent to the candidate.`)) return;
-
+  const processRejectStatus = async (item) => {
     setActionLoadingId(item.id);
     try {
       await updateDoc(doc(db, "internshipApplications", item.id), {
@@ -134,22 +136,70 @@ export default function AdminInternshipApplicationsPage() {
         }),
       }).catch((err) => console.warn("Error triggering reject email:", err));
     } catch (err) {
-      alert("Failed to reject application.");
+      console.warn("Failed to reject application:", err);
     } finally {
       setActionLoadingId(null);
+      setConfirmConfig(null);
     }
   };
 
-  const handleDelete = async (item) => {
-    if (!confirm(`Are you sure you want to delete application from ${item.applicantName}?`)) return;
+  const processDelete = async (item) => {
     try {
+      // 1. Delete application from internshipApplications
       await deleteDoc(doc(db, "internshipApplications", item.id));
+
+      // 2. Clean up any related notifications and activity log entries
+      const qNotifs = query(collection(db, "notifications"), where("applicationId", "==", item.id));
+      const snapNotifs = await getDocs(qNotifs).catch(() => ({ docs: [] }));
+      const p1 = (snapNotifs.docs || []).map((d) => deleteDoc(doc(db, "notifications", d.id)).catch(() => {}));
+
+      const qLogs = query(collection(db, "activityLog"), where("applicationId", "==", item.id));
+      const snapLogs = await getDocs(qLogs).catch(() => ({ docs: [] }));
+      const p2 = (snapLogs.docs || []).map((d) => deleteDoc(doc(db, "activityLog", d.id)).catch(() => {}));
+
+      await Promise.all([...p1, ...p2]);
+
       if (selectedApp?.id === item.id) {
         setSelectedApp(null);
       }
     } catch (err) {
-      alert("Failed to delete application.");
+      console.warn("Failed to delete application:", err);
+    } finally {
+      setConfirmConfig(null);
     }
+  };
+
+  const handleAcceptStatus = (item) => {
+    setConfirmConfig({
+      isOpen: true,
+      type: "accept",
+      title: "Accept Internship Candidate",
+      message: `Are you sure you want to ACCEPT the application from ${item.applicantName || "this candidate"}? An official acceptance notification email will be sent to the candidate.`,
+      confirmText: "Accept Candidate",
+      onConfirm: () => processAcceptStatus(item),
+    });
+  };
+
+  const handleRejectStatus = (item) => {
+    setConfirmConfig({
+      isOpen: true,
+      type: "reject",
+      title: "Reject Internship Candidate",
+      message: `Are you sure you want to REJECT the application from ${item.applicantName || "this candidate"}? An official regret notification email will be sent to the candidate.`,
+      confirmText: "Reject Candidate",
+      onConfirm: () => processRejectStatus(item),
+    });
+  };
+
+  const handleDelete = (item) => {
+    setConfirmConfig({
+      isOpen: true,
+      type: "delete",
+      title: "Delete Application Record",
+      message: `Are you sure you want to permanently delete the application record for ${item.applicantName || "this candidate"}?`,
+      confirmText: "Delete Record",
+      onConfirm: () => processDelete(item),
+    });
   };
 
   const handleOpenApp = (item) => {
@@ -517,6 +567,17 @@ export default function AdminInternshipApplicationsPage() {
           </div>
         </div>
       )}
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!confirmConfig?.isOpen}
+        title={confirmConfig?.title}
+        message={confirmConfig?.message}
+        type={confirmConfig?.type}
+        confirmText={confirmConfig?.confirmText}
+        isLoading={!!actionLoadingId}
+        onConfirm={confirmConfig?.onConfirm}
+        onCancel={() => setConfirmConfig(null)}
+      />
     </div>
   );
 }

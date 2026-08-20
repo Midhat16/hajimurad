@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, setLogLevel } from "firebase/firestore";
+import { getFirestore, initializeFirestore, setLogLevel } from "firebase/firestore";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
@@ -15,11 +15,19 @@ const firebaseConfig = {
 // Initialize Firebase App (prevents re-initialization on Next.js hot reload / SSR)
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// Suppress internal Firestore connection retry logs from clogging Next.js dev overlay
-setLogLevel("error");
+// Suppress internal Firestore connection retry logs from clogging dev overlay & console
+setLogLevel("silent");
 
-// Initialize Cloud Firestore, Auth & Storage
-const db = getFirestore(app);
+// Initialize Cloud Firestore with Auto-Detect Long Polling for robust network connection
+let db;
+try {
+  db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+  });
+} catch (e) {
+  db = getFirestore(app);
+}
+
 const auth = getAuth(app);
 const storage = getStorage(app);
 

@@ -163,6 +163,28 @@ function AdminMessagesContent() {
     specialty: "Specialist",
   };
 
+  const [contactInfo, setContactInfo] = useState({
+    callNumber: "0324-1111691",
+    helplineNumber: "0324-1111691",
+  });
+
+  useEffect(() => {
+    try {
+      const unsub = onSnapshot(
+        doc(db, "siteContent", "contactInfo"),
+        (snap) => {
+          if (snap.exists()) {
+            setContactInfo((prev) => ({ ...prev, ...snap.data() }));
+          }
+        },
+        (err) => console.warn("Admin messages contactInfo error:", err)
+      );
+      return () => unsub();
+    } catch (e) {
+      console.warn("Admin messages contactInfo subscription failed:", e);
+    }
+  }, []);
+
   // Filter messages belonging to selected doctor
   const activeDoctorThread = allDoctorMessagesCombined.filter((item) => {
     if (!selectedDoctorId) return false;
@@ -279,29 +301,32 @@ function AdminMessagesContent() {
     if (!replyingInquiry) return;
     const name = replyingInquiry.name || "Patient";
 
+    const callNum = contactInfo.callNumber || contactInfo.emergencyNumber || "0324-1111691";
+    const helpNum = contactInfo.helplineNumber || "0324-1111691";
+
     if (type === "cataract") {
-      setPatientReplySubject("Cataract Surgery Information & Charges - Haji Murad Eye Hospital");
+      setPatientReplySubject("Cataract Surgery Information & Charges - Haji Murad Eye Hospital Trust");
       setPatientReplyText(
-        `Dear ${name},\n\nThank you for inquiring about Cataract Surgery at Haji Murad Eye Hospital.\n\n` +
+        `Dear ${name},\n\nThank you for inquiring about Cataract Surgery at Haji Murad Eye Hospital Trust.\n\n` +
           `Cataract surgery charges depend on the type of intraocular lens (IOL) selected (e.g. Monofocal, Bifocal, or Premium Trifocal/Multifocal lenses).\n\n` +
           `Our consultation fee is nominal and surgical packages include pre-operative diagnostics & post-op checkups.\n\n` +
-          `We welcome you to visit our clinic on GT Road Gujranwala for a detailed eye checkup. For appointment booking, call us at 0332-4290724.\n\n` +
-          `Best regards,\nHaji Murad Eye Hospital Team`
+          `We welcome you to visit our clinic on GT Road Gujranwala for a detailed eye checkup. For appointment booking, call us at ${callNum}.\n\n` +
+          `Best regards,\nHaji Murad Eye Hospital Trust Team`
       );
     } else if (type === "appointment") {
-      setPatientReplySubject("Appointment Assistance - Haji Murad Eye Hospital");
+      setPatientReplySubject("Appointment Assistance - Haji Murad Eye Hospital Trust");
       setPatientReplyText(
-        `Dear ${name},\n\nThank you for contacting Haji Murad Eye Hospital.\n\n` +
-          `To schedule an appointment with our specialist Ophthalmic surgeons, please call our helpline at 0324-1111691 or reply with your preferred day and time.\n\n` +
+        `Dear ${name},\n\nThank you for contacting Haji Murad Eye Hospital Trust.\n\n` +
+          `To schedule an appointment with our specialist Ophthalmic surgeons, please call our helpline at ${helpNum} or reply with your preferred day and time.\n\n` +
           `Our OPD timing is Monday to Saturday: 9:00 AM to 8:00 PM.\n\n` +
-          `Best regards,\nHaji Murad Eye Hospital Team`
+          `Best regards,\nHaji Murad Eye Hospital Trust Team`
       );
     } else if (type === "general") {
-      setPatientReplySubject(`Re: Inquiry Response - Haji Murad Eye Hospital`);
+      setPatientReplySubject(`Re: Inquiry Response - Haji Murad Eye Hospital Trust`);
       setPatientReplyText(
-        `Dear ${name},\n\nThank you for reaching out to Haji Murad Eye Hospital.\n\n` +
-          `We have received your message and our administration team is happy to assist you. If you have specific questions or need immediate consultation, please feel free to call us at 0332-4290724.\n\n` +
-          `Best regards,\nHaji Murad Eye Hospital Team`
+        `Dear ${name},\n\nThank you for reaching out to Haji Murad Eye Hospital Trust.\n\n` +
+          `We have received your message and our administration team is happy to assist you. If you have specific questions or need immediate consultation, please feel free to call us at ${callNum}.\n\n` +
+          `Best regards,\nHaji Murad Eye Hospital Trust Team`
       );
     }
   };

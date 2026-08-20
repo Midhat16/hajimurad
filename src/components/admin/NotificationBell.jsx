@@ -92,6 +92,18 @@ export default function NotificationBell() {
       setUnreadCount(allUnreadKeys.size);
     };
 
+    let activeAppIds = new Set();
+
+    // 0. Subscribe to internshipApplications
+    const unsubInternships = onSnapshot(
+      collection(db, "internshipApplications"),
+      (snap) => {
+        activeAppIds = new Set(snap.docs.map((d) => d.id));
+        updateTotalUnread();
+      },
+      (err) => console.warn("Admin internships subscription notice:", err)
+    );
+
     // 1. Subscribe to notifications collection for Admin
     const unsubNotifs = onSnapshot(
       collection(db, "notifications"),
@@ -99,6 +111,17 @@ export default function NotificationBell() {
         unreadNotifsMap.clear();
         snap.docs.forEach((docSnap) => {
           const n = docSnap.data();
+          const isInternship =
+            n.type === "internship_application" ||
+            n.type === "internship" ||
+            (n.title && /internship/i.test(n.title)) ||
+            (n.message && /internship/i.test(n.message));
+
+          if (isInternship) {
+            const isAppValid = n.applicationId ? activeAppIds.has(n.applicationId) : activeAppIds.size > 0;
+            if (!isAppValid) return;
+          }
+
           if ((n.recipient_type || "admin") === "admin" && n.sender_type !== "admin" && n.is_read !== true && n.read !== true) {
             unreadNotifsMap.set(docSnap.id, { id: docSnap.id, appointmentId: n.appointmentId || "" });
           }
@@ -199,6 +222,7 @@ export default function NotificationBell() {
     );
 
     return () => {
+      unsubInternships();
       unsubNotifs();
       unsubAppts();
       unsubMsgs();

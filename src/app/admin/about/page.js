@@ -64,7 +64,7 @@ export default function AdminAboutPage() {
           setFormData({
             title: "Pioneering Vision Restoration for Over 3 Decades",
             story:
-              "Founded with a mission to eliminate preventable blindness, Haji Murad Eye Hospital has grown from a humble specialized outpatient clinic into a world-renowned ophthalmic center of excellence. We combine compassionate care with cutting-edge laser technologies to transform lives.",
+              "Founded with a mission to eliminate preventable blindness, Haji Murad Eye Hospital has grown from a humble specialized outpatient clinic into a leading regional ophthalmic center of excellence. We combine compassionate care with modern laser technologies to transform lives.",
             mission:
               "To deliver international gold-standard eye surgical care, accessible vision screening, and pioneering laser treatment to every patient with surgical excellence and warmth.",
             values:

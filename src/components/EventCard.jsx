@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -20,9 +21,13 @@ import {
 
 export default function EventCard({ event, index = 0 }) {
   // Extract images array (fallback to imageUrl if images array missing)
-  const imagesList = Array.isArray(event?.images) && event.images.length > 0
+  const rawList = Array.isArray(event?.images) && event.images.length > 0
     ? event.images
     : (event?.imageUrl ? [event.imageUrl] : []);
+
+  const imagesList = rawList
+    .map((img) => (typeof img === "string" ? img.trim() : ""))
+    .filter(Boolean);
 
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -37,7 +42,7 @@ export default function EventCard({ event, index = 0 }) {
     return "bg-amber-600 border border-amber-500";
   };
 
-  const currentMainImage = imagesList[activeImgIndex] || imagesList[0] || "";
+  const currentMainImage = imagesList[activeImgIndex] || imagesList[0] || null;
 
   return (
     <>
@@ -45,7 +50,7 @@ export default function EventCard({ event, index = 0 }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: index * 0.08 }}
-        className="w-full max-w-4xl mx-auto bg-white rounded-3xl overflow-hidden border border-[var(--line)] shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col group"
+        className="w-full max-w-4xl mx-auto bg-white rounded-3xl overflow-hidden border border-[var(--line)] shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col group mb-[10px]"
       >
         {/* ================= 1. TOP SECTION: FULL WIDTH BANNER IMAGE ================= */}
         <div
@@ -53,13 +58,17 @@ export default function EventCard({ event, index = 0 }) {
           onClick={() => currentMainImage && setLightboxOpen(true)}
         >
           {currentMainImage ? (
-            <img
+            <Image
               src={currentMainImage}
-              alt={event.title}
+              alt={event.title || "Hospital Event Banner - Haji Murad Eye Hospital Trust"}
+              width={800}
+              height={420}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-700 ease-out"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-tr from-[var(--ink)] to-[var(--iris-dark)] flex items-center justify-center p-8 text-white text-center">
+            <div className="w-full h-full bg-[#1E1433] flex items-center justify-center p-8 text-white text-center">
               <Calendar className="w-20 h-20 opacity-30" />
             </div>
           )}
@@ -116,13 +125,20 @@ export default function EventCard({ event, index = 0 }) {
                   key={idx}
                   type="button"
                   onClick={() => setActiveImgIndex(idx)}
-                  className={`relative w-16 h-12 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all cursor-pointer ${
-                    activeImgIndex === idx
+                  className={`relative w-16 h-12 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all cursor-pointer ${activeImgIndex === idx
                       ? "border-[var(--iris)] ring-2 ring-[var(--iris)]/40 scale-105 opacity-100"
                       : "border-slate-700 opacity-60 hover:opacity-100"
-                  }`}
+                    }`}
                 >
-                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  <Image
+                    src={img}
+                    alt={`${event.title || "Hospital Event"} Photo ${idx + 1} - Haji Murad Eye Hospital Trust`}
+                    width={64}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -220,10 +236,15 @@ export default function EventCard({ event, index = 0 }) {
               className="relative max-w-5xl max-h-[85vh] w-full h-full flex flex-col items-center justify-center space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
+              <Image
                 src={imagesList[activeImgIndex] || currentMainImage}
-                alt={event.title}
-                className="max-w-full max-h-[75vh] object-contain rounded-2xl border border-white/10 shadow-2xl"
+                alt={`${event.title || "Hospital Event"} Full View Photo - Haji Murad Eye Hospital Trust`}
+                width={1200}
+                height={800}
+                loading="lazy"
+                decoding="async"
+                style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "75vh", width: "auto", height: "auto" }}
+                className="rounded-2xl border border-white/10 shadow-2xl"
               />
 
               {/* Lightbox Footer & Navigation */}

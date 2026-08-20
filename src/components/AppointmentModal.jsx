@@ -17,11 +17,12 @@ import {
   MapPin,
   Info
 } from "lucide-react";
-import { collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, onSnapshot, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { sortDoctors, getAvailableDoctorsForFeatures, getIntersectedDoctorTiming } from "@/lib/doctorUtils";
 import { notifyOnAppointmentBooked } from "@/lib/notificationService";
 import { triggerEmailApi } from "@/lib/clientEmailHelper";
+import { sendWhatsAppMessage } from "@/lib/whatsappApi";
 import DatePicker from "react-datepicker";
 import { generateAndOpenAppointmentPDF, openAppointmentPDFInNewTab } from "@/lib/pdfUtil";
 
@@ -35,6 +36,32 @@ const formatCNIC = (val) => {
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
 };
 
+// Formats a local Date object into "YYYY-MM-DD" without UTC shift
+const formatLocalDateToYYYYMMDD = (d) => {
+  if (!d) return "";
+  const dateObj = new Date(d);
+  if (isNaN(dateObj.getTime())) return "";
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const dd = String(dateObj.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+// Parses "YYYY-MM-DD" string into local Date object without UTC shift
+const parseYYYYMMDDToLocalDate = (str) => {
+  if (!str || typeof str !== "string") return null;
+  const parts = str.split("-");
+  if (parts.length === 3) {
+    const yyyy = parseInt(parts[0], 10);
+    const mm = parseInt(parts[1], 10) - 1;
+    const dd = parseInt(parts[2], 10);
+    if (!isNaN(yyyy) && !isNaN(mm) && !isNaN(dd)) {
+      return new Date(yyyy, mm, dd);
+    }
+  }
+  return null;
+};
+
 const calculateAgeFromDOB = (dobStr) => {
   if (!dobStr) return "";
   const birthDate = new Date(dobStr);
@@ -46,6 +73,87 @@ const calculateAgeFromDOB = (dobStr) => {
     age--;
   }
   return age >= 0 ? age.toString() : "0";
+};
+
+// Auto-formats and clamps user typed date as DD/MM/YYYY
+const formatDateInputString = (val, maxYearLimit = new Date().getFullYear()) => {
+  if (!val) return "";
+  let digits = val.replace(/\D/g, "").slice(0, 8);
+  if (digits.length === 0) return "";
+
+  let ddStr = "";
+  let mmStr = "";
+  let yyyyStr = "";
+
+  // 1. Day Part (first 2 digits, max 31)
+  if (digits.length >= 1) {
+    if (digits.length === 1) {
+      ddStr = digits;
+    } else {
+      let dd = parseInt(digits.slice(0, 2), 10);
+      if (isNaN(dd) || dd < 1) dd = 1;
+      if (dd > 31) dd = 31;
+      ddStr = String(dd).padStart(2, "0");
+    }
+  }
+
+  // 2. Month Part (digits 3-4, max 12)
+  if (digits.length >= 3) {
+    if (digits.length === 3) {
+      mmStr = digits.slice(2, 3);
+    } else {
+      let mm = parseInt(digits.slice(2, 4), 10);
+      if (isNaN(mm) || mm < 1) mm = 1;
+      if (mm > 12) mm = 12;
+      mmStr = String(mm).padStart(2, "0");
+    }
+  }
+
+  // 3. Year Part (digits 5-8, max maxYearLimit)
+  if (digits.length >= 5) {
+    yyyyStr = digits.slice(4);
+    if (yyyyStr.length === 4) {
+      let yyyy = parseInt(yyyyStr, 10);
+      if (isNaN(yyyy) || yyyy < 1900) yyyy = 1900;
+      if (yyyy > maxYearLimit) yyyy = maxYearLimit;
+      yyyyStr = String(yyyy);
+    }
+  }
+
+  if (digits.length > 4) {
+    return `${ddStr}/${mmStr}/${yyyyStr}`;
+  }
+  if (digits.length > 2) {
+    return `${ddStr}/${mmStr}`;
+  }
+  return ddStr;
+};
+
+// Parses typed DD/MM/YYYY into YYYY-MM-DD with strict boundary checks
+const parseDDMMYYYYToYYYYMMDD = (str, maxYearLimit = new Date().getFullYear()) => {
+  if (!str) return null;
+  const parts = str.split("/");
+  if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+    let dd = parseInt(parts[0], 10);
+    let mm = parseInt(parts[1], 10);
+    let yyyy = parseInt(parts[2], 10);
+
+    if (isNaN(dd) || isNaN(mm) || isNaN(yyyy)) return null;
+
+    if (mm < 1) mm = 1;
+    if (mm > 12) mm = 12;
+
+    if (yyyy < 1900) yyyy = 1900;
+    if (yyyy > maxYearLimit) yyyy = maxYearLimit;
+
+    // Check max days in that month
+    const maxDaysInMonth = new Date(yyyy, mm, 0).getDate();
+    if (dd < 1) dd = 1;
+    if (dd > maxDaysInMonth) dd = maxDaysInMonth;
+
+    return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+  }
+  return null;
 };
 
 const parseTimeToMinutes = (timeStr, defaultMinutes) => {
@@ -131,6 +239,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [lastSubmittedAppt, setLastSubmittedAppt] = useState(null);
+  const [showFeatures, setShowFeatures] = useState(false);
 
   const [servicesList, setServicesList] = useState([]);
   const [doctorsList, setDoctorsList] = useState([]);
@@ -141,6 +250,29 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     eventTime: "",
     assignedDoctors: [],
   });
+
+  const [contactInfo, setContactInfo] = useState({
+    callNumber: "0324-1111691",
+    emergencyNumber: "0324-1111691",
+    uanNumber: "111 333 456",
+  });
+
+  useEffect(() => {
+    try {
+      const unsubContact = onSnapshot(
+        doc(db, "siteContent", "contactInfo"),
+        (docSnap) => {
+          if (docSnap.exists()) {
+            setContactInfo((prev) => ({ ...prev, ...docSnap.data() }));
+          }
+        },
+        (err) => console.warn("AppointmentModal contactInfo error:", err)
+      );
+      return () => unsubContact();
+    } catch (e) {
+      console.warn("AppointmentModal contactInfo error:", e);
+    }
+  }, []);
 
   useEffect(() => {
     if (propIsOpen !== undefined) {
@@ -221,10 +353,12 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
     const unsubDoctors = onSnapshot(
       collection(db, "doctors"),
       (snapshot) => {
-        const items = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
+        const items = snapshot.docs
+          .map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          }))
+          .filter((doc) => doc.isConsultant === true);
         setDoctorsList(sortDoctors(items));
       },
       (err) => console.warn("Doctors subscription notice:", err.message)
@@ -364,9 +498,9 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
   }, [formData.service]);
 
   if (formData.doctor) {
-    console.log("🔍 DIAGNOSTIC -> Selected Doctor in Form:", formData.doctor);
-    console.log("🔍 DIAGNOSTIC -> Matched Doctor Object:", activeDoctorObj);
-    console.log("🔍 DIAGNOSTIC -> Doctor Active Timing (Override/Default):", activeDoctorTiming);
+    console.log("[DIAGNOSTIC] Selected Doctor in Form:", formData.doctor);
+    console.log("[DIAGNOSTIC] Matched Doctor Object:", activeDoctorObj);
+    console.log("[DIAGNOSTIC] Doctor Active Timing (Override/Default):", activeDoctorTiming);
   }
 
   const availableTimeSlots = generateSlotsForDoctor(
@@ -436,6 +570,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
         service: value,
         selectedFeatures: [],
       }));
+      setShowFeatures(false);
       if (errors.service) setErrors((prev) => ({ ...prev, service: "" }));
       if (noticeMessage) setNoticeMessage("");
       return;
@@ -508,8 +643,8 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
 
     // Check date compatibility if already selected
     if (formData.date) {
-      const dateObj = new Date(formData.date + "T00:00:00");
-      const dayIndex = dateObj.getDay();
+      const dateObj = parseYYYYMMDDToLocalDate(formData.date);
+      const dayIndex = dateObj ? dateObj.getDay() : 0;
       if (dayIndex === 0) {
         shouldReset = true;
       } else if (newDocVal && newDocVal !== "not_sure" && newDocObj) {
@@ -635,6 +770,31 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
         data: finalApptData,
       }).catch((err) => console.warn("Booking email trigger notice:", err));
 
+      // Trigger automatic WhatsApp notifications via Vercel backend API (Non-blocking)
+      const patientPhone = formData.phone || apptDoc.phone || "";
+      const patientName = formData.fullName || apptDoc.name || "Patient";
+      const serviceName = apptDoc.service || "Ophthalmic Consultation";
+      const doctorName = apptDoc.doctor || "Medical Specialist";
+      const apptDate = formData.date || apptDoc.date || "Scheduled Date";
+      const adminPhone = "923151477920";
+
+      if (patientPhone) {
+        sendWhatsAppMessage(patientPhone, "appointment_confirmation_pending", [
+          patientName,
+          serviceName,
+          doctorName,
+          apptDate,
+        ]).catch((err) => console.error("WhatsApp patient send failed:", err));
+      }
+
+      sendWhatsAppMessage(adminPhone, "admin_new_appointment", [
+        patientName,
+        serviceName,
+        doctorName,
+        apptDate,
+        patientPhone || "N/A",
+      ]).catch((err) => console.error("WhatsApp admin send failed:", err));
+
       setIsSubmitting(false);
       setIsSuccess(true);
     } catch (error) {
@@ -677,7 +837,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top colored indicator bar */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] absolute top-0 left-0 right-0 z-20" />
+          <div className="h-1.5 w-full bg-[#C4232C] hover:bg-[#a81c24] absolute top-0 left-0 right-0 z-20" />
           {/* Close Button */}
           <button
             onClick={closeModal}
@@ -829,26 +989,61 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                     </div>
                   </div>
 
-                  {/* Patient Date of Birth & Gender */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Patient Date of Birth, Gender & CNIC */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:col-span-2">
                     {/* Date of Birth Calendar */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block whitespace-nowrap">
                         Date of Birth * {formData.age ? `(${formData.age} Yrs)` : ""}
                       </label>
                       <div className="relative">
-                        <Calendar className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
-                        <input
-                          type="date"
-                          name="dob"
-                          max={new Date().toISOString().split("T")[0]}
-                          value={formData.dob}
-                          onChange={handleChange}
+                        <Calendar className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400 z-10 pointer-events-none" />
+                        <DatePicker
+                          selected={parseYYYYMMDDToLocalDate(formData.dob)}
+                          onChange={(date) => {
+                            if (!date) {
+                              setFormData((prev) => ({ ...prev, dob: "", age: "" }));
+                              if (errors.dob) setErrors((prev) => ({ ...prev, dob: "" }));
+                              return;
+                            }
+                            const dateStr = formatLocalDateToYYYYMMDD(date);
+                            const calculatedAge = calculateAgeFromDOB(dateStr);
+                            setFormData((prev) => ({
+                              ...prev,
+                              dob: dateStr,
+                              age: calculatedAge,
+                            }));
+                            if (errors.dob) setErrors((prev) => ({ ...prev, dob: "" }));
+                          }}
+                          onChangeRaw={(e) => {
+                            const rawVal = e.target.value;
+                            const currentYear = new Date().getFullYear();
+                            const formatted = formatDateInputString(rawVal, currentYear);
+                            e.target.value = formatted;
+                            const validDate = parseDDMMYYYYToYYYYMMDD(formatted, currentYear);
+                            if (validDate) {
+                              const calculatedAge = calculateAgeFromDOB(validDate);
+                              setFormData((prev) => ({
+                                ...prev,
+                                dob: validDate,
+                                age: calculatedAge,
+                              }));
+                              if (errors.dob) setErrors((prev) => ({ ...prev, dob: "" }));
+                            }
+                          }}
+                          maxDate={new Date()}
+                          showYearDropdown
+                          showMonthDropdown
+                          dropdownMode="select"
+                          yearDropdownItemNumber={100}
+                          scrollableYearDropdown
+                          dateFormat="dd MMMM yyyy"
+                          placeholderText="Select date of birth"
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.dob
                             ? "border-red-300 focus:ring-red-200"
                             : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                            } rounded-xl pl-10 pr-2 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all`}
+                            } rounded-xl pl-10 pr-2 py-3 text-xs sm:text-sm text-black font-semibold placeholder:text-black placeholder:font-medium focus:outline-none focus:ring-4 transition-all`}
                         />
                       </div>
                       {errors.dob && (
@@ -860,7 +1055,7 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">Gender</label>
                       <div className="relative">
-                        <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                        <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                         <select
                           name="gender"
                           value={formData.gender}
@@ -880,31 +1075,31 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         <p className="text-[11px] text-red-500 font-semibold">{errors.gender}</p>
                       )}
                     </div>
-                  </div>
 
-                  {/* Patient CNIC / B-Form Number */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
-                      Patient CNIC / B-Form No.
-                    </label>
-                    <div className="relative">
-                      <CreditCard className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
-                      <input
-                        type="text"
-                        name="patientCnic"
-                        value={formData.patientCnic}
-                        onChange={handleChange}
-                        maxLength={15}
-                        placeholder=""
-                        className={`w-full bg-[var(--fog)] border ${errors.patientCnic
-                          ? "border-red-300 focus:ring-red-200"
-                          : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
-                          } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
-                      />
+                    {/* Patient CNIC / B-Form Number */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+                        Patient CNIC / B-Form No.
+                      </label>
+                      <div className="relative">
+                        <CreditCard className="absolute left-4 top-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <input
+                          type="text"
+                          name="patientCnic"
+                          value={formData.patientCnic}
+                          onChange={handleChange}
+                          maxLength={15}
+                          placeholder=""
+                          className={`w-full bg-[var(--fog)] border ${errors.patientCnic
+                            ? "border-red-300 focus:ring-red-200"
+                            : "border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20"
+                            } rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all font-mono`}
+                        />
+                      </div>
+                      {errors.patientCnic && (
+                        <p className="text-[11px] text-red-500 font-semibold">{errors.patientCnic}</p>
+                      )}
                     </div>
-                    {errors.patientCnic && (
-                      <p className="text-[11px] text-red-500 font-semibold">{errors.patientCnic}</p>
-                    )}
                   </div>
 
                   {/* Email Address */}
@@ -1124,35 +1319,47 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                   {availableServiceFeatures && availableServiceFeatures.length > 0 && (
                     <div className="md:col-span-2 bg-[var(--fog)] border border-[var(--line)] rounded-2xl p-3.5 sm:p-4 space-y-2.5 my-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-extrabold text-[var(--iris)] uppercase tracking-wider flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-[var(--iris)]" /> Select Specific Treatment(s)
-                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowFeatures((prev) => !prev)}
+                          className="text-xs font-extrabold text-[var(--iris)] hover:text-[var(--ink)] uppercase tracking-wider flex items-center gap-1.5 cursor-pointer focus:outline-none transition-colors"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-[var(--iris)]" />
+                          <span>{showFeatures ? "Hide Treatment Options ▴" : "Select Specific Treatment(s) ▾"}</span>
+                          {formData.selectedFeatures && formData.selectedFeatures.length > 0 && (
+                            <span className="text-[10px] font-bold text-white bg-[var(--iris)] px-2 py-0.5 rounded-full ml-1 normal-case">
+                              {formData.selectedFeatures.length} Selected
+                            </span>
+                          )}
+                        </button>
                         <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-[var(--line)]">
                           Optional / Multi-select
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        {availableServiceFeatures.map((feat, fIdx) => {
-                          const isChecked = (formData.selectedFeatures || []).includes(feat);
-                          return (
-                            <label
-                              key={fIdx}
-                              className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all ${isChecked
-                                ? "bg-white border-[var(--iris)] text-[var(--iris)] shadow-xs ring-2 ring-[var(--iris)]/20"
-                                : "bg-white/70 border-[var(--line)] text-[#2B1F1A] hover:bg-white hover:border-slate-300"
-                                }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => handleFeatureToggle(feat)}
-                                className="mt-0.5 rounded border-slate-300 text-[var(--iris)] focus:ring-[var(--iris)] cursor-pointer w-4 h-4"
-                              />
-                              <span className="leading-snug">{feat}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
+                      {showFeatures && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 transition-all">
+                          {availableServiceFeatures.map((feat, fIdx) => {
+                            const isChecked = (formData.selectedFeatures || []).includes(feat);
+                            return (
+                              <label
+                                key={fIdx}
+                                className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all ${isChecked
+                                  ? "bg-white border-[var(--iris)] text-[var(--iris)] shadow-xs ring-2 ring-[var(--iris)]/20"
+                                  : "bg-white/70 border-[var(--line)] text-[#2B1F1A] hover:bg-white hover:border-slate-300"
+                                  }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => handleFeatureToggle(feat)}
+                                  className="mt-0.5 rounded border-slate-300 text-[var(--iris)] focus:ring-[var(--iris)] cursor-pointer w-4 h-4"
+                                />
+                                <span className="leading-snug">{feat}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
 
                       {/* Friendly Alert Banner when no doctor covers all selected features */}
                       {hasEmptyDoctorIntersection && (
@@ -1234,25 +1441,34 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                         />
                       ) : (
                         <DatePicker
-                          selected={formData.date ? new Date(formData.date + "T00:00:00") : null}
+                          selected={parseYYYYMMDDToLocalDate(formData.date)}
                           onChange={(date) => {
                             if (!date) {
                               setFormData((prev) => ({ ...prev, date: "" }));
                               return;
                             }
-                            const yyyy = date.getFullYear();
-                            const mm = String(date.getMonth() + 1).padStart(2, "0");
-                            const dd = String(date.getDate()).padStart(2, "0");
-                            const dateStr = `${yyyy}-${mm}-${dd}`;
+                            const dateStr = formatLocalDateToYYYYMMDD(date);
                             setFormData((prev) => ({ ...prev, date: dateStr }));
                             if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
                             if (noticeMessage) setNoticeMessage("");
                           }}
+                          onChangeRaw={(e) => {
+                            const rawVal = e.target.value;
+                            const maxBookingYear = new Date().getFullYear() + 2;
+                            const formatted = formatDateInputString(rawVal, maxBookingYear);
+                            e.target.value = formatted;
+                            const validDate = parseDDMMYYYYToYYYYMMDD(formatted, maxBookingYear);
+                            if (validDate) {
+                              setFormData((prev) => ({ ...prev, date: validDate }));
+                              if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
+                              if (noticeMessage) setNoticeMessage("");
+                            }
+                          }}
                           filterDate={filterAvailableDates}
                           minDate={minSelectableDate}
                           maxDate={maxSelectableDate || undefined}
-                          dateFormat="yyyy-MM-dd"
-                          placeholderText="Date Slot"
+                          dateFormat="dd MMMM yyyy"
+                          placeholderText="Select appointment date"
                           disabled={hasEmptyDoctorIntersection || hasNoTimeOverlap}
                           required
                           className={`w-full bg-[var(--fog)] border ${errors.date
@@ -1318,14 +1534,14 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                   )}
                 </div>
 
-                {/* Submit Button */}
-                <div className="pt-4">
+                {/* Action Buttons: Request for Appointment & Call Now (UAN) */}
+                <div className="pt-4 flex flex-col sm:flex-row gap-3 items-center">
                   <motion.button
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                     type="submit"
                     disabled={isSubmitting || hasEmptyDoctorIntersection || hasNoTimeOverlap}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-3.5 rounded-xl font-extrabold text-sm shadow-md shadow-[var(--ink)]/15 hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex-1 w-full flex items-center justify-center gap-2 bg-[#C4232C] hover:bg-[#a81c24] text-white py-3.5 rounded-xl font-extrabold text-sm shadow-md shadow-[var(--ink)]/15 hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -1334,11 +1550,20 @@ export default function AppointmentModal({ preSelectedService: propPreSelectedSe
                       </>
                     ) : (
                       <>
-                        Request for Appointment
+                        <span>Request for Appointment</span>
                         <ChevronRight className="w-5 h-5" />
                       </>
                     )}
                   </motion.button>
+
+                  <a
+                    href={`tel:${(contactInfo.uanNumber || contactInfo.callNumber || contactInfo.emergencyNumber || "111333456")?.replace(/\s+/g, "")}`}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-[#1A1A1A] border-2 border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white py-3.5 px-6 rounded-xl text-sm font-extrabold shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+                    title={`Call UAN Helpline: ${contactInfo.uanNumber || "111 333 456"}`}
+                  >
+                    <Phone className="w-4 h-4 text-red-600 group-hover:text-white flex-shrink-0" />
+                    <span>Call Now</span>
+                  </a>
                 </div>
               </motion.form>
             ) : (

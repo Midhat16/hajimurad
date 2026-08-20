@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { collection, onSnapshot, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { sortDoctors } from "@/lib/doctorUtils";
@@ -34,9 +35,13 @@ function AdminDoctorAvatar({ docItem }) {
 
   if (photo && !imgFailed) {
     return (
-      <img
+      <Image
         src={photo}
-        alt={docItem.name}
+        alt={`Dr. ${docItem.name || "Doctor"} - ${docItem.specialization || "Eye Specialist"} Photo`}
+        width={64}
+        height={64}
+        loading="lazy"
+        decoding="async"
         className="w-full h-full rounded-full object-cover transition-all duration-300"
         style={{ objectPosition }}
         onLoad={handleImageLoad}
@@ -47,7 +52,7 @@ function AdminDoctorAvatar({ docItem }) {
 
   return (
     <div
-      className={`w-full h-full rounded-full bg-gradient-to-tr ${
+      className={`w-full h-full rounded-full bg-[#1E1433] #  ${
         docItem.gradient || "from-sky-400 to-blue-500"
       } flex items-center justify-center text-white font-bold text-lg`}
     >
@@ -120,7 +125,7 @@ export default function AdminDoctorsListPage() {
 
         <Link
           href="/admin/doctors/new"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
+          className="inline-flex items-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add New Doctor

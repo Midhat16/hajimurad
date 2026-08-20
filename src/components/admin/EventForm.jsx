@@ -26,9 +26,18 @@ export default function EventForm({ initialData = null, isEdit = false }) {
   const initialCat = initialData?.category || "Free Eye Camp";
   const isInitialCustom = initialCat && !PRESET_CATEGORIES.includes(initialCat);
 
-  const initialImagesList = Array.isArray(initialData?.images) && initialData.images.length > 0
+  const rawImagesList = Array.isArray(initialData?.images) && initialData.images.length > 0
     ? initialData.images
     : (initialData?.imageUrl ? [initialData.imageUrl] : []);
+
+  const initialImagesList = rawImagesList
+    .map((item) => {
+      if (!item) return "";
+      if (typeof item === "string") return item.trim();
+      if (typeof item === "object") return (item.url || item.imageUrl || "").trim();
+      return "";
+    })
+    .filter(Boolean);
 
   const rawInitialStatus = initialData?.status === "Completed" ? "Past" : (initialData?.status || "Upcoming");
   const isInitialCustomStatus = rawInitialStatus && !PRESET_STATUSES.includes(rawInitialStatus);
@@ -148,11 +157,27 @@ export default function EventForm({ initialData = null, isEdit = false }) {
 
     const finalCategory = isCustomCategory ? (customCatInput.trim() || "Event") : formData.category;
 
+    const extractUrl = (item) => {
+      if (!item) return "";
+      if (typeof item === "string") return item.trim();
+      if (typeof item === "object") {
+        return (item.url || item.imageUrl || item.src || "").trim();
+      }
+      return "";
+    };
+
+    const cleanedImages = (Array.isArray(formData.images) ? formData.images : [])
+      .map(extractUrl)
+      .filter(Boolean);
+
+    const fallbackUrl = typeof formData.imageUrl === "string" ? formData.imageUrl.trim() : "";
+    const mainImageUrl = cleanedImages[0] || fallbackUrl || "";
+
     const payload = {
       ...formData,
       category: finalCategory,
-      imageUrl: formData.images?.[0] || formData.imageUrl || "",
-      images: formData.images || (formData.imageUrl ? [formData.imageUrl] : []),
+      imageUrl: mainImageUrl,
+      images: cleanedImages.length > 0 ? cleanedImages : (mainImageUrl ? [mainImageUrl] : []),
     };
 
     try {
@@ -210,13 +235,23 @@ export default function EventForm({ initialData = null, isEdit = false }) {
         <div className="border-b border-slate-100 pb-6">
           <MultiImagePicker
             values={formData.images}
-            onChange={(newImages) =>
+            showCaptions={false}
+            onChange={(newImages) => {
+              const stringUrls = (Array.isArray(newImages) ? newImages : [])
+                .map((item) => {
+                  if (!item) return "";
+                  if (typeof item === "string") return item.trim();
+                  if (typeof item === "object") return (item.url || item.imageUrl || "").trim();
+                  return "";
+                })
+                .filter(Boolean);
+
               setFormData((prev) => ({
                 ...prev,
-                images: newImages,
-                imageUrl: newImages[0] || "",
-              }))
-            }
+                images: stringUrls,
+                imageUrl: stringUrls[0] || "",
+              }));
+            }}
             label="Event Photos / Banner Gallery (Upload Multiple Images)"
           />
         </div>

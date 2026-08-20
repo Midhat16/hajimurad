@@ -2,8 +2,9 @@ import React from "react";
 import About from "@/components/About";
 
 export const metadata = {
-  title: "About Us | Haji Murad Eye Hospital",
-  description: "Learn about Haji Murad Eye Hospital's history, mission, surgical excellence, and commitment to vision care.",
+  title: "Haji Murad Eye Hospital Trust | About Best Eye Hospital in Gujranwala",
+  description:
+    "Learn about Haji Murad Eye Hospital Trust in Gujranwala — dedicated to charitable vision care, advanced eye surgery, and modern ophthalmic medical excellence.",
 };
 
 export default function AboutPage() {

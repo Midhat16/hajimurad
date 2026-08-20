@@ -9,19 +9,19 @@ import ImagePicker from "@/components/admin/ImagePicker";
 
 const DEFAULT_SETTINGS = {
   uanNumber: "111 333 456",
-  callNumber: "0332-4290724",
+  callNumber: "0324-1111691",
   helplineNumber: "0324-1111691",
   mainDeskNumber: "111 333 456",
-  emergencyNumber: "0332-4290724",
-  email: "info@hajimuradhospital.org",
-  address: "Upper Chanab Canal Bank G.T Road Gujranwala",
+  emergencyNumber: "0324-1111691",
+  email: "info@hmeht.com",
+  address: "Upper Chanab, Canal Bank, G.T Road, Gujranwala",
   uanHelplineTitle: "24/7 UAN Helpline",
   uanHelplineSubtitle: "Need assistance? Our team is available 24/7.",
   uanHelplineImage: "/images/247-helpline.svg",
 };
 
 const DEFAULT_PROFILE = {
-  hospitalName: "Haji Murad Trust Eye Hospital",
+  hospitalName: "Haji Murad Eye Hospital Trust",
   logoUrl: "/images/logo.png",
 };
 
@@ -257,7 +257,7 @@ export default function AdminSettingsPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSavingProfile}
-            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {isSavingProfile ? "Saving Profile..." : "Save Hospital Profile"}
@@ -428,7 +428,7 @@ export default function AdminSettingsPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSaving}
-            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {isSaving ? "Saving Contact Info..." : "Save Contact Info"}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { Stethoscope } from "lucide-react";
 
 export function DoctorPhotoAvatar({ doctor }) {
@@ -29,9 +30,11 @@ export function DoctorPhotoAvatar({ doctor }) {
 
   if (photo && !imgFailed) {
     return (
-      <img
+      <Image
         src={photo}
-        alt={doctor?.name || "Doctor"}
+        alt={`${doctor?.name || "Eye Specialist"} - ${doctor?.specialty || doctor?.specialization || "Ophthalmologist"} at Haji Murad Eye Hospital Gujranwala`}
+        width={256}
+        height={256}
         loading="lazy"
         decoding="async"
         className="w-full h-full object-cover transition-all duration-300"
@@ -44,7 +47,7 @@ export function DoctorPhotoAvatar({ doctor }) {
 
   return (
     <div
-      className={`w-full h-full bg-gradient-to-tr ${
+      className={`w-full h-full bg-[#1E1433] #  ${
         doctor?.gradient || "from-sky-400 to-blue-500"
       } flex items-center justify-center text-white text-xl sm:text-2xl font-black shadow-inner`}
     >
@@ -59,7 +62,8 @@ export default function DoctorPhotoFrame({ doctor, frameColor, size = "md", clas
 
   // Dimension presets for different contexts (e.g. grid cards, modals, detail views)
   const sizeClasses = {
-    sm: "w-44 h-44",
+    xs: "w-28 h-28 sm:w-32 sm:h-32",
+    sm: "w-36 h-36 sm:w-40 sm:h-40",
     md: "w-56 h-56 sm:w-64 sm:h-64",
     lg: "w-64 h-64 sm:w-72 sm:h-72",
   }[size] || "w-56 h-56 sm:w-64 sm:h-64";
@@ -80,10 +84,13 @@ export default function DoctorPhotoFrame({ doctor, frameColor, size = "md", clas
       </div>
 
       {/* 2. Decorative Caduceus Medical Emblem Overlay (Positioned on top) */}
-      <img
+      <Image
         src={frameSrc}
         alt={`${selectedColor === "red" ? "Red" : "Black"} Medical Caduceus Frame`}
+        width={256}
+        height={256}
         className="w-full h-full object-contain relative z-20 pointer-events-none drop-shadow-xs"
+        loading="lazy"
       />
     </div>
   );

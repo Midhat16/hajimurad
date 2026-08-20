@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import NextImage from "next/image";
 import { UploadCloud, Image as ImageIcon, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
+import { uploadImageFile } from "@/lib/uploadUtil";
 
 export default function ImagePicker({ value, onChange, label = "Doctor Photo / Image", cropSquare = true }) {
   const [uploading, setUploading] = useState(false);
@@ -26,7 +28,7 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
+        const img = new window.Image();
         img.onload = () => {
           try {
             if (!cropSquare) {
@@ -101,68 +103,17 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
         return;
       }
 
-      // 2. Primary: Firebase Storage Upload
-      try {
-        const storagePath = `uploads/images/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.jpg`;
-        const storageRef = ref(storage, storagePath);
-        const snapshot = await uploadString(storageRef, dataUrlToUse, "data_url");
-        const downloadUrl = await getDownloadURL(snapshot.ref);
-        if (downloadUrl) {
-          onChange(downloadUrl);
-          return;
-        }
-      } catch (fbErr) {
-        console.warn("Firebase Storage upload failed, trying secondary uploader (ImgBB):", fbErr);
+      // 2. Upload via robust uploadUtil (Cloudinary -> ImgBB -> Firebase with timeout)
+      const remoteUrl = await uploadImageFile(dataUrlToUse);
+      if (remoteUrl) {
+        onChange(remoteUrl);
+        return;
       }
 
-      // 3. Secondary: Cloudinary Image Upload
-      try {
-        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "cakv1rwq";
-        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "haji_murad assets";
-        const formData = new FormData();
-        formData.append("file", dataUrlToUse);
-        formData.append("upload_preset", uploadPreset);
-
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: "POST",
-          body: formData,
-        });
-        const data = await res.json();
-        if (data.secure_url || data.url) {
-          onChange(data.secure_url || data.url);
-          return;
-        }
-      } catch (cErr) {
-        console.warn("Cloudinary image upload notice:", cErr);
-      }
-
-      // 4. Tertiary Fallback: ImgBB Upload
-      try {
-        const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "6d700a708235b3658f287854659b43e8";
-        const base64Clean = dataUrlToUse.includes(",") ? dataUrlToUse.split(",")[1] : dataUrlToUse;
-        const formData = new FormData();
-        formData.append("image", base64Clean);
-
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-          method: "POST",
-          body: formData,
-        });
-        const data = await res.json();
-
-        if (data.success && data.data && (data.data.url || data.data.display_url)) {
-          const remoteUrl = data.data.url || data.data.display_url;
-          onChange(remoteUrl);
-          return;
-        }
-      } catch (imgbbErr) {
-        console.warn("ImgBB upload failed:", imgbbErr);
-      }
-
-      // SAFEGUARD: If cloud uploaders fail, DO NOT save raw Base64 to Firestore!
       setError("Image upload failed. Please check your network connection and try again.");
     } catch (err) {
       console.error("File processing error:", err);
-      setError("Failed to read image file. Please try another picture.");
+      setError(err.message || "Failed to upload image file. Please try another picture.");
     } finally {
       setUploading(false);
     }
@@ -194,9 +145,12 @@ export default function ImagePicker({ value, onChange, label = "Doctor Photo / I
       {value ? (
         <div className="flex items-center gap-4 p-4 bg-[var(--fog)] rounded-2xl border border-[var(--line)] shadow-xs">
           <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-200 border border-slate-300 flex-shrink-0">
-            <img
+            <NextImage
               src={value}
-              alt="Preview"
+              alt="Selected Preview"
+              width={80}
+              height={80}
+              unoptimized
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.style.display = "none";

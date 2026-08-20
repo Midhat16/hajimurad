@@ -255,7 +255,7 @@ export default function DoctorLoginPage() {
             whileTap={{ scale: 0.99 }}
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 mt-2"
+            className="w-full bg-[#1E1433] hover:bg-[#2A1C47] text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 mt-2"
           >
             {isSubmitting ? (
               <>

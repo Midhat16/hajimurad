@@ -42,6 +42,8 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
       ? initialData.workingDays
       : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     workingHours: initialData?.workingHours || { start: "09:00", end: "15:00" },
+    experienceYears: initialData?.experienceYears || "",
+    languagesSpoken: initialData?.languagesSpoken || "",
   });
 
   useEffect(() => {
@@ -67,6 +69,8 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
           ? initialData.workingDays
           : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
         workingHours: initialData.workingHours || { start: "09:00", end: "15:00" },
+        experienceYears: initialData.experienceYears || "",
+        languagesSpoken: initialData.languagesSpoken || "",
       });
     }
   }, [initialData]);
@@ -242,7 +246,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Mark as Consultant Toggle */}
-          <div className="bg-gradient-to-r from-[var(--fog)] to-slate-50 p-4 rounded-2xl border border-[var(--line)] flex items-center justify-between gap-4 md:col-span-2 shadow-xs">
+          <div className="bg-[var(--fog)] p-4 rounded-2xl border border-[var(--line)] flex items-center justify-between gap-4 md:col-span-2 shadow-xs">
             <div className="space-y-0.5">
               <label htmlFor="isConsultant" className="text-xs font-extrabold text-[#2B1F1A] uppercase tracking-wider block cursor-pointer">
                 Mark as Consultant Doctor
@@ -370,6 +374,59 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
               placeholder=""
               className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
             />
+          </div>
+
+          {/* Years of Experience */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+              Years of Experience (Optional)
+            </label>
+            <input
+              type="number"
+              name="experienceYears"
+              min="0"
+              value={formData.experienceYears}
+              onChange={handleChange}
+              placeholder="e.g. 15"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+            />
+          </div>
+
+          {/* Languages Spoken */}
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-xs font-bold text-[#2B1F1A] uppercase tracking-wider block">
+              Languages Spoken (Optional, Comma-Separated)
+            </label>
+            <input
+              type="text"
+              name="languagesSpoken"
+              value={formData.languagesSpoken}
+              onChange={handleChange}
+              placeholder="e.g. Urdu, English, Punjabi"
+              className="w-full bg-[var(--fog)] border border-[var(--line)] focus:border-[var(--iris)] focus:ring-[var(--iris)]/20 rounded-xl px-4 py-3 text-sm text-[#2B1F1A] font-semibold focus:outline-none focus:ring-4 transition-all"
+            />
+            {/* Quick Suggestion Pills */}
+            <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quick Add:</span>
+              {["Urdu", "English", "Punjabi", "Pashto", "Saraiki"].map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => {
+                    setFormData((prev) => {
+                      const current = (prev.languagesSpoken || "").trim();
+                      if (!current) return { ...prev, languagesSpoken: lang };
+                      const parts = current.split(",").map((s) => s.trim());
+                      if (parts.includes(lang)) return prev;
+                      return { ...prev, languagesSpoken: `${current}, ${lang}` };
+                    });
+                  }}
+                  className="px-2.5 py-0.5 rounded-full bg-slate-100 hover:bg-[var(--iris)] hover:text-white text-slate-600 text-[11px] font-bold transition-colors cursor-pointer border border-slate-200"
+                >
+                  + {lang}
+                </button>
+              ))}
+            </div>
           </div>
 
 
@@ -569,7 +626,7 @@ export default function DoctorForm({ initialData = null, onSave, isSaving = fals
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSaving}
-            className="flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {isSaving ? "Saving Doctor..." : "Save Doctor Profile"}

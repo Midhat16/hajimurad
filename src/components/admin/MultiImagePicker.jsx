@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import NextImage from "next/image";
 import { UploadCloud, Image as ImageIcon, Trash2, Plus, AlertCircle, Link as LinkIcon } from "lucide-react";
 
 export default function MultiImagePicker({
@@ -27,7 +28,7 @@ export default function MultiImagePicker({
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
+        const img = new window.Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
           try {
@@ -185,9 +186,12 @@ export default function MultiImagePicker({
               >
                 <div className="relative aspect-video bg-slate-900/10 overflow-hidden">
                   {url ? (
-                    <img
+                    <NextImage
                       src={url}
-                      alt={`Gallery preview ${idx + 1}`}
+                      alt={`${label || "Gallery"} image preview ${idx + 1}`}
+                      width={200}
+                      height={120}
+                      unoptimized
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";

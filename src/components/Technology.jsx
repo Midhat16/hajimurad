@@ -7,6 +7,7 @@ import { Cpu, Layers, Filter, CheckCircle2, ArrowRight, ChevronRight, Eye } from
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import TechnologyImageGallery from "./TechnologyImageGallery";
+import TechSidebarStickyWrapper from "./TechSidebarStickyWrapper";
 
 function parseDescription(descriptionText = "", usesArray = null) {
   if (Array.isArray(usesArray) && usesArray.length > 0) {
@@ -37,61 +38,6 @@ function parseDescription(descriptionText = "", usesArray = null) {
 
   return { intro, uses };
 }
-
-const DEFAULT_TECHNOLOGIES = [
-  {
-    id: "default-1",
-    name: "Femtosecond & Excimer Refractive Laser Suite",
-    category: "Refractive & LASIK Suites",
-    description: "Ultra-fast femtosecond laser technology for blade-free corneal flap creation and high-precision vision correction (LASIK / Contoura Vision).",
-    images: [
-      "/images/hero-1.jpg",
-      "/images/hero-operating-theater.jpg",
-      "/images/hero-opd-examination.jpg",
-      "/images/hero-building-exterior.jpg",
-    ],
-    uses: [
-      "Blade-Free LASIK & Femto-LASIK procedures",
-      "Precision corneal tissue reshaping for Myopia & Astigmatism",
-      "Minimal recovery time with enhanced flap stability",
-    ],
-    order: 1,
-  },
-  {
-    id: "default-2",
-    name: "High-Definition Optical Coherence Tomography (OCT)",
-    category: "Diagnostic Equipment",
-    description: "Non-invasive optical biopsy producing cross-sectional micron-resolution images of the retina, macula, and optic nerve head.",
-    images: [
-      "/images/hero-2.jpg",
-      "/images/hero-3.jpg",
-      "/images/hero-opd-examination.jpg",
-    ],
-    uses: [
-      "Early detection & staging of Glaucoma",
-      "Diabetic Retinopathy and Macular Edema scanning",
-      "Pre- and post-operative retinal thickness monitoring",
-    ],
-    order: 2,
-  },
-  {
-    id: "default-3",
-    name: "Advanced Phacoemulsification Cataract System",
-    category: "Surgical & Operating Systems",
-    description: "Micro-incision ultrasonic cataract surgery system with active fluidics for minimal corneal energy impact and rapid visual recovery.",
-    images: [
-      "/images/hero-operating-theater.jpg",
-      "/images/hero-1.jpg",
-      "/images/hero-opd-examination.jpg",
-    ],
-    uses: [
-      "Micro-incision (MICS) cataract extraction",
-      "Premium Toric and Multifocal intraocular lens insertion",
-      "Safe surgery under topical drop anesthesia",
-    ],
-    order: 3,
-  },
-];
 
 export default function Technology() {
   const [techList, setTechList] = useState([]);
@@ -124,7 +70,7 @@ export default function Technology() {
     }
   }, []);
 
-  const displayList = techList.length > 0 ? techList : DEFAULT_TECHNOLOGIES;
+  const displayList = techList;
 
   // Compute unique categories and item counts dynamically
   const categoryCounts = {};
@@ -140,19 +86,19 @@ export default function Technology() {
   const filteredList = selectedCategory === "All"
     ? displayList
     : displayList.filter((tech) => {
-        const cat = tech.category && typeof tech.category === "string" && tech.category.trim() !== ""
-          ? tech.category.trim()
-          : "Uncategorized";
-        return cat === selectedCategory;
-      });
+      const cat = tech.category && typeof tech.category === "string" && tech.category.trim() !== ""
+        ? tech.category.trim()
+        : "Uncategorized";
+      return cat === selectedCategory;
+    });
 
   return (
-    <section id="technology" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
+    <section id="technology" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-visible">
       {/* Background radial glow */}
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-slate-100/40 rounded-full blur-3xl pointer-events-none translate-x-1/4 translate-y-1/4" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
           <motion.div
@@ -191,7 +137,7 @@ export default function Technology() {
         ) : (
           /* Main Layout: Sticky Left Sidebar (Desktop) + Horizontal Filter Bar (Mobile) + Technology Stack */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             {/* MOBILE & TABLET HORIZONTAL FILTER PILLS (< 1024px) */}
             <div className="lg:hidden col-span-1 border-b border-[var(--line)] pb-4 mb-2">
               <div className="flex items-center gap-2 mb-2">
@@ -209,17 +155,15 @@ export default function Technology() {
                     <button
                       key={catName}
                       onClick={() => setSelectedCategory(catName)}
-                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-[var(--ink)] text-white shadow-md"
-                          : "bg-white border border-[var(--line)] text-slate-700 hover:border-slate-300"
-                      }`}
+                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${isSelected
+                        ? "bg-[var(--ink)] text-white shadow-md"
+                        : "bg-white border border-[var(--line)] text-slate-700 hover:border-slate-300"
+                        }`}
                     >
                       <span>{catName}</span>
                       <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                          isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
-                        }`}
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+                          }`}
                       >
                         {count}
                       </span>
@@ -230,7 +174,7 @@ export default function Technology() {
             </div>
 
             {/* DESKTOP LEFT STICKY SIDEBAR (lg:col-span-3) */}
-            <div className="hidden lg:block lg:col-span-3 sticky top-28 space-y-4">
+            <TechSidebarStickyWrapper>
               <div className="bg-white rounded-3xl p-5 border border-[var(--line)] shadow-sm space-y-3">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2">
@@ -255,19 +199,17 @@ export default function Technology() {
                       <button
                         key={catName}
                         onClick={() => setSelectedCategory(catName)}
-                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer text-left ${
-                          isSelected
-                            ? "bg-[var(--ink)] text-white shadow-sm ring-1 ring-[var(--ink)] font-extrabold"
-                            : "text-slate-700 hover:bg-[var(--fog)] hover:text-[#2B1F1A]"
-                        }`}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer text-left ${isSelected
+                          ? "bg-[var(--ink)] text-white shadow-sm ring-1 ring-[var(--ink)] font-extrabold"
+                          : "text-slate-700 hover:bg-[var(--fog)] hover:text-[#2B1F1A]"
+                          }`}
                       >
                         <span className="truncate pr-2">{catName}</span>
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold shrink-0 ${
-                            isSelected
-                              ? "bg-white/20 text-white"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold shrink-0 ${isSelected
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-100 text-slate-600"
+                            }`}
                         >
                           {count}
                         </span>
@@ -276,11 +218,11 @@ export default function Technology() {
                   })}
                 </div>
               </div>
-            </div>
+            </TechSidebarStickyWrapper>
 
             {/* MAIN CONTENT AREA: FILTERED TECHNOLOGIES LIST (lg:col-span-9) */}
             <div className="col-span-1 lg:col-span-9 space-y-8 sm:space-y-10">
-              
+
               {/* Category Active Subheader */}
               <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
                 <div className="flex items-center gap-2">
@@ -323,21 +265,20 @@ export default function Technology() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4 }}
-                        className="glass-card bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md hover:border-[var(--iris)]/40 transition-all duration-300 group"
+                        className="glass-card bg-white rounded-3xl p-6 sm:p-8 border border-[var(--line)] shadow-md hover:border-[var(--iris)]/40 transition-all duration-300 group mb-[10px]"
                       >
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-center">
-                          
+
                           {/* Text Details Column */}
-                          <div className={`md:col-span-7 flex flex-col justify-between space-y-4 ${
-                            isEven ? "order-2 md:order-1" : "order-2 md:order-2"
-                          }`}>
+                          <div className={`md:col-span-7 flex flex-col justify-between space-y-4 ${isEven ? "order-2 md:order-1" : "order-2 md:order-2"
+                            }`}>
                             <div>
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-[10px] font-extrabold text-[var(--iris)] bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                                   {tech.category || "Uncategorized"}
                                 </span>
                               </div>
-                              
+
                               <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B1F1A] mt-1 leading-tight group-hover:text-[var(--iris)] transition-colors">
                                 {tech.name}
                               </h3>
@@ -354,7 +295,7 @@ export default function Technology() {
                               <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-start">
                                 <Link
                                   href={`/technologies/details?id=${encodeURIComponent(tech.id)}`}
-                                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] hover:opacity-95 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer border border-white/20"
+                                  className="inline-flex items-center gap-2 bg-[#C4232C] hover:bg-[#a81c24] hover:opacity-95 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold shadow-md hover:shadow-lg transition-all cursor-pointer border border-white/20"
                                 >
                                   <span>View More Details</span>
                                   <ArrowRight className="w-4 h-4 text-[#5EEAD4]" />
@@ -364,9 +305,8 @@ export default function Technology() {
                           </div>
 
                           {/* Image Column */}
-                          <div className={`md:col-span-5 w-full ${
-                            isEven ? "order-1 md:order-2" : "order-1 md:order-1"
-                          }`}>
+                          <div className={`md:col-span-5 w-full ${isEven ? "order-1 md:order-2" : "order-1 md:order-1"
+                            }`}>
                             <TechnologyImageGallery
                               images={
                                 Array.isArray(tech.images) && tech.images.length > 0

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { Save, ArrowLeft, Plus, Trash2, Image as ImageIcon, UploadCloud, RefreshCw, Link as LinkIcon, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
@@ -114,7 +115,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
+        const img = new window.Image();
         img.onload = () => {
           try {
             const canvas = document.createElement("canvas");
@@ -264,7 +265,7 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
         rawImages.map(async (imgStr) => {
           if (imgStr.startsWith("data:image") && imgStr.length > 80000) {
             return new Promise((resolve) => {
-              const img = new Image();
+              const img = new window.Image();
               img.onload = () => {
                 const canvas = document.createElement("canvas");
                 const maxDim = 700;
@@ -399,9 +400,12 @@ export default function TechnologyForm({ initialData = null, onSave, isSaving = 
                 key={idx}
                 className="relative w-full aspect-square rounded-2xl border-2 border-white shadow-sm overflow-hidden bg-white group p-1 flex flex-col items-center justify-center"
               >
-                <img
+                <NextImage
                   src={imgUrl}
                   alt={`Gallery Thumbnail ${idx + 1}`}
+                  width={150}
+                  height={150}
+                  unoptimized
                   className="w-full h-full object-contain rounded-xl"
                 />
 

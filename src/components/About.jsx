@@ -147,7 +147,7 @@ export default function About() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="lg:col-span-5 bg-gradient-to-br from-[var(--ink)] to-[var(--iris-dark)] text-white rounded-3xl p-6 sm:p-8 border border-[var(--ink)] shadow-md flex flex-col justify-between"
+            className="lg:col-span-5 bg-[#1E1433] text-white rounded-3xl p-6 sm:p-8 border border-[var(--ink)] shadow-md flex flex-col justify-between"
           >
             <div className="space-y-5">
               <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ export default function About() {
             <div className="mt-8 border-t border-slate-700/80 pt-5 flex items-center gap-3">
               <Award className="w-6 h-6 text-[var(--iris)]" />
               <span className="text-xs font-bold text-slate-300">
-                100% Commitment to Patient Care Excellence
+                Unwavering Commitment to Patient Care Excellence
               </span>
             </div>
           </motion.div>

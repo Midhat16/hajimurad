@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import {
   collection,
   onSnapshot,
@@ -473,7 +475,7 @@ export default function AdminGalleryPage() {
                 setBatchFiles([]);
                 setIsPhotoModalOpen(true);
               }}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white text-xs font-extrabold shadow-md hover:opacity-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#1E1433] hover:bg-[#2A1C47] text-white text-xs font-extrabold shadow-md hover:opacity-95 transition-all cursor-pointer"
             >
               <UploadCloud className="w-4.5 h-4.5 text-[#5EEAD4]" />
               <span>Add Photos to {selectedCategory}</span>
@@ -727,9 +729,12 @@ export default function AdminGalleryPage() {
                         : "border-slate-200/80 hover:border-slate-300 hover:shadow-md"
                     }`}
                   >
-                    <img
+                    <Image
                       src={photo.imageUrl}
-                      alt={photo.caption || "Gallery photo"}
+                      alt={photo.caption || `${photo.category || "Hospital"} Gallery Photo - Haji Murad Eye Hospital Trust`}
+                      width={200}
+                      height={200}
+                      unoptimized
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
@@ -835,7 +840,7 @@ export default function AdminGalleryPage() {
                   <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
                     {batchFiles.map((item) => (
                       <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                        <img src={item.previewUrl} alt="Preview" className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                        <img src={item.previewUrl} alt={item.caption || "Batch upload image preview"} className="w-12 h-12 rounded-xl object-cover shrink-0" />
                         <input
                           type="text"
                           value={item.caption}

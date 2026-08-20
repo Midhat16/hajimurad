@@ -9,12 +9,12 @@ import { notifyOnPatientMessage } from "@/lib/notificationService";
 
 const DEFAULT_CONTACT = {
   uanNumber: "111 333 456",
-  callNumber: "0332-4290724",
+  callNumber: "0324-1111691",
   helplineNumber: "0324-1111691",
   mainDeskNumber: "111 333 456",
-  emergencyNumber: "0332-4290724",
-  email: "info@hajimuradhospital.org",
-  address: "Upper Chanab Canal Bank G.T Road Gujranwala",
+  emergencyNumber: "0324-1111691",
+  email: "info@hmeht.com",
+  address: "Upper Chanab, Canal Bank, G.T Road, Gujranwala",
 };
 
 export default function Contact() {
@@ -130,7 +130,7 @@ export default function Contact() {
     {
       icon: Mail,
       title: "Email Helpdesk",
-      details: ["info@HMEHT.com"],
+      details: ["info@hmeht.com"],
       isEmail: true,
       color: "text-indigo-500 bg-indigo-50"
     },
@@ -196,7 +196,7 @@ export default function Contact() {
                         <p key={lIdx} className="text-xs sm:text-sm text-[var(--slate)] mt-0.5 leading-relaxed font-medium">
                           {info.isEmail ? (
                             <a
-                              href={`mailto:${contactData.email || 'info@hajimuradhospital.org'}`}
+                              href={`mailto:${contactData.email || 'info@hmeht.com'}`}
                               className="text-[#2B1F1A] hover:text-[var(--iris)] font-bold hover:underline"
                             >
                               {line}
@@ -221,14 +221,14 @@ export default function Contact() {
               className="w-full rounded-[28px] overflow-hidden border border-[var(--line)] shadow-sm relative bg-white"
             >
               <iframe
-                src="https://maps.google.com/maps?q=Haji+Murad+Trust+Eye+Hospital+Gujranwala&t=&z=16&ie=UTF8&iwloc=B&output=embed"
+                src="https://maps.google.com/maps?q=Haji+Murad+Eye+Hospital+Trust+Gujranwala&t=&z=16&ie=UTF8&iwloc=B&output=embed"
                 width="100%"
                 height="380"
                 style={{ border: 0, borderRadius: "28px" }}
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Haji Murad Trust Eye Hospital Location"
+                title="Haji Murad Eye Hospital Trust Location"
               />
             </motion.div>
           </div>

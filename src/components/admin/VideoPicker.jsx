@@ -220,7 +220,7 @@ export default function VideoPicker({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2.5 bg-gradient-to-r from-purple-700 to-[var(--ink)] hover:opacity-95 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
+              className="px-4 py-2.5 bg-[#1E1433] hover:opacity-95 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-2 flex-shrink-0"
             >
               <Video className="w-4 h-4" />
               Browse PC Video File

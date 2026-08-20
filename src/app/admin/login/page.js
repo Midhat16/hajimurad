@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   signInWithEmailAndPassword,
@@ -148,7 +149,13 @@ export default function AdminLoginPage() {
         {/* Header Branding */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-white border border-[var(--line)] p-2.5 flex items-center justify-center shadow-md shadow-[var(--ink)]/10 mb-4 overflow-hidden">
-            <img src={profile.logoUrl} alt={profile.hospitalName} className="w-full h-full object-contain" />
+            <Image
+              src={profile.logoUrl}
+              alt={profile.hospitalName}
+              width={64}
+              height={64}
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
             {profile.hospitalName}
@@ -227,7 +234,7 @@ export default function AdminLoginPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white py-3.5 rounded-xl font-bold shadow-md shadow-[var(--ink)]/15 hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer text-sm"
+            className="w-full mt-2 flex items-center justify-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white py-3.5 rounded-xl font-bold shadow-md shadow-[var(--ink)]/15 hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer text-sm"
           >
             {isSubmitting ? (
               <>

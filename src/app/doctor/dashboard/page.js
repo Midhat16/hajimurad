@@ -15,7 +15,7 @@ import {
 import { db } from "@/lib/firebase";
 import DoctorNotificationBell from "@/components/doctor/DoctorNotificationBell";
 import { getWhatsAppAppointmentUrl } from "@/lib/whatsappHelper";
-import { notifyOnDoctorAction } from "@/lib/notificationService";
+import { notifyOnDoctorAction, notifyPatientOfStatusChange } from "@/lib/notificationService";
 import { triggerEmailApi } from "@/lib/clientEmailHelper";
 import {
   Stethoscope,
@@ -237,17 +237,8 @@ export default function DoctorDashboard() {
       const logId = await logActivity("accepted", appt, "Accepted appointment booking");
       await notifyOnDoctorAction("accepted", appt, doctorProfile?.name || "Doctor", "", "", logId || "");
 
-      // Trigger automatic confirmation email to Patient
-      triggerEmailApi({
-        type: "STATUS_CONFIRMED",
-        data: appt,
-      }).catch((err) => console.warn("Confirmed email notice:", err));
-
-      // Trigger automatic WhatsApp open for patient notification
-      const waUrl = getWhatsAppAppointmentUrl("confirmed", appt);
-      if (waUrl && typeof window !== "undefined") {
-        window.open(waUrl, "_blank");
-      }
+      // Trigger automatic patient notifications (WhatsApp ALWAYS, Email ADDITIONALLY if provided)
+      await notifyPatientOfStatusChange("accepted", appt);
     } catch (err) {
       console.error("Error accepting appointment:", err);
       alert("Failed to confirm appointment. Please try again.");
@@ -269,17 +260,8 @@ export default function DoctorDashboard() {
       const logId = await logActivity("rejected", appt, "Rejected appointment booking");
       await notifyOnDoctorAction("rejected", appt, doctorProfile?.name || "Doctor", "", "", logId || "");
 
-      // Trigger automatic cancellation email to Patient
-      triggerEmailApi({
-        type: "STATUS_CANCELLED",
-        data: appt,
-      }).catch((err) => console.warn("Cancelled email notice:", err));
-
-      // Trigger automatic WhatsApp open for patient notification
-      const waUrl = getWhatsAppAppointmentUrl("cancelled", appt);
-      if (waUrl && typeof window !== "undefined") {
-        window.open(waUrl, "_blank");
-      }
+      // Trigger automatic patient notifications (WhatsApp ALWAYS, Email ADDITIONALLY if provided)
+      await notifyPatientOfStatusChange("cancelled", appt);
     } catch (err) {
       console.error("Error rejecting appointment:", err);
       alert("Failed to reject appointment. Please try again.");
@@ -319,23 +301,8 @@ export default function DoctorDashboard() {
         logId || ""
       );
 
-      // Trigger automatic rescheduled email to Patient
-      triggerEmailApi({
-        type: "STATUS_RESCHEDULED",
-        data: {
-          ...appt,
-          oldDate: appt.date,
-          oldTime: appt.time,
-          date: newDate,
-          time: newTime,
-        },
-      }).catch((err) => console.warn("Rescheduled email notice:", err));
-
-      // Trigger automatic WhatsApp open for patient notification
-      const waUrl = getWhatsAppAppointmentUrl("rescheduled", appt, newDate, newTime);
-      if (waUrl && typeof window !== "undefined") {
-        window.open(waUrl, "_blank");
-      }
+      // Trigger automatic patient notifications (WhatsApp ALWAYS, Email ADDITIONALLY if provided)
+      await notifyPatientOfStatusChange("rescheduled", appt, newDate, newTime);
 
       setRescheduleModal({ open: false, appt: null, newDate: "", newTime: "" });
     } catch (err) {
@@ -465,7 +432,7 @@ export default function DoctorDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Banner Section */}
-        <div className="bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
+        <div className="bg-[#1E1433] rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
           <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full blur-2xl pointer-events-none" />
           <div className="relative z-10 max-w-2xl">
             <span className="text-[11px] font-bold uppercase tracking-widest text-[#5EEAD4] bg-white/10 px-3 py-1 rounded-full border border-white/10">
@@ -785,7 +752,7 @@ export default function DoctorDashboard() {
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className="bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 disabled:opacity-50 cursor-pointer"
+                    className="bg-[#1E1433] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:opacity-95 disabled:opacity-50 cursor-pointer"
                   >
                     {isProcessing ? "Updating..." : "Save & Confirm"}
                   </button>

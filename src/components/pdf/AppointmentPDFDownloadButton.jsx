@@ -32,7 +32,7 @@ export default function AppointmentPDFDownloadButton({ appointmentData, classNam
     date: appointmentData?.date || new Date().toISOString().split("T")[0],
     time: appointmentData?.time || "Standard Slot",
     branch: appointmentData?.branch || "Main OPD Complex, Haji Murad Eye Hospital Trust",
-    contact: appointmentData?.phone || "0324-1111692",
+    contact: appointmentData?.phone || "0324-1111691",
     email: appointmentData?.email || "",
   };
 
@@ -47,7 +47,7 @@ export default function AppointmentPDFDownloadButton({ appointmentData, classNam
         <button
           type="button"
           disabled={loading}
-          className={`inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] hover:opacity-95 text-white px-5 py-3 rounded-xl text-xs font-extrabold shadow-md transition-all cursor-pointer disabled:opacity-50 ${className}`}
+          className={`inline-flex items-center justify-center gap-2 bg-[#C4232C] hover:bg-[#a81c24] hover:opacity-95 text-white px-5 py-3 rounded-xl text-xs font-extrabold shadow-md transition-all cursor-pointer disabled:opacity-50 ${className}`}
         >
           {loading ? (
             <>

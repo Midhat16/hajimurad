@@ -117,7 +117,7 @@ export default function AdminServicesListPage() {
 
         <Link
           href="/admin/services/new"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
+          className="inline-flex items-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add New Service
@@ -201,7 +201,7 @@ export default function AdminServicesListPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] p-0.5 shadow-xs flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1E1433] p-0.5 shadow-xs flex items-center justify-center">
                       <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center">
                         <IconComponent className="w-6 h-6 text-[#2B1F1A]" />
                       </div>

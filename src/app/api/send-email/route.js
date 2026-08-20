@@ -112,7 +112,7 @@ export async function POST(req) {
       const finalHtml = html || `<p>${message}</p>`;
       const res = await sendEmail({
         to,
-        subject: subject || "Notification from Haji Murad Eye Hospital",
+        subject: subject || "Notification from Haji Murad Eye Hospital Trust",
         html: finalHtml,
       });
       return NextResponse.json(res);

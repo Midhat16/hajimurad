@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Maximize2, X, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 
@@ -125,9 +126,14 @@ export default function TechnologyImageGallery({ images = [], name = "Technology
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="w-full h-full flex items-center justify-center relative"
           >
-            <img
+            <Image
               src={currentImageUrl}
-              alt={`${name} - View ${currentIndex + 1}`}
+              alt={`${name} diagnostic equipment - View ${currentIndex + 1} at Haji Murad Eye Hospital Trust`}
+              width={600}
+              height={400}
+              priority={currentIndex === 0}
+              sizes="(max-width: 768px) 100vw, 500px"
+              decoding="async"
               style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto" }}
               className="rounded-2xl transition-transform duration-300 group-hover:scale-[1.02]"
             />
@@ -165,9 +171,13 @@ export default function TechnologyImageGallery({ images = [], name = "Technology
                     : "border border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-400"
                 }`}
               >
-                <img
+                <Image
                   src={imgUrl}
-                  alt={`${name} Thumbnail ${idx + 1}`}
+                  alt={`${name} equipment thumbnail ${idx + 1} - Haji Murad Eye Hospital Trust`}
+                  width={80}
+                  height={80}
+                  loading="lazy"
+                  decoding="async"
                   style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto" }}
                   className="rounded-xl"
                 />
@@ -253,9 +263,13 @@ export default function TechnologyImageGallery({ images = [], name = "Technology
                       transition={{ duration: 0.25, ease: "easeInOut" }}
                       className="w-full h-full flex items-center justify-center min-h-0 relative"
                     >
-                      <img
+                      <Image
                         src={currentImageUrl}
-                        alt={`${name} Fullscreen View`}
+                        alt={`${name} diagnostic equipment fullscreen view - Haji Murad Eye Hospital Trust`}
+                        width={1200}
+                        height={800}
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           objectFit: "contain",
                           maxWidth: "100%",
@@ -306,9 +320,13 @@ export default function TechnologyImageGallery({ images = [], name = "Technology
                               : "border-white/20 opacity-50 hover:opacity-100 hover:border-white/60"
                           }`}
                         >
-                          <img
+                          <Image
                             src={imgUrl}
-                            alt={`Thumbnail ${idx + 1}`}
+                            alt={`${name} equipment gallery thumbnail ${idx + 1} - Haji Murad Eye Hospital Trust`}
+                            width={100}
+                            height={100}
+                            loading="lazy"
+                            decoding="async"
                             style={{
                               objectFit: "contain",
                               maxWidth: "100%",

@@ -8,24 +8,24 @@ import EyeGallery from "./EyeGallery";
 
 const HERO_BANNER_IMAGES = [
   {
-    src: "/images/hero-building-exterior.jpg",
-    alt: "Haji Murad Eye Hospital Trust Main Building Exterior and Front Entrance",
-    position: "center center",
+    src: "/images/fixed-hero-1.jpg",
+    alt: "Best Eye Hospital in Gujranwala - Haji Murad Eye Hospital Trust Campus",
+    position: "center 18%",
   },
   {
-    src: "/images/hero-opd-examination.jpg",
-    alt: "Senior Female Eye Specialist Conducting OPD Vision Examination",
+    src: "/images/fixed-hero-2.jpg",
+    alt: "Top Eye Specialist and Ophthalmologist in Gujranwala Eye Examination",
     position: "center top",
   },
   {
-    src: "/images/hero-operating-theater.jpg",
-    alt: "Advanced ZEISS Ophthalmic Surgery Microscope in Operating Theater",
+    src: "/images/fixed-hero-3.jpg",
+    alt: "Cataract Surgery and Phaco Procedure at Haji Murad Eye Hospital Gujranwala",
     position: "center center",
   },
   {
-    src: "/images/haji-murad-main-campus.webp",
-    alt: "Haji Murad Trust Eye Hospital Main Campus Building",
-    position: "center center",
+    src: "/images/fixed-hero-1.jpg",
+    alt: "Haji Murad Eye Hospital Gujranwala Building Exterior",
+    position: "center 18%",
   },
 ];
 
@@ -61,8 +61,8 @@ export default function Hero() {
 
       // Desktop floating logic
       const footerEl = document.querySelector("footer");
-      const baseTop = 112; // 112px below top -> stays cleanly below the sticky Header (z-50)
-      const galleryHeight = 360;
+      const baseTop = 220; // 220px below top -> guarantees top orbital circle thumbnail is 100% visible and starting high in Hero section
+      const galleryHeight = 320;
 
       let computedTop = baseTop;
 
@@ -128,10 +128,10 @@ export default function Hero() {
   const currentImage = HERO_BANNER_IMAGES[bgIndex];
 
   return (
-    <section id="hero-banner-section" className="relative pt-24 pb-10 lg:pt-28 lg:pb-12 flex flex-col justify-center bg-[var(--ink)] min-h-[85vh] overflow-hidden w-full">
+    <section id="hero-banner-section" className="relative mt-0 pt-6 pb-2 sm:pt-8 sm:pb-3 lg:pt-10 lg:pb-4 flex flex-col justify-center bg-[var(--ink)] min-h-0 md:min-h-[85vh] w-full">
 
       {/* Animated Hero Banner Background Images */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden bg-[var(--ink)]">
         <AnimatePresence mode="sync">
           <motion.div
             key={bgIndex}
@@ -146,19 +146,19 @@ export default function Hero() {
               alt={currentImage.alt}
               fill
               priority={bgIndex === 0}
-              quality={90}
+              quality={95}
               sizes="100vw"
+              className="w-full h-full object-cover transition-all duration-500"
               style={{
-                objectFit: "cover",
                 objectPosition: currentImage.position,
               }}
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* Multi-stage subtle dark vignette scrim overlay for clear background photos */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0C1322]/60 via-[#0C1322]/35 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0C1322]/40 via-transparent to-[#0C1322]/30" />
+        {/* Multi-stage subtle dark vignette scrim overlay for clear background text contrast */}
+        <div className="absolute inset-0 z-10 bg-[#0C1322]/60 pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#0C1322]/50 via-transparent to-[#0C1322]/40 pointer-events-none" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
@@ -171,22 +171,39 @@ export default function Hero() {
             animate="visible"
             className="lg:col-span-7 text-center lg:text-left flex flex-col items-center lg:items-start space-y-4 pr-0 lg:pr-4"
           >
+            <motion.div
+              variants={itemVariants}
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3.5 py-1.5 shadow-sm"
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-semibold tracking-wide text-white/95">
+                Haji Murad Eye Hospital Trust
+              </span>
+            </motion.div>
+
             <motion.h1
               variants={itemVariants}
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md"
+              className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-white leading-[1.15] drop-shadow-md max-w-2xl mx-auto lg:mx-0"
             >
-              Rediscover the World with{" "}
-              <span className="text-white drop-shadow-lg block mt-1">
-                Crystal Clear Vision
+              Advanced Eye Care{" "}
+              <span className="text-white block sm:inline mt-1 sm:mt-0">
+                in Gujranwala
               </span>
             </motion.h1>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-sm sm:text-base lg:text-lg font-medium text-white leading-relaxed max-w-xl mx-auto lg:mx-0 drop-shadow-md"
+            >
+              Comprehensive eye examinations, cataract surgery, laser treatment and specialized ophthalmic care delivered by experienced eye-care professionals.
+            </motion.p>
           </motion.div>
 
-          {/* Right: Reserved EyeGallery Slot */}
-          <div className="lg:col-span-5 w-full min-h-[260px] sm:min-h-[320px] lg:min-h-[360px] flex items-center justify-center lg:justify-end relative z-20">
+          {/* Right: Reserved EyeGallery Slot (Mobile only, desktop handled by page.js sticky wrapper) */}
+          <div className="lg:col-span-5 w-full flex items-center justify-center lg:justify-end relative z-40 overflow-visible mt-0 lg:-mt-2 block lg:hidden">
             <div
               ref={galleryRef}
-              className="w-full max-w-[360px] aspect-square flex items-center justify-center"
+              className="w-full max-w-[270px] sm:max-w-[340px] lg:max-w-[360px] flex items-center justify-center relative z-40 overflow-visible"
             >
               <EyeGallery />
             </div>
@@ -194,8 +211,8 @@ export default function Hero() {
 
         </div>
 
-        {/* Infinite Right-to-Left Scrolling Marquee Banner with Clear Top Margin (mt-8) */}
-        <div className="mt-8 pt-4 border-t border-white/15 overflow-hidden w-full max-w-full relative marquee-gradient-mask">
+        {/* Infinite Right-to-Left Scrolling Marquee Banner Positioned Lower at Hero Image Boundary */}
+        <div className="mt-8 sm:mt-10 lg:mt-12 pt-3 border-t border-white/15 overflow-hidden w-full max-w-full relative z-20 marquee-gradient-mask -mb-6 sm:-mb-7 lg:-mb-8 translate-y-6 sm:translate-y-7 lg:translate-y-8">
           <div className="flex w-max animate-marquee gap-3">
             {[...marqueeItems, ...marqueeItems].map((item, idx) => {
               const IconComp = item.icon;

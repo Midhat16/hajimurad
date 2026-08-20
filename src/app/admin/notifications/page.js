@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   Bell,
@@ -112,6 +112,11 @@ export default function AdminNotificationsPage() {
   }, []);
 
   // Build unified complete stream of ALL notifications (from start to now)
+  const activeAppIds = new Set(internshipAppsDocs.map((app) => app.id));
+  const activeAppNames = new Set(
+    internshipAppsDocs.map((app) => (app.applicantName || "").toLowerCase().trim()).filter(Boolean)
+  );
+
   const allNotificationsMap = new Map();
 
   // A. Add records from `notifications` collection
@@ -122,6 +127,18 @@ export default function AdminNotificationsPage() {
       n.type === "internship" ||
       (n.title && /internship/i.test(n.title)) ||
       (n.message && /internship/i.test(n.message));
+
+    if (isInternship) {
+      const matchesActive = n.applicationId
+        ? activeAppIds.has(n.applicationId)
+        : (n.applicantName && activeAppNames.has(n.applicantName.toLowerCase().trim()));
+
+      if (!matchesActive || internshipAppsDocs.length === 0) {
+        // Auto-delete orphan notification from Firestore
+        deleteDoc(doc(db, "notifications", n.id)).catch(() => {});
+        return;
+      }
+    }
 
     const isDoctorMsg =
       !isInternship &&
@@ -197,6 +214,29 @@ export default function AdminNotificationsPage() {
     const isInternshipLog = act.includes("INTERNSHIP") || (log.message && /internship/i.test(log.message));
 
     if (isInternshipLog) {
+      const matchesActive = log.applicationId
+        ? activeAppIds.has(log.applicationId)
+        : (log.applicantName && activeAppNames.has(log.applicantName.toLowerCase().trim()));
+
+      if (!matchesActive || internshipAppsDocs.length === 0) {
+        deleteDoc(doc(db, "activityLog", log.id)).catch(() => {});
+        return;
+      }
+      const existingInternship = Array.from(allNotificationsMap.values()).find(
+        (n) => n.isInternship && (
+          (log.applicationId && n.applicationId === log.applicationId) ||
+          (log.applicantName && n.message?.toLowerCase().includes(log.applicantName.toLowerCase())) ||
+          Math.abs(n.rawTime - rawTime) < 180000
+        )
+      );
+
+      if (existingInternship) {
+        if ((log.read === true || log.is_read === true) && !existingInternship.is_read) {
+          existingInternship.is_read = true;
+        }
+        return;
+      }
+
       allNotificationsMap.set(mapKey, {
         id: log.id,
         collectionName: "activityLog",
@@ -244,10 +284,26 @@ export default function AdminNotificationsPage() {
     }
   });
 
-  // C. Add records from `internshipApplications` collection
+  // C. Add records from `internshipApplications` collection (only if not already mapped)
   internshipAppsDocs.forEach((app) => {
     const rawTime = app.createdAt?.seconds ? app.createdAt.seconds * 1000 : Date.now();
     const mapKey = `internship-${app.id}`;
+    
+    const existingInternship = Array.from(allNotificationsMap.values()).find(
+      (n) => n.isInternship && (
+        n.applicationId === app.id ||
+        (app.applicantName && n.message?.toLowerCase().includes(app.applicantName.toLowerCase())) ||
+        Math.abs(n.rawTime - rawTime) < 180000
+      )
+    );
+
+    if (existingInternship) {
+      if ((app.read === true || app.is_read === true) && !existingInternship.is_read) {
+        existingInternship.is_read = true;
+      }
+      return;
+    }
+
     if (!allNotificationsMap.has(mapKey)) {
       allNotificationsMap.set(mapKey, {
         id: app.id,

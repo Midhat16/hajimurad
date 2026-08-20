@@ -1,10 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, ChevronLeft, ChevronRight, Quote, ExternalLink, PlayCircle } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Quote, ExternalLink, Play } from "lucide-react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import {
+  getOptimizedCloudinaryVideoUrl,
+  getCloudinaryVideoPosterUrl,
+  isDirectVideoUrl,
+  getYoutubeEmbedUrl,
+} from "@/lib/cloudinaryVideoUtil";
 
 const YoutubeSvg = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 shrink-0">
@@ -26,27 +33,6 @@ const FacebookSvg = () => (
   </svg>
 );
 
-function getYoutubeEmbedUrl(url) {
-  if (!url || typeof url !== "string") return null;
-  const target = url.trim();
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = target.match(regExp);
-
-  if (match && match[2].length === 11) {
-    return `https://www.youtube.com/embed/${match[2]}?autoplay=1&rel=0`;
-  }
-  return null;
-}
-
-function isDirectVideoUrl(url) {
-  if (!url || typeof url !== "string") return false;
-  const str = url.trim().toLowerCase();
-  if (str.startsWith("data:video/")) return true;
-  if (str.endsWith(".mp4") || str.endsWith(".webm") || str.endsWith(".ogg") || str.endsWith(".mov")) return true;
-  if (str.includes(".mp4?") || str.includes(".webm?")) return true;
-  return false;
-}
-
 function renderTestimonialVideoButton(url) {
   if (!url || typeof url !== "string") return null;
   const targetUrl = url.trim();
@@ -54,8 +40,8 @@ function renderTestimonialVideoButton(url) {
 
   const lower = targetUrl.toLowerCase();
   let label = "Watch Video";
-  let iconElement = <PlayCircle className="w-4 h-4 shrink-0" />;
-  let bgClasses = "bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white hover:opacity-95 shadow-md border border-white/20";
+  let iconElement = <Play className="w-4 h-4 shrink-0 fill-current" />;
+  let bgClasses = "bg-[#1E1433] text-white hover:opacity-95 shadow-md border border-white/20";
 
   if (lower.includes("youtube.com") || lower.includes("youtu.be")) {
     label = "Watch on YouTube";
@@ -64,7 +50,7 @@ function renderTestimonialVideoButton(url) {
   } else if (lower.includes("instagram.com") || lower.includes("instagr.am")) {
     label = "Watch on Instagram";
     iconElement = <InstagramSvg />;
-    bgClasses = "bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 text-white shadow-md border border-pink-400";
+    bgClasses = "bg-[#1E1433] hover:opacity-95 text-white shadow-md border border-pink-400";
   } else if (lower.includes("facebook.com") || lower.includes("fb.watch")) {
     label = "Watch on Facebook";
     iconElement = <FacebookSvg />;
@@ -85,26 +71,57 @@ function renderTestimonialVideoButton(url) {
   );
 }
 
-function TestimonialVideoDisplay({ videoUrl, posterUrl }) {
+function TestimonialVideoDisplay({ videoUrl, posterUrl, title, patientName }) {
   const [isPlaying, setIsPlaying] = useState(false);
   if (!videoUrl || typeof videoUrl !== "string") return null;
-  const url = videoUrl.trim();
-  if (!url) return null;
 
-  const isVideoFile = isDirectVideoUrl(url);
-  const youtubeEmbed = getYoutubeEmbedUrl(url);
+  const directVideo = isDirectVideoUrl(videoUrl);
+  const youtubeEmbed = getYoutubeEmbedUrl(videoUrl);
 
-  if (isVideoFile) {
+  if (directVideo) {
+    const optimizedVideoUrl = getOptimizedCloudinaryVideoUrl(videoUrl);
+    const autoPosterUrl = posterUrl || getCloudinaryVideoPosterUrl(videoUrl);
+
     return (
       <div className="w-full space-y-1.5 mt-3">
-        <div className="rounded-xl overflow-hidden bg-black shadow-md border border-slate-200 aspect-video max-h-52 mx-auto">
-          <video
-            src={url}
-            poster={posterUrl || undefined}
-            controls
-            preload="metadata"
-            className="w-full h-full object-contain"
-          />
+        <div className="rounded-xl overflow-hidden bg-slate-950 shadow-md border border-slate-200 aspect-video max-h-52 mx-auto relative group">
+          {isPlaying ? (
+            <video
+              src={optimizedVideoUrl}
+              poster={autoPosterUrl || undefined}
+              controls
+              autoPlay
+              preload="auto"
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div
+              onClick={() => setIsPlaying(true)}
+              className="w-full h-full relative cursor-pointer group flex items-center justify-center bg-slate-900"
+            >
+              {autoPosterUrl ? (
+                <Image
+                  src={autoPosterUrl}
+                  alt={`Patient Video Testimonial Cover - ${patientName || "Haji Murad Eye Hospital Trust Patient"}`}
+                  width={400}
+                  height={225}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-[#0F172A] opacity-90" />
+              )}
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/35 group-hover:bg-black/20 transition-colors p-2">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#C4232C] hover:bg-[#a81c24] text-white flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300 border-2 border-white/80">
+                  <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-white text-white ml-1" />
+                </div>
+                <span className="text-xs font-extrabold text-white bg-black/60 px-3 py-1 rounded-full backdrop-blur-xs border border-white/20">
+                  Click to Play Video
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -117,7 +134,7 @@ function TestimonialVideoDisplay({ videoUrl, posterUrl }) {
           {isPlaying ? (
             <iframe
               src={youtubeEmbed}
-              title="Testimonial Video"
+              title={title || "YouTube Video Testimonial"}
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -128,19 +145,23 @@ function TestimonialVideoDisplay({ videoUrl, posterUrl }) {
               className="w-full h-full relative cursor-pointer group flex items-center justify-center bg-slate-900"
             >
               {posterUrl ? (
-                <img
+                <Image
                   src={posterUrl}
-                  alt="Video Cover"
+                  alt={`YouTube Patient Testimonial Video Cover - ${patientName || "Haji Murad Eye Hospital Trust Patient"}`}
+                  width={400}
+                  height={225}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover opacity-80 group-hover:opacity-95 transition-opacity"
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900 to-red-950 opacity-90" />
+                <div className="absolute inset-0 bg-[#0F172A] opacity-90" />
               )}
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/30 group-hover:bg-black/20 transition-colors p-2">
-                <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <PlayCircle className="w-7 h-7 fill-current ml-0.5" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/35 group-hover:bg-black/20 transition-colors p-2">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#C4232C] hover:bg-[#a81c24] text-white flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300 border-2 border-white/80">
+                  <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-white text-white ml-1" />
                 </div>
-                <span className="text-[11px] font-bold text-white bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                <span className="text-xs font-extrabold text-white bg-black/60 px-3 py-1 rounded-full backdrop-blur-xs border border-white/20">
                   Play Video
                 </span>
               </div>
@@ -281,7 +302,7 @@ export default function Testimonials() {
   const hasAgeOrDate = Boolean(currentItem?.age || currentItem?.date);
 
   return (
-    <section className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden">
+    <section className="pt-10 pb-6 lg:pt-12 lg:pb-6 bg-[var(--fog)] relative overflow-hidden">
       {/* Background soft glowing blur */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-slate-100/40 rounded-full blur-3xl pointer-events-none" />
 
@@ -331,11 +352,15 @@ export default function Testimonials() {
 
                 {/* Left side: Profile Initials/Avatar and Details */}
                 <div className="flex flex-col items-center flex-shrink-0 md:border-r md:border-[var(--line)] md:pr-6 md:w-[200px]">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden flex-shrink-0">
+                  <div className="w-16 h-16 rounded-full bg-[#1E1433] flex items-center justify-center text-white text-xl font-bold shadow-sm overflow-hidden flex-shrink-0">
                     {currentItem?.imageUrl ? (
-                      <img
+                      <Image
                         src={currentItem.imageUrl}
-                        alt={patientName}
+                        alt={`${patientName || "Patient"} Photo - Haji Murad Eye Hospital Trust Patient`}
+                        width={64}
+                        height={64}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
@@ -377,6 +402,7 @@ export default function Testimonials() {
                   <TestimonialVideoDisplay
                     videoUrl={currentItem?.videoUrl || currentItem?.videoLink}
                     posterUrl={currentItem?.imageUrl}
+                    patientName={patientName}
                   />
                 </div>
               </motion.div>

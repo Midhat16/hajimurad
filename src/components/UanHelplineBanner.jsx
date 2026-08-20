@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PhoneCall, Clock, Phone, Sparkles } from "lucide-react";
@@ -45,13 +46,13 @@ export default function UanHelplineBanner() {
   const cleanTelNumber = uanNumber.replace(/[^\d+]/g, "") || "111333456";
 
   return (
-    <section className="py-8 sm:py-12 bg-gradient-to-b from-[var(--fog)] via-white to-[var(--fog)] font-sans relative overflow-hidden">
+    <section className="py-8 sm:py-12 bg-[#A8C0D6] font-sans relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* CLICKABLE 24/7 HELPLINE CARD WRAPPER */}
         <a
           href={`tel:${cleanTelNumber}`}
-          className="group relative block w-full bg-gradient-to-r from-white via-rose-50/50 to-white rounded-3xl p-4 sm:p-8 border-2 border-rose-200/90 hover:border-rose-500 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer focus:outline-none focus:ring-4 focus:ring-rose-500/20"
+          className="group relative block w-full bg-white rounded-3xl p-4 sm:p-8 border-2 border-rose-200/90 hover:border-rose-500 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer focus:outline-none focus:ring-4 focus:ring-rose-500/20 mb-[10px]"
           aria-label={`Call ${helplineTitle} at ${uanNumber}`}
           title={`Click to call ${uanNumber}`}
         >
@@ -63,9 +64,13 @@ export default function UanHelplineBanner() {
             
             {/* LEFT: 24/7 Clock/Helpline Image Container */}
             <div className="shrink-0 w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 flex items-center justify-center p-2 rounded-2xl bg-white border border-rose-100 shadow-sm group-hover:scale-105 transition-transform duration-300 overflow-hidden">
-              <img
-                src={helplineImage}
+              <Image
+                src={helplineImage || "/images/247-helpline.svg"}
                 alt={`${helplineTitle} - Emergency Service`}
+                width={144}
+                height={144}
+                loading="lazy"
+                decoding="async"
                 style={{ objectFit: "contain", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto" }}
                 className="block drop-shadow-xs"
               />
@@ -99,7 +104,7 @@ export default function UanHelplineBanner() {
 
             {/* RIGHT: Call Now Action Button */}
             <div className="shrink-0 w-full md:w-auto pt-2 md:pt-0 flex justify-center">
-              <div className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-extrabold text-xs sm:text-base px-5 py-3 sm:px-7 sm:py-4 rounded-2xl shadow-lg shadow-rose-600/30 group-hover:shadow-rose-600/50 group-hover:scale-105 transition-all duration-300 border border-white/20">
+              <div className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[#C4232C] hover:bg-[#a81c24] text-white font-extrabold text-xs sm:text-base px-5 py-3 sm:px-7 sm:py-4 rounded-2xl shadow-lg shadow-rose-600/30 group-hover:shadow-rose-600/50 group-hover:scale-105 transition-all duration-300 border border-white/20">
                 <PhoneCall className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-bounce shrink-0" />
                 <span>Call Now</span>
               </div>

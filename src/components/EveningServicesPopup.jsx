@@ -81,7 +81,7 @@ export default function EveningServicesPopup() {
 
             <div className="w-full flex flex-col items-center pt-1.5 relative z-10">
               {/* Evening Icon Header */}
-              <div className="w-11 h-11 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-tr from-[#1E1433] via-[#2B1F1A] to-[var(--iris)] flex items-center justify-center text-white shadow-lg shadow-purple-950/20 mb-2.5 relative group">
+              <div className="w-11 h-11 sm:w-18 sm:h-18 rounded-2xl bg-[#1E1433] flex items-center justify-center text-white shadow-lg shadow-purple-950/20 mb-2.5 relative group">
                 <Moon className="w-5.5 h-5.5 sm:w-9 sm:h-9 text-[#5EEAD4] transform group-hover:rotate-12 transition-transform duration-300" />
                 <div className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 p-0.5 sm:p-1 rounded-full shadow-md border-2 border-white">
                   <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -98,7 +98,7 @@ export default function EveningServicesPopup() {
               {/* Title & Announcement Body */}
               <h3 className="text-lg sm:text-2xl font-black text-[#0A192F] tracking-tight leading-snug mb-2 break-words max-w-full px-1">
                 Evening Services <br />
-                <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="text-purple-600">
                   Coming Soon!
                 </span>
               </h3>
@@ -113,7 +113,7 @@ export default function EveningServicesPopup() {
               <button
                 type="button"
                 onClick={handleClose}
-                className="w-full bg-gradient-to-r from-[#1E1433] to-[#2B1F1A] hover:from-[#2B1F1A] hover:to-[#1E1433] text-white font-extrabold text-xs sm:text-sm py-3 px-5 rounded-xl shadow-md transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full bg-[#1E1433] hover:bg-[#2A1C47] text-white font-extrabold text-xs sm:text-sm py-3 px-5 rounded-xl shadow-md transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Got It, Thank You</span>
                 <ArrowRight className="w-4 h-4 text-[#5EEAD4]" />

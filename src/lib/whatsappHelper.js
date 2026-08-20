@@ -28,13 +28,13 @@ export const getWhatsAppAppointmentUrl = (action, appt, dateStr = "", timeStr = 
   const act = (action || "").toLowerCase();
 
   if (act.includes("reschedule")) {
-    message = `Dear ${name}, your appointment at Haji Murad Eye Hospital has been rescheduled to ${date} at ${time}. We apologize for any inconvenience and look forward to seeing you. Thank you for your understanding.`;
+    message = `Dear ${name}, your appointment at Haji Murad Eye Hospital Trust has been rescheduled to ${date} at ${time}. We apologize for any inconvenience and look forward to seeing you. Thank you for your understanding.`;
   } else if (act.includes("confirm") || act.includes("accept")) {
-    message = `Dear ${name}, your appointment at Haji Murad Eye Hospital has been confirmed for ${date} at ${time}. Please arrive 10 minutes early. For any queries, feel free to contact us. Thank you.`;
+    message = `Dear ${name}, your appointment at Haji Murad Eye Hospital Trust has been confirmed for ${date} at ${time}. Please arrive 10 minutes early. For any queries, feel free to contact us. Thank you.`;
   } else if (act.includes("cancel") || act.includes("reject")) {
-    message = `Dear ${name}, we regret to inform you that your requested appointment at Haji Murad Eye Hospital could not be scheduled at this time. Please contact us to arrange an alternative time. We apologize for the inconvenience.`;
+    message = `Dear ${name}, we regret to inform you that your requested appointment at Haji Murad Eye Hospital Trust could not be scheduled at this time. Please contact us to arrange an alternative time. We apologize for the inconvenience.`;
   } else {
-    message = `Dear ${name}, your appointment details at Haji Murad Eye Hospital: Date: ${date}, Time: ${time}. Thank you.`;
+    message = `Dear ${name}, your appointment details at Haji Murad Eye Hospital Trust: Date: ${date}, Time: ${time}. Thank you.`;
   }
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -47,6 +47,6 @@ export const getWhatsAppContactReplyUrl = (msg) => {
   const phone = formatWhatsAppPhone(msg?.phone || "");
   if (!phone) return "";
   const name = msg?.name || "Patient";
-  const defaultText = `Dear ${name}, thank you for reaching out to Haji Murad Eye Hospital. We have received your message and would like to follow up with you regarding your inquiry.`;
+  const defaultText = `Dear ${name}, thank you for reaching out to Haji Murad Eye Hospital Trust. We have received your message and would like to follow up with you regarding your inquiry.`;
   return `https://wa.me/${phone}?text=${encodeURIComponent(defaultText)}`;
 };

@@ -12,6 +12,8 @@ import { Noto_Nastaliq_Urdu } from "next/font/google";
 const notoNastaliq = Noto_Nastaliq_Urdu({
   subsets: ["arabic"],
   weight: ["400", "700"],
+  display: "swap",
+  fallback: ["serif", "system-ui"],
 });
 
 const DEFAULT_LATE_CHAIRMAN_URDU = `حاجی مراد ٹرسٹ آئی ہسپتال کے قیام کا بنیادی مقصد انسانیت کی خدمت اور قابلِ علاج اندھے پن کا خاتمہ ہے۔ 1980 سے ہم مریضوں کو جدید ترین سہولیات، عالمی معیار کے آپریشن اور مخلصانہ نگہداشت فراہم کر رہے ہیں۔`;
@@ -218,11 +220,12 @@ export default function MessagesPreview() {
                     </span>
                   </button>
 
-                  {/* Animated Speech Bubble Pointer Triangle sliding smoothly across tabs with layoutId */}
+                  {/* Speech Bubble Pointer Triangle */}
                   {isActive && (
                     <motion.div
-                      layoutId="messagesTabTriangle"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
                       aria-hidden="true"
                       className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-[#1E1433] z-30 pointer-events-none"
                     />

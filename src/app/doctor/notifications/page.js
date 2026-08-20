@@ -15,7 +15,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import DoctorNotificationBell from "@/components/doctor/DoctorNotificationBell";
-import { notifyOnDoctorAction } from "@/lib/notificationService";
+import { notifyOnDoctorAction, notifyPatientOfStatusChange } from "@/lib/notificationService";
 import {
   Bell,
   ArrowLeft,
@@ -332,8 +332,10 @@ export default function DoctorNotificationsPage() {
         is_read: true,
         updatedAt: serverTimestamp(),
       });
-      await logActivity("accepted", item.appt || { id: item.id, name: item.patientName });
-      await notifyOnDoctorAction("accepted", item.appt || { id: item.id, name: item.patientName }, doctorProfile?.name || "Doctor");
+      const apptData = item.appt || { id: item.id, name: item.patientName, phone: item.phone, email: item.email };
+      await logActivity("accepted", apptData);
+      await notifyOnDoctorAction("accepted", apptData, doctorProfile?.name || "Doctor");
+      await notifyPatientOfStatusChange("accepted", apptData);
     } catch (err) {
       alert("Failed to confirm appointment.");
     } finally {
@@ -353,8 +355,10 @@ export default function DoctorNotificationsPage() {
         is_read: true,
         updatedAt: serverTimestamp(),
       });
-      await logActivity("rejected", item.appt || { id: item.id, name: item.patientName });
-      await notifyOnDoctorAction("rejected", item.appt || { id: item.id, name: item.patientName }, doctorProfile?.name || "Doctor");
+      const apptData = item.appt || { id: item.id, name: item.patientName, phone: item.phone, email: item.email };
+      await logActivity("rejected", apptData);
+      await notifyOnDoctorAction("rejected", apptData, doctorProfile?.name || "Doctor");
+      await notifyPatientOfStatusChange("cancelled", apptData);
     } catch (err) {
       alert("Failed to reject appointment.");
     } finally {
@@ -381,6 +385,7 @@ export default function DoctorNotificationsPage() {
       });
       await logActivity("rescheduled", appt, `Rescheduled to ${newDate} at ${newTime}`);
       await notifyOnDoctorAction("rescheduled", appt, doctorProfile?.name || "Doctor", newDate, newTime);
+      await notifyPatientOfStatusChange("rescheduled", appt, newDate, newTime);
       setRescheduleModal({ open: false, appt: null, newDate: "", newTime: "" });
     } catch (err) {
       alert("Failed to reschedule appointment.");

@@ -9,8 +9,8 @@ const GALLERY_IMAGES = [
   {
     id: 1,
     src: "/images/haji-murad-main-campus.webp",
-    alt: "Haji Murad Trust Eye Hospital Main Campus Building",
-    caption: "Haji Murad Trust Eye Hospital Campus",
+    alt: "Haji Murad Eye Hospital Trust Main Campus Building",
+    caption: "Haji Murad Eye Hospital Trust Campus",
     tag: "Hospital Campus",
   },
   {
@@ -88,7 +88,7 @@ export default function EyeGallery() {
 
   return (
     <div
-      className="relative w-full max-w-[360px] min-h-[260px] sm:min-h-[320px] lg:min-h-[360px] flex flex-col items-center justify-center select-none mx-auto overflow-hidden"
+      className="relative w-full max-w-[360px] min-h-[260px] sm:min-h-[320px] lg:min-h-[360px] flex flex-col items-center justify-center select-none mx-auto overflow-visible z-30 mt-[30px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -96,7 +96,7 @@ export default function EyeGallery() {
       <div className="absolute w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full bg-gradient-to-tr from-indigo-950/10 to-[#8B5CF6]/10 blur-3xl pointer-events-none" />
 
       {/* MAIN CONTAINER: IDLE CROSSFADE / EXPANDED ORBITAL GALLERY */}
-      <div className="relative w-44 h-44 sm:w-56 sm:h-56 lg:w-72 lg:h-72 aspect-square flex items-center justify-center flex-shrink-0 mx-auto">
+      <div className="relative w-44 h-44 sm:w-56 sm:h-56 lg:w-72 lg:h-72 aspect-square flex items-center justify-center flex-shrink-0 mx-auto overflow-visible">
         {/* Outer Decorative Pulsing Glow Ring - Perfectly Concentric with Main Image Circle */}
         <motion.div
           animate={{
@@ -113,12 +113,12 @@ export default function EyeGallery() {
 
         {/* DESKTOP HOVER: ORBITAL CIRCULAR RING OF THUMBNAILS */}
         {!isMobile && isHovered ? (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center overflow-visible z-30">
             {GALLERY_IMAGES.map((img, idx) => {
               // Calculate angular position in radians
               const count = GALLERY_IMAGES.length;
               const angle = (idx / count) * 2 * Math.PI - Math.PI / 2;
-              const radius = 140; // orbit offset radius
+              const radius = 102; // orbit offset radius tuned to prevent top header cropping
               const x = Math.cos(angle) * radius;
               const y = Math.sin(angle) * radius;
               const isSelected = idx === activeIndex;
@@ -145,8 +145,8 @@ export default function EyeGallery() {
                     e.stopPropagation();
                     setActiveIndex(idx);
                   }}
-                  className={`absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full p-1 cursor-pointer transition-shadow shadow-md ${isSelected
-                    ? "bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] ring-4 ring-[var(--iris)]/30 shadow-lg"
+                  className={`absolute w-14 h-14 sm:w-16 sm:h-16 rounded-full p-1 cursor-pointer transition-shadow shadow-md ${isSelected
+                    ? "bg-[#1E1433] ring-4 ring-[var(--iris)]/30 shadow-lg"
                     : "bg-white border-2 border-[var(--line)] hover:border-[var(--iris)]"
                     }`}
                 >
@@ -155,7 +155,7 @@ export default function EyeGallery() {
                       src={img.src}
                       alt={img.alt}
                       fill
-                      sizes="80px"
+                      sizes="64px"
                       className="object-cover"
                     />
                   </div>
@@ -168,7 +168,7 @@ export default function EyeGallery() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-[var(--ink)] to-[var(--iris)] shadow-xl z-20 overflow-hidden relative flex-shrink-0 aspect-square"
+              className="w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-[#1E1433] shadow-xl z-20 overflow-hidden relative flex-shrink-0 aspect-square"
             >
               <AnimatePresence mode="wait">
                 <motion.div
@@ -193,7 +193,7 @@ export default function EyeGallery() {
           </div>
         ) : (
           /* IDLE / MOBILE VIEW: MAIN SINGLE ROTATING PHOTO FRAME (PERFECT 1:1 CIRCLE) */
-          <div className="relative w-44 h-44 sm:w-56 sm:h-56 lg:w-72 lg:h-72 aspect-square rounded-full p-1 sm:p-1.5 bg-gradient-to-tr from-[var(--ink)] via-[#2B1F1A] to-[var(--iris)] shadow-xl overflow-hidden group cursor-pointer flex-shrink-0 mx-auto z-10">
+          <div className="relative w-44 h-44 sm:w-56 sm:h-56 lg:w-72 lg:h-72 aspect-square rounded-full p-1 sm:p-1.5 bg-[#1E1433] shadow-xl overflow-hidden group cursor-pointer flex-shrink-0 mx-auto z-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeImage.id}

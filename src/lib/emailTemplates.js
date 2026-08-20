@@ -4,11 +4,11 @@
  */
 
 const HOSPITAL_BRAND_HEADER = `
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #1E1433 0%, #C4232C 100%); border-radius: 16px 16px 0 0;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: #1E1433; border-radius: 16px 16px 0 0;">
     <tr>
       <td align="center" style="padding: 28px 20px;">
         <h1 style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
-          HAJI MURAD TRUST EYE HOSPITAL
+          HAJI MURAD EYE HOSPITAL TRUST
         </h1>
         <p style="color: rgba(255,255,255,0.85); font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; margin: 4px 0 0 0; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
           Excellence in Ophthalmic Care
@@ -23,10 +23,10 @@ const HOSPITAL_FOOTER = `
     <tr>
       <td align="center" style="padding: 20px; font-family: 'Segoe UI', Arial, sans-serif;">
         <p style="color: #475569; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">
-          Haji Murad Trust Eye Hospital & Laser Center
+          Haji Murad Eye Hospital Trust
         </p>
         <p style="color: #64748B; font-size: 11px; margin: 0 0 10px 0;">
-          Helpline: +92 300 0000000 | Email: info@hmeht.com
+          UAN: 111 333 456 | Helpline: 0324-1111691 | Email: info@hmeht.com
         </p>
         <p style="margin: 0;">
           <a href="https://hmeht.com/" target="_blank" style="color: #1E1433; font-size: 12px; font-weight: 700; text-decoration: none;">
@@ -34,7 +34,7 @@ const HOSPITAL_FOOTER = `
           </a>
         </p>
         <p style="color: #94A3B8; font-size: 10px; margin: 12px 0 0 0;">
-          &copy; ${new Date().getFullYear()} Haji Murad Trust Eye Hospital. All rights reserved.
+          &copy; ${new Date().getFullYear()} Haji Murad Eye Hospital Trust. All rights reserved.
         </p>
       </td>
     </tr>
@@ -103,7 +103,7 @@ export function getUserBookingReceivedEmail(data) {
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FEF3C7; border: 1px solid #FCD34D; border-radius: 10px; margin-bottom: 20px;">
               <tr>
                 <td style="padding: 14px; color: #92400E; font-size: 13px; font-weight: 700; line-height: 1.5;">
-                  🔔 <strong>Note:</strong> Our representative will contact you via phone or WhatsApp within 24 hours to confirm your final booking slot.
+                  <strong>Note:</strong> Our representative will contact you via phone or WhatsApp within 24 hours to confirm your final booking slot.
                 </td>
               </tr>
             </table>
@@ -138,14 +138,6 @@ export function getAdminNewBookingEmail(data) {
     ? data.selectedFeatures.join(", ")
     : "None / Standard Procedure";
 
-  const appointmentId = data.firestoreId || data.id || data.appointmentId || "";
-  const actionToken = data.actionToken || data.token || "";
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://hmeht.com";
-
-  const confirmUrl = `${baseUrl}/api/appointment-action?id=${appointmentId}&action=confirm&token=${actionToken}`;
-  const cancelUrl = `${baseUrl}/api/appointment-action?id=${appointmentId}&action=cancel&token=${actionToken}`;
-  const rescheduleUrl = `${baseUrl}/api/appointment-action?id=${appointmentId}&action=reschedule&token=${actionToken}`;
-
   const html = `
     <!DOCTYPE html>
     <html>
@@ -155,10 +147,10 @@ export function getAdminNewBookingEmail(data) {
         <tr>
           <td align="center" style="padding: 24px 20px; background-color: #1E1B4B; border-radius: 16px 16px 0 0;">
             <h1 style="color: #F59E0B; font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
-              🚨 NEW APPOINTMENT REQUEST
+              NEW APPOINTMENT REQUEST
             </h1>
             <p style="color: #E2E8F0; font-size: 12px; margin: 4px 0 0 0; font-weight: 600;">
-              Haji Murad Trust Eye Hospital Admin System
+              Haji Murad Eye Hospital Trust Admin System
             </p>
           </td>
         </tr>
@@ -201,37 +193,12 @@ export function getAdminNewBookingEmail(data) {
               ${renderDetailRow("Selected Procedures", selectedFeatures, "#FFFFFF")}
             </table>
 
-            <!-- Admin Direct Action Buttons Box -->
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 12px; padding: 18px; margin-top: 20px;">
+            <!-- Info Notice Box -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 12px; padding: 14px; margin-top: 20px;">
               <tr>
                 <td align="center" style="font-family: 'Segoe UI', Arial, sans-serif;">
-                  <p style="color: #0F172A; font-size: 13px; font-weight: 800; margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 0.5px;">
-                    ⚡ Direct Admin Actions (One-Click)
-                  </p>
-                  <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
-                    <tr>
-                      <!-- Confirm Button -->
-                      <td align="center" style="padding: 0 5px;">
-                        <a href="${confirmUrl}" target="_blank" style="display: inline-block; background-color: #059669; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 800; text-decoration: none; padding: 11px 18px; border-radius: 8px; border: 1px solid #047857;">
-                          ✅ Confirm
-                        </a>
-                      </td>
-                      <!-- Cancel Button -->
-                      <td align="center" style="padding: 0 5px;">
-                        <a href="${cancelUrl}" target="_blank" style="display: inline-block; background-color: #DC2626; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 800; text-decoration: none; padding: 11px 18px; border-radius: 8px; border: 1px solid #B91C1C;">
-                          ❌ Cancel
-                        </a>
-                      </td>
-                      <!-- Reschedule Button -->
-                      <td align="center" style="padding: 0 5px;">
-                        <a href="${rescheduleUrl}" target="_blank" style="display: inline-block; background-color: #D97706; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 800; text-decoration: none; padding: 11px 18px; border-radius: 8px; border: 1px solid #B45309;">
-                          📅 Reschedule
-                        </a>
-                      </td>
-                    </tr>
-                  </table>
-                  <p style="color: #64748B; font-size: 11px; margin: 12px 0 0 0; font-weight: 600;">
-                    Clicking Confirm or Cancel will update appointment status & send instant WhatsApp + Email notifications to the patient.
+                  <p style="color: #475569; font-size: 12px; margin: 0; font-weight: 600;">
+                    <strong>Admin Note:</strong> Please review and manage this appointment directly in the Admin Panel.
                   </p>
                 </td>
               </tr>
@@ -269,12 +236,12 @@ export function getConfirmedEmail(data) {
     <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
         <tr>
-          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #059669 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
+          <td align="center" style="padding: 24px 20px; background: #059669; border-radius: 16px 16px 0 0;">
             <h1 style="color: #FFFFFF; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase;">
-              APPOINTMENT CONFIRMED ✅
+              APPOINTMENT CONFIRMED
             </h1>
             <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 4px 0 0 0; font-weight: 700;">
-              Haji Murad Trust Eye Hospital
+              Haji Murad Eye Hospital Trust
             </p>
           </td>
         </tr>
@@ -303,7 +270,7 @@ export function getConfirmedEmail(data) {
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 10px;">
               <tr>
                 <td style="padding: 14px; color: #065F46; font-size: 13px; font-weight: 700; line-height: 1.5;">
-                  📌 <strong>Important Reminder:</strong> Please arrive 15 minutes before your scheduled appointment time. Bring your original CNIC/ID and previous eye medical reports if available.
+                  <strong>Important Reminder:</strong> Please arrive 15 minutes before your scheduled appointment time. Bring your original CNIC/ID and previous eye medical reports if available.
                 </td>
               </tr>
             </table>
@@ -316,7 +283,7 @@ export function getConfirmedEmail(data) {
   `;
 
   return {
-    subject: "Your Appointment is Confirmed ✅ – Haji Murad Eye Hospital Trust",
+    subject: "Your Appointment is Confirmed – Haji Murad Eye Hospital Trust",
     html,
   };
 }
@@ -337,12 +304,12 @@ export function getCancelledEmail(data) {
     <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
         <tr>
-          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #DC2626 0%, #475569 100%); border-radius: 16px 16px 0 0;">
+          <td align="center" style="padding: 24px 20px; background: #DC2626; border-radius: 16px 16px 0 0;">
             <h1 style="color: #FFFFFF; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase;">
               APPOINTMENT CANCELLED
             </h1>
             <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 4px 0 0 0; font-weight: 700;">
-              Haji Murad Trust Eye Hospital
+              Haji Murad Eye Hospital Trust
             </p>
           </td>
         </tr>
@@ -356,7 +323,7 @@ export function getCancelledEmail(data) {
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 10px; margin-bottom: 20px;">
               <tr>
                 <td style="padding: 14px; color: #991B1B; font-size: 13px; font-weight: 700; line-height: 1.5;">
-                  ⚠️ <strong>Reason for Cancellation:</strong> ${cancelReason}
+                  <strong>Reason for Cancellation:</strong> ${cancelReason}
                 </td>
               </tr>
             </table>
@@ -410,12 +377,12 @@ export function getRescheduledEmail(data) {
     <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
         <tr>
-          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #D97706 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
+          <td align="center" style="padding: 24px 20px; background: #D97706; border-radius: 16px 16px 0 0;">
             <h1 style="color: #FFFFFF; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase;">
-              APPOINTMENT RESCHEDULED 📅
+              APPOINTMENT RESCHEDULED
             </h1>
             <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 4px 0 0 0; font-weight: 700;">
-              Haji Murad Trust Eye Hospital
+              Haji Murad Eye Hospital Trust
             </p>
           </td>
         </tr>
@@ -434,7 +401,7 @@ export function getRescheduledEmail(data) {
                   <span style="font-size: 13px; text-decoration: line-through; color: #B45309;">${oldDate} at ${oldTime}</span>
                 </td>
                 <td width="50%" style="padding: 12px; background-color: #ECFDF5; font-size: 12px; color: #065F46;">
-                  <strong style="text-transform: uppercase; letter-spacing: 0.5px;">NEW Confirmed Schedule ✅</strong><br/>
+                  <strong style="text-transform: uppercase; letter-spacing: 0.5px;">NEW Confirmed Schedule</strong><br/>
                   <span style="font-size: 14px; font-weight: 800; color: #047857;">${newDate} at ${newTime}</span>
                 </td>
               </tr>
@@ -450,7 +417,7 @@ export function getRescheduledEmail(data) {
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px;">
               <tr>
                 <td style="padding: 14px; color: #B45309; font-size: 13px; font-weight: 700; line-height: 1.5;">
-                  💬 <strong>Need Changes?</strong> If this new schedule does not suit you, please reply to this email or call our helpline.
+                  <strong>Need Changes?</strong> If this new schedule does not suit you, please reply to this email or call our helpline.
                 </td>
               </tr>
             </table>
@@ -490,11 +457,11 @@ export function getUserInternshipApplicationReceivedEmail(data) {
               Academic Training Portal
             </div>
             <h2 style="color: #0F172A; font-size: 20px; font-weight: 800; margin: 0 0 12px 0;">
-              Internship Application Submitted Successfully! 🎓
+              Internship Application Submitted Successfully!
             </h2>
             <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
               Dear <strong>${applicantName}</strong>,<br/><br/>
-              Thank you for applying to the <strong>${programTitle}</strong> at Haji Murad Trust Eye Hospital. We have received your application and educational credentials.
+              Thank you for applying to the <strong>${programTitle}</strong> at Haji Murad Eye Hospital Trust. We have received your application and educational credentials.
             </p>
 
             <!-- Application Details Card -->
@@ -513,7 +480,7 @@ export function getUserInternshipApplicationReceivedEmail(data) {
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; margin-bottom: 20px;">
               <tr>
                 <td style="padding: 16px; font-size: 13px; color: #166534; line-height: 1.6;">
-                  📅 <strong>What Happens Next?</strong><br/>
+                  <strong>What Happens Next?</strong><br/>
                   Our Academic Selection Board will evaluate your background. You will receive an official notification regarding the status of your application within <strong>3 to 5 business days</strong> via email or WhatsApp.
                 </td>
               </tr>
@@ -521,7 +488,7 @@ export function getUserInternshipApplicationReceivedEmail(data) {
 
             <p style="color: #64748B; font-size: 13px; margin: 0;">
               We wish you the very best in your professional journey,<br/>
-              <strong>Haji Murad Trust Eye Hospital Academic Directorate</strong>
+              <strong>Haji Murad Eye Hospital Trust Academic Directorate</strong>
             </p>
           </td>
         </tr>
@@ -532,7 +499,7 @@ export function getUserInternshipApplicationReceivedEmail(data) {
   `;
 
   return {
-    subject: `Application Received: ${programTitle} – Haji Murad Eye Hospital`,
+    subject: `Application Received: ${programTitle} – Haji Murad Eye Hospital Trust`,
     html,
   };
 }
@@ -557,12 +524,12 @@ export function getAdminNewInternshipApplicationEmail(data) {
     <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
         <tr>
-          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #4338CA 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
+          <td align="center" style="padding: 24px 20px; background: #1E1433; border-radius: 16px 16px 0 0;">
             <h1 style="color: #FFFFFF; font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase;">
-              NEW INTERNSHIP CANDIDATE 🎓
+              NEW INTERNSHIP CANDIDATE
             </h1>
             <p style="color: rgba(255,255,255,0.85); font-size: 12px; margin: 4px 0 0 0; font-weight: 700;">
-              Haji Murad Trust Eye Hospital Admin Alert
+              Haji Murad Eye Hospital Trust Admin Alert
             </p>
           </td>
         </tr>
@@ -611,7 +578,7 @@ export function getAdminNewInternshipApplicationEmail(data) {
   `;
 
   return {
-    subject: `🎓 New Internship Application: ${applicantName} – ${programTitle}`,
+    subject: `New Internship Application: ${applicantName} – ${programTitle}`,
     html,
   };
 }
@@ -632,12 +599,12 @@ export function getUserInternshipAcceptedEmail(data) {
     <body style="margin: 0; padding: 20px; background-color: #F1F5F9; font-family: 'Segoe UI', Arial, sans-serif;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
         <tr>
-          <td align="center" style="padding: 24px 20px; background: linear-gradient(135deg, #059669 0%, #1E1433 100%); border-radius: 16px 16px 0 0;">
+          <td align="center" style="padding: 24px 20px; background: #059669; border-radius: 16px 16px 0 0;">
             <h1 style="color: #FFFFFF; font-size: 22px; font-weight: 800; margin: 0; text-transform: uppercase;">
-              CONGRATULATIONS! ACCEPTED ✅
+              CONGRATULATIONS! ACCEPTED
             </h1>
             <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 4px 0 0 0; font-weight: 700;">
-              Haji Murad Trust Eye Hospital Academic Board
+              Haji Murad Eye Hospital Trust Academic Board
             </p>
           </td>
         </tr>
@@ -645,7 +612,7 @@ export function getUserInternshipAcceptedEmail(data) {
           <td style="padding: 28px 24px;">
             <p style="color: #0F172A; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
               Dear <strong>${applicantName}</strong>,<br/><br/>
-              We are delighted to inform you that your application for the <strong>${programTitle}</strong> has been officially <strong>ACCEPTED</strong> by the Academic Directorate of Haji Murad Trust Eye Hospital!
+              We are delighted to inform you that your application for the <strong>${programTitle}</strong> has been officially <strong>ACCEPTED</strong> by the Academic Directorate of Haji Murad Eye Hospital Trust!
             </p>
 
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border: 1px solid #A7F3D0; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
@@ -658,23 +625,23 @@ export function getUserInternshipAcceptedEmail(data) {
               ${renderDetailRow("Accepted Program", programTitle, "#FFFFFF")}
               ${renderDetailRow("Department", department, "#ECFDF5")}
               ${renderDetailRow("Program Schedule Timing", timing, "#FFFFFF")}
-              ${renderDetailRow("Status", "<span style='color: #059669; font-weight: 800;'>ACCEPTED & CONFIRMED ✅</span>", "#ECFDF5")}
+              ${renderDetailRow("Status", "<span style='color: #059669; font-weight: 800;'>ACCEPTED & CONFIRMED</span>", "#ECFDF5")}
             </table>
 
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ECFDF5; border: 1px solid #6EE7B7; border-radius: 12px; margin-bottom: 20px;">
               <tr>
                 <td style="padding: 16px; font-size: 13px; color: #065F46; line-height: 1.6;">
-                  📋 <strong>Orientation Instructions:</strong><br/>
+                  <strong>Orientation Instructions:</strong><br/>
                   Our academic coordinator will reach out to you via Phone/WhatsApp to guide you through the orientation schedule and document submission. Please keep your educational original certificates ready.
                 </td>
               </tr>
             </table>
 
             <p style="color: #334155; font-size: 13px; margin: 0;">
-              Congratulations once again on joining Haji Murad Eye Hospital!<br/><br/>
+              Congratulations once again on joining Haji Murad Eye Hospital Trust!<br/><br/>
               Warm regards,<br/>
               <strong>Academic Selection Directorate</strong><br/>
-              Haji Murad Trust Eye Hospital
+              Haji Murad Eye Hospital Trust
             </p>
           </td>
         </tr>
@@ -685,7 +652,7 @@ export function getUserInternshipAcceptedEmail(data) {
   `;
 
   return {
-    subject: `🎉 Congratulations! Application Accepted for ${programTitle} – Haji Murad Eye Hospital`,
+    subject: `Congratulations! Application Accepted for ${programTitle} – Haji Murad Eye Hospital Trust`,
     html,
   };
 }
@@ -711,7 +678,7 @@ export function getUserInternshipRejectedEmail(data) {
             </h2>
             <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
               Dear <strong>${applicantName}</strong>,<br/><br/>
-              Thank you for taking the time to apply for the <strong>${programTitle}</strong> at Haji Murad Trust Eye Hospital.
+              Thank you for taking the time to apply for the <strong>${programTitle}</strong> at Haji Murad Eye Hospital Trust.
             </p>
             <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
               After a thorough review of all applications by our Academic Board, we regret to inform you that we are unable to offer you a position for this current intake due to high candidate competition and limited seat availability.
@@ -720,7 +687,7 @@ export function getUserInternshipRejectedEmail(data) {
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 20px;">
               <tr>
                 <td style="padding: 16px; font-size: 13px; color: #475569; line-height: 1.6;">
-                  💡 <strong>Future Opportunities:</strong><br/>
+                  <strong>Future Opportunities:</strong><br/>
                   Your profile has been saved in our academic talent database. We encourage you to re-apply for upcoming training cohorts and specialized academic workshops.
                 </td>
               </tr>
@@ -730,7 +697,7 @@ export function getUserInternshipRejectedEmail(data) {
               We wish you every success in your future academic and professional endeavors.<br/><br/>
               Sincerely,<br/>
               <strong>Academic Directorate</strong><br/>
-              Haji Murad Trust Eye Hospital
+              Haji Murad Eye Hospital Trust
             </p>
           </td>
         </tr>
@@ -741,7 +708,7 @@ export function getUserInternshipRejectedEmail(data) {
   `;
 
   return {
-    subject: `Update Regarding Your Application for ${programTitle} – Haji Murad Eye Hospital`,
+    subject: `Update Regarding Your Application for ${programTitle} – Haji Murad Eye Hospital Trust`,
     html,
   };
 }

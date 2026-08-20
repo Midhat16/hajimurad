@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { collection, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CalendarDays, Plus, Trash2, Edit, Calendar, MapPin, Clock, Tag, Star } from "lucide-react";
@@ -121,14 +122,17 @@ export default function AdminEventsPage() {
             >
               {/* Event Image Banner */}
               <div className="relative w-full h-44 bg-slate-100 overflow-hidden">
-                {evt.imageUrl ? (
-                  <img
-                    src={evt.imageUrl}
-                    alt={evt.title}
+                {evt.imageUrl && typeof evt.imageUrl === "string" && evt.imageUrl.trim() ? (
+                  <Image
+                    src={evt.imageUrl.trim()}
+                    alt={evt.title || "Event Banner"}
+                    width={400}
+                    height={176}
+                    unoptimized
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-tr from-slate-700 to-slate-900 flex items-center justify-center p-6 text-white text-center">
+                  <div className="w-full h-full bg-[#0F172A] flex items-center justify-center p-6 text-white text-center">
                     <CalendarDays className="w-12 h-12 opacity-40" />
                   </div>
                 )}

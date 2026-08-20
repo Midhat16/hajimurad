@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { HeartHandshake, Plus, Trash2, Edit, User, Video } from "lucide-react";
@@ -112,7 +113,14 @@ export default function AdminSuccessStoriesPage() {
                   <div className="flex items-center gap-3">
                     {item.imageUrl ? (
                       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-slate-200 shadow-xs flex-shrink-0">
-                        <img src={item.imageUrl} alt={item.patientName} className="w-full h-full object-cover" />
+                        <Image
+                          src={item.imageUrl}
+                          alt={`${item.patientName || "Patient"} Photo - Success Story`}
+                          width={80}
+                          height={80}
+                          unoptimized
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ) : (
                       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--fog)] border border-slate-200 flex items-center justify-center text-[var(--iris)] font-bold flex-shrink-0">

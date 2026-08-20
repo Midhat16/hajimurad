@@ -10,6 +10,8 @@ import { useSearchParams } from "next/navigation";
 import { getWhatsAppAppointmentUrl } from "@/lib/whatsappHelper";
 import { motion, AnimatePresence } from "framer-motion";
 
+import ConfirmModal from "@/components/admin/ConfirmModal";
+
 function AdminAppointmentsPage() {
   const searchParams = useSearchParams();
   const rescheduleId = searchParams.get("rescheduleId");
@@ -23,6 +25,7 @@ function AdminAppointmentsPage() {
   const [confirmDate, setConfirmDate] = useState("");
   const [confirmTime, setConfirmTime] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState(null);
 
   useEffect(() => {
     // 1. Subscribe to appointments
@@ -146,34 +149,8 @@ function AdminAppointmentsPage() {
       const actionType = isRescheduled ? "rescheduled" : "accepted";
       await notifyOnAdminAction(actionType, confirmingAppt, confirmDate, confirmTime);
 
-      // Trigger automatic status email to Patient
-      if (isRescheduled) {
-        triggerEmailApi({
-          type: "STATUS_RESCHEDULED",
-          data: {
-            ...confirmingAppt,
-            oldDate: confirmingAppt.date,
-            oldTime: confirmingAppt.time,
-            date: confirmDate,
-            time: confirmTime,
-          },
-        }).catch((err) => console.warn("Rescheduled email trigger notice:", err));
-      } else {
-        triggerEmailApi({
-          type: "STATUS_CONFIRMED",
-          data: {
-            ...confirmingAppt,
-            date: confirmDate,
-            time: confirmTime,
-          },
-        }).catch((err) => console.warn("Confirmed email trigger notice:", err));
-      }
-
-      // Trigger automatic WhatsApp open for patient notification
-      const waUrl = getWhatsAppAppointmentUrl(isRescheduled ? "rescheduled" : "confirmed", confirmingAppt, confirmDate, confirmTime);
-      if (waUrl && typeof window !== "undefined") {
-        window.open(waUrl, "_blank");
-      }
+      // Trigger patient notification (WhatsApp ALWAYS, Email ADDITIONALLY if provided)
+      await notifyPatientOfStatusChange(actionType, confirmingAppt, confirmDate, confirmTime);
 
       setConfirmingAppt(null);
     } catch (err) {
@@ -184,9 +161,8 @@ function AdminAppointmentsPage() {
     }
   };
 
-  const handleCancelStatus = async (apptId) => {
+  const processCancelStatus = async (apptId) => {
     const appt = appointments.find((a) => a.id === apptId);
-    if (!confirm("Are you sure you want to mark this appointment as cancelled?")) return;
     try {
       await updateDoc(doc(db, "appointments", apptId), {
         status: "cancelled",
@@ -195,20 +171,10 @@ function AdminAppointmentsPage() {
         cancelledAt: new Date().toISOString(),
       });
 
-      // Trigger notification for Doctor
+      // Trigger notification for Doctor and Patient
       if (appt) {
         await notifyOnAdminAction("rejected", appt);
-
-        // Trigger automatic cancellation email to Patient
-        triggerEmailApi({
-          type: "STATUS_CANCELLED",
-          data: appt,
-        }).catch((err) => console.warn("Cancelled email trigger notice:", err));
-
-        const waUrl = getWhatsAppAppointmentUrl("cancelled", appt);
-        if (waUrl && typeof window !== "undefined") {
-          window.open(waUrl, "_blank");
-        }
+        await notifyPatientOfStatusChange("cancelled", appt);
       }
     } catch (err) {
       console.error("Failed to cancel appointment:", err);
@@ -482,6 +448,17 @@ function AdminAppointmentsPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!confirmConfig?.isOpen}
+        title={confirmConfig?.title}
+        message={confirmConfig?.message}
+        type={confirmConfig?.type}
+        confirmText={confirmConfig?.confirmText}
+        onConfirm={confirmConfig?.onConfirm}
+        onCancel={() => setConfirmConfig(null)}
+      />
     </div>
   );
 }

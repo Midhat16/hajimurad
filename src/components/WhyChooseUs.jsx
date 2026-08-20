@@ -1,66 +1,28 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import { Trophy, Users, Award, ShieldCheck, HeartHandshake, Eye } from "lucide-react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
-// Count-up counter component triggered on scroll in view
-function Counter({ target, duration = 1500, suffix = "" }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
-  const animatedRef = useRef(false);
-
-  useEffect(() => {
-    if (isInView && !animatedRef.current) {
-      animatedRef.current = true;
-      let start = 0;
-      const end = Number(target) || 0;
-      const totalSteps = 60; // 60 frames
-      const stepTime = duration / totalSteps;
-      const increment = (end - start) / totalSteps;
-
-      let currentStep = 0;
-      const timer = setInterval(() => {
-        currentStep++;
-        if (currentStep >= totalSteps) {
-          clearInterval(timer);
-          setCount(end);
-        } else {
-          setCount(Math.floor(start + increment * currentStep));
-        }
-      }, stepTime);
-
-      return () => clearInterval(timer);
-    }
-  }, [isInView, target, duration]);
-
-  // Nicely formats numbers (e.g. 45000 -> 45,000)
-  const formatNumber = (num) => {
-    return num.toLocaleString();
-  };
-
-  return <span ref={ref}>{formatNumber(count)}{suffix}</span>;
-}
 
 const DEFAULT_WHY_CONTENT = {
   badgeText: "Pioneering Vision Science",
   heading: "Why Choose Haji Murad Eye Hospital Trust",
   description: "Haji Murad Eye Hospital is not just an eye hospital; it is a specialized center of vision science. We combine decades of experience with advanced diagnostics to resolve vision issues before they disrupt your life.",
-  yearsExperience: 25,
-  successfulSurgeries: 45000,
-  certifiedSpecialists: 18,
-  patientSuccessRate: 99.8,
+  yearsExperience: "25+",
+  successfulSurgeries: "45,000+",
+  certifiedSpecialists: "18+",
+  patientSuccessRate: "99.8%",
   points: [
     {
       title: "Proper patient care",
-      description: "Every laser and scanning machine we utilize is state-of-the-art and certified by international health boards.",
+      description: "Every laser and scanning machine we utilize is modern, high-precision equipment meeting international safety and clinical standards.",
     },
     {
       title: "Early diagnosis & management",
-      description: "Personalized outpatient care plans and a lifetime follow-up guarantee for all surgical procedures.",
+      description: "Personalized outpatient care plans and dedicated post-operative follow-up support for all surgical procedures.",
     },
     {
       title: "Basic to advance treatment",
@@ -99,7 +61,7 @@ export default function WhyChooseUs() {
   }, []);
 
   return (
-    <section id="why-choose-us" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-hidden w-full">
+    <section id="why-choose-us" className="py-14 lg:py-16 bg-[var(--fog)] relative overflow-visible w-full">
       {/* Dynamic blurred glow shapes */}
       <div className="absolute top-1/2 left-0 w-80 h-80 rounded-full bg-slate-100/40 blur-3xl pointer-events-none -translate-x-1/2" />
       
@@ -154,9 +116,13 @@ export default function WhyChooseUs() {
                       {loading ? (
                         <div className="w-full h-full bg-slate-200/80 animate-pulse rounded-lg" />
                       ) : iconImageUrl ? (
-                        <img
+                        <Image
                           src={iconImageUrl}
-                          alt={point.title || "Highlight Icon"}
+                          alt={`${point.title || "Hospital Feature"} Icon - Haji Murad Eye Hospital Trust`}
+                          width={44}
+                          height={44}
+                          loading="lazy"
+                          decoding="async"
                           style={{ objectFit: "contain" }}
                           className="w-full h-full transition-transform duration-500 ease-in-out group-hover:-scale-x-100"
                         />
@@ -193,7 +159,7 @@ export default function WhyChooseUs() {
                     <Trophy className="w-4 h-4" />
                   </div>
                   <div className="text-xl sm:text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
-                    <Counter target={content.yearsExperience} suffix="+" />
+                    {content.yearsExperience || "Coming Soon"}
                   </div>
                   <p className="text-[9px] sm:text-[10px] font-bold text-[var(--iris)] uppercase tracking-wider leading-none">
                     Years of Expertise
@@ -213,7 +179,7 @@ export default function WhyChooseUs() {
                     <Users className="w-4 h-4" />
                   </div>
                   <div className="text-xl sm:text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
-                    <Counter target={content.successfulSurgeries} suffix="+" />
+                    {content.successfulSurgeries || "Coming Soon"}
                   </div>
                   <p className="text-[9px] sm:text-[10px] font-bold text-[var(--iris)] uppercase tracking-wider leading-none">
                     Successful Surgeries
@@ -233,7 +199,7 @@ export default function WhyChooseUs() {
                     <Award className="w-4 h-4" />
                   </div>
                   <div className="text-xl sm:text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
-                    <Counter target={content.certifiedSpecialists} suffix="+" />
+                    {content.certifiedSpecialists || "Coming Soon"}
                   </div>
                   <p className="text-[9px] sm:text-[10px] font-bold text-[var(--iris)] uppercase tracking-wider leading-none">
                     Certified Specialists
@@ -253,7 +219,7 @@ export default function WhyChooseUs() {
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div className="text-xl sm:text-2xl font-extrabold text-[#2B1F1A] tracking-tight">
-                    <Counter target={content.patientSuccessRate} suffix="%" />
+                    {content.patientSuccessRate || "Coming Soon"}
                   </div>
                   <p className="text-[9px] sm:text-[10px] font-bold text-[var(--iris)] uppercase tracking-wider leading-none">
                     Patient Success Rate

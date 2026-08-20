@@ -37,7 +37,7 @@ function ActionSuccessContent() {
         {/* Title */}
         <h1 className="text-2xl font-extrabold text-[#2B1F1A]">
           {isConfirmed
-            ? "Appointment Confirmed! ✅"
+            ? "Appointment Confirmed!"
             : isCancelled
             ? "Appointment Cancelled"
             : error

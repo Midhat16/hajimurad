@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { collection, onSnapshot, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Plus, Edit3, Trash2, Cpu, AlertTriangle, X, ShieldCheck } from "lucide-react";
@@ -64,7 +65,7 @@ export default function AdminTechnologiesListPage() {
 
         <Link
           href="/admin/technologies/new"
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--ink)] to-[var(--iris)] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
+          className="inline-flex items-center gap-2 bg-[#1E1433] hover:bg-[#2A1C47] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-95 transition-opacity self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add Technology
@@ -107,9 +108,12 @@ export default function AdminTechnologiesListPage() {
                   <div className="flex items-center gap-3">
                     {(tech.images && tech.images.length > 0) || tech.imageUrl ? (
                       <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[var(--line)] shadow-xs flex-shrink-0 bg-slate-50 p-1 flex items-center justify-center">
-                        <img
+                        <Image
                           src={tech.images && tech.images.length > 0 ? tech.images[0] : tech.imageUrl}
-                          alt={tech.name}
+                          alt={tech.name || "Equipment Thumbnail"}
+                          width={48}
+                          height={48}
+                          unoptimized
                           className="w-full h-full object-contain"
                         />
                       </div>

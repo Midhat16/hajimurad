@@ -28,21 +28,40 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingHorizontal: 0,
   },
-  // Top Banner Wrapper on Page 1 (Full Bleed Edge-to-Edge Width: 0 to 595pt)
-  headerWrapper: {
-    width: "100%",
-    marginBottom: 14,
-  },
-  // 1. Website Navbar Style Header Bar (Full Width)
+  // Standalone Top Website Header Bar (Solid Cream #F7F3EA Background)
   websiteHeaderBar: {
-    backgroundColor: "#FBF9F4",
+    width: "100%",
+    backgroundColor: "#F7F3EA",
     paddingHorizontal: 25,
     paddingVertical: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E1F9",
+    borderBottomWidth: 3,
+    borderBottomColor: "#C4232C",
+  },
+  // Separate Hospital Building Cover Image Banner (Starts right after Header bar)
+  bannerImageContainer: {
+    width: "100%",
+    height: 195,
+    position: "relative",
+    backgroundColor: "#1E1433",
+    marginBottom: 8,
+  },
+  bannerBgBlur: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    opacity: 0.35,
+  },
+  bannerMainImage: {
+    position: "relative",
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
   },
   headerLeftBrand: {
     flexDirection: "row",
@@ -103,22 +122,6 @@ const styles = StyleSheet.create({
     textDecoration: "underline",
   },
 
-  // 2. Full Width Building Image Banner (100% Page Width - Edge to Edge, No Side Margins)
-  fullWidthBuildingImageContainer: {
-    width: "100%",
-    height: 175,
-    overflow: "hidden",
-  },
-  fullWidthBuildingImage: {
-    width: "100%",
-    height: 175,
-  },
-  redBannerLine: {
-    height: 3.5,
-    width: "100%",
-    backgroundColor: "#C4232C",
-  },
-
   // Continuation Header for Page 2+
   continuationHeader: {
     flexDirection: "row",
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
   // Main Container
   container: {
     paddingHorizontal: 35,
-    paddingTop: 18,
+    paddingTop: 10,
   },
 
   // Title Row
@@ -396,7 +399,7 @@ export default function AppointmentPDFDocument({
   dob = "",
   gender = "",
   cnic = "",
-  contact = "0324-1111692",
+  contact = "0324-1111691",
   email = "",
   address = "",
   guardianName = "",
@@ -412,10 +415,12 @@ export default function AppointmentPDFDocument({
   notes = "",
   logoUrl = PDF_LOGO_BASE64,
   bannerBgUrl = PDF_BANNER_BASE64,
+  blurredBannerBgUrl = null,
 }) {
   // Safe Base64 Image Resolvers
   const resolvedLogoUrl = getSafePdfImage(logoUrl, PDF_LOGO_BASE64);
   const resolvedBannerBgUrl = getSafePdfImage(bannerBgUrl, PDF_BANNER_BASE64);
+  const resolvedBlurredBannerUrl = getSafePdfImage(blurredBannerBgUrl, resolvedBannerBgUrl);
 
   // Normalize selectedFeatures if passed as comma-separated string
   let featuresList = [];
@@ -430,41 +435,46 @@ export default function AppointmentPDFDocument({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Top Header Wrapper (Page 1) */}
-        <View style={styles.headerWrapper}>
-          {/* 1. Website Navbar Style Header Bar (Full Width) */}
-          <View style={styles.websiteHeaderBar}>
-            {/* Left Side: Circular Logo + Haji Murad EYE HOSPITAL TRUST Brand */}
-            <View style={styles.headerLeftBrand}>
-              <Image src={resolvedLogoUrl} style={styles.headerLogoCircle} />
-              <View style={styles.brandTextContainer}>
-                <View style={styles.brandTitleRow}>
-                  <Text style={styles.brandNameDark}>Haji</Text>
-                  <Text style={styles.brandNameRed}>Murad</Text>
-                </View>
-                <Text style={styles.brandSubtextRed}>EYE HOSPITAL TRUST</Text>
+        {/* 1. Standalone Top Header Bar (Logo + Brand + Helpline Contact Info) */}
+        <View style={styles.websiteHeaderBar}>
+          {/* Left Side: Circular Logo + Brand Name */}
+          <View style={styles.headerLeftBrand}>
+            <Image src={resolvedLogoUrl} style={styles.headerLogoCircle} />
+            <View style={styles.brandTextContainer}>
+              <View style={styles.brandTitleRow}>
+                <Text style={styles.brandNameDark}>Haji</Text>
+                <Text style={styles.brandNameRed}>Murad</Text>
               </View>
-            </View>
-
-            {/* Right Side: Hospital Contact Details (Helpline, Email, Web) */}
-            <View style={styles.headerRightContact}>
-              <Text style={styles.contactItemText}>
-                Query Helpline: <Text style={styles.contactItemHighlight}>0324-1111692</Text>
-              </Text>
-              <Text style={styles.contactItemText}>
-                Email: <Text style={styles.contactItemHighlight}>info@hmeht.com</Text>
-              </Text>
-              <Text style={styles.contactItemText}>
-                Web: <Text style={styles.contactWebLink}>https://hmeht.com/</Text>
-              </Text>
+              <Text style={styles.brandSubtextRed}>EYE HOSPITAL TRUST</Text>
             </View>
           </View>
 
-          {/* 2. Full Page Width Hospital Building Cover Image Banner */}
-          <View style={styles.fullWidthBuildingImageContainer}>
-            <Image src={resolvedBannerBgUrl} style={styles.fullWidthBuildingImage} />
+          {/* Right Side: Hospital Contact Details (Helpline, Email, Web) */}
+          <View style={styles.headerRightContact}>
+            <Text style={styles.contactItemText}>
+              Query Helpline: <Text style={styles.contactItemHighlight}>0324-1111691</Text>
+            </Text>
+            <Text style={styles.contactItemText}>
+              Email: <Text style={styles.contactItemHighlight}>info@hmeht.com</Text>
+            </Text>
+            <Text style={styles.contactItemText}>
+              Web: <Text style={styles.contactWebLink}>https://hmeht.com/</Text>
+            </Text>
           </View>
-          <View style={styles.redBannerLine} />
+        </View>
+
+        {/* 2. Separate Hospital Building Photo Banner (Zero Top Crop, Contain Main + Ambient Background Fill) */}
+        <View style={styles.bannerImageContainer}>
+          <Image
+            src={resolvedBlurredBannerUrl || resolvedBannerBgUrl}
+            style={styles.bannerBgBlur}
+            objectFit="cover"
+          />
+          <Image
+            src={resolvedBannerBgUrl}
+            style={styles.bannerMainImage}
+            objectFit="contain"
+          />
         </View>
 
         {/* Main Content Area */}
@@ -747,7 +757,7 @@ export default function AppointmentPDFDocument({
               <Text style={styles.policyText}>
                 If you need to reschedule or cancel your appointment, please notify us at least 4 hours in advance.
               </Text>
-              <Text style={styles.queryContact}>For any queries or assistance, contact helpline: 0324-1111692</Text>
+              <Text style={styles.queryContact}>For any queries or assistance, contact helpline: 0324-1111691</Text>
             </View>
           </View>
         </View>

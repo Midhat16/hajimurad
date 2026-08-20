@@ -19,8 +19,8 @@ const SERVICES_DATA = [
       "Orthoptic Assessment",
       "Consultation",
     ],
-    image: "/images/hero-opd-examination.jpg",
-    alt: "OPD Eye Examination Consultation",
+    image: "/images/service-opd.jpg",
+    alt: "OPD Services Consultation & Assessment",
   },
   {
     id: "diagnostic",
@@ -34,8 +34,8 @@ const SERVICES_DATA = [
       "B-SCAN",
       "Biometry",
     ],
-    image: "/images/gallery-oct.jpg",
-    alt: "Advanced Ocular Diagnostic Testing",
+    image: "/images/service-diagnostic.jpg",
+    alt: "Diagnostic Services High-Precision Imaging",
   },
   {
     id: "laser",
@@ -49,8 +49,8 @@ const SERVICES_DATA = [
       "PRP",
       "360 Degree Laser Barrage",
     ],
-    image: "/images/laser-services-ot.jpg",
-    alt: "Precision Ophthalmic Laser Treatment",
+    image: "/images/service-laser.jpg",
+    alt: "Laser Services Ophthalmic Laser Treatment",
   },
   {
     id: "therapeutic",
@@ -64,8 +64,8 @@ const SERVICES_DATA = [
       "Diabetic Retinopathy Treatment",
       "Vitreoretinal Surgery",
     ],
-    image: "/images/therapeutic-services.jpg",
-    alt: "Advanced Therapeutic Surgical Suite",
+    image: "/images/service-therapeutic.jpg",
+    alt: "Therapeutic Services Surgical Suite",
   },
 ];
 
@@ -99,7 +99,7 @@ export default function ServicesPreview() {
               Our Core Clinical Services
             </h2>
             <p className="text-sm sm:text-base text-[var(--slate)] font-medium leading-relaxed max-w-2xl mx-auto mt-2">
-              Explore our primary ophthalmic departments offering world-class diagnostic, laser, and therapeutic solutions for complete eye wellness.
+              Explore our primary ophthalmic departments offering advanced diagnostic, laser, and therapeutic solutions for complete eye wellness.
             </p>
           </motion.div>
         </div>
@@ -219,8 +219,8 @@ export default function ServicesPreview() {
               </div>
 
               {/* RIGHT COLUMN: Service Image */}
-              <div className="lg:col-span-5">
-                <div className="relative h-64 sm:h-80 lg:h-96 w-full rounded-2xl overflow-hidden shadow-lg border border-[var(--line)] group">
+              <div className="lg:col-span-5 flex items-center">
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] lg:aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-xl border border-[var(--line)] bg-white group">
                   <Image
                     src={activeService.image}
                     alt={activeService.alt}
@@ -228,7 +228,6 @@ export default function ServicesPreview() {
                     sizes="(max-width: 1024px) 100vw, 45vw"
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
                 </div>
               </div>
             </motion.div>
